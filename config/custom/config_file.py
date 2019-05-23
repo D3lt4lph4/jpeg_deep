@@ -3,15 +3,22 @@ from os.path import join
 from keras.optimizers import Adadelta, SGD
 from keras.losses import categorical_crossentropy
 from keras.callbacks import ModelCheckpoint, TerminateOnNaN, CSVLogger, EarlyStopping, ReduceLROnPlateau
+from keras.preprocessing.image import ImageDataGenerator
+from keras.applications.vgg16 import preprocess_input
 
-from dct_vgg.networks import VGG16_A, VGG16_D
-from dct_vgg.networks import VGG16_A_Initial, VGG16_A_Deconvolution
-from dct_vgg.networks import VGG16_D_Initial, VGG16_D_Deconvolution
-from dct_vgg.networks import VGG16AInitialBNAfter
-from dct_vgg.networks import VGG16AInitialNoBN
-from dct_vgg.generators import DummyGenerator
-from dct_vgg.evaluation import Evaluator
-from dct_vgg.displayer import Displayer
+from vgg_jpeg.networks import VGG16A, VGG16D
+from vgg_jpeg.networks import VGG16A3CBNI, VGG16D3CBNI
+from vgg_jpeg.networks import VGG16A3CBNIDeconvolution, VGG16D3CBNIDeconvolution
+from vgg_jpeg.networks import VGG16A3CBNA, VGG16D3CBNA
+from vgg_jpeg.networks import VGG16A3CBNADeconvolution, VGG16D3CBNADeconvolution
+from vgg_jpeg.networks import VGG16A3CNoBN
+from vgg_jpeg.networks import VGG16D64CBNI
+from vgg_jpeg.generators import DCTGeneratorImageNet
+from vgg_jpeg.generators import DCTGeneratorJPEG2DCT
+from vgg_jpeg.generators import DummyGenerator
+from vgg_jpeg.generators import DummyGenerator
+from vgg_jpeg.evaluation import Evaluator
+from vgg_jpeg.displayer import Displayer
 
 from template.config import TemplateConfiguration
 
@@ -23,9 +30,9 @@ class TrainingConfiguration(TemplateConfiguration):
         self.config_description = "This is the template config file."
 
         # System dependent variable
-        self._workers = 28
+        self._workers = 1
         self._multiprocessing = False
-        self._gpus = 2
+        self._gpus = 1
 
         # Variables for comet.ml
         self._project_name = "vgg_jpeg"
@@ -35,7 +42,7 @@ class TrainingConfiguration(TemplateConfiguration):
         self.num_classes = 1000
         self.img_size = (224, 224)
         self._weights = None
-        self._network = VGG16_D_Initial(self.num_classes)
+        self._network = VGG16D(self.num_classes)
 
         # Training variables
         self._epochs = 120
@@ -47,7 +54,7 @@ class TrainingConfiguration(TemplateConfiguration):
         self._metrics = ['accuracy']
         self.train_directory = "/save/2017018/bdegue01/imagenet/training"
         self.validation_directory = "/save/2017018/bdegue01/imagenet/validation"
-        self.index_file = "/home/2017018/bdegue01/git/these_code_testing/dct_vgg/data/imagenet_class_index.json"
+        self.index_file = "/home/2017018/bdegue01/git/these_code_testing/vgg_jpeg/data/imagenet_class_index.json"
 
         # Keras stuff
         self.model_checkpoint = None
@@ -89,11 +96,14 @@ class TrainingConfiguration(TemplateConfiguration):
         self._evaluator = Evaluator()
 
     def prepare_testing_generator(self):
-        self._test_generator = DummyGenerator(**self.test_generator_params)
+        self._test_generator = ImageDataGenerator(preprocessing_function=preprocess_input).flow_from_directory(
+            self.train_directory, target_size=self.img_size, batch_size=self.batch_size)DummyGenerator(**self.test_generator_params)
 
     def prepare_training_generators(self):
-        self._train_generator = DummyGenerator(**self.train_generator_params)
-        self._validation_generator = DummyGenerator(**self.validation_generator_params
+        self._train_generator = ImageDataGenerator(preprocessing_function=preprocess_input).flow_from_directory(
+            self.train_directory, target_size=self.img_size, batch_size=self.batch_size)
+        self._validation_generator = ImageDataGenerator(preprocessing_function=preprocess_input).flow_from_directory(
+            self.train_directory, target_size=self.img_size, batch_size=self.batch_size)
 
     @property
     def train_generator(self):
