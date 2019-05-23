@@ -8,7 +8,7 @@ from jpeg2dct.numpy import load, loads
 import jpegdecoder
 
 
-class GeneratorPreResized(keras.utils.Sequence):
+class DCTGeneratorJPEG2DCT(keras.utils.Sequence):
     'Generates data in the DCT space for Keras.'
 
     def __init__(self, data_directory, index_file, batch_size=32, shuffle=True, load_in_memory=True):
@@ -111,110 +111,7 @@ class GeneratorPreResized(keras.utils.Sequence):
 
         return [X_y, X_cbcr], y
 
-class GeneratorOnlineResize(keras.utils.Sequence):
-    'Generates data in the DCT space for Keras.'
-
-    def __init__(self, data_directory, index_file, batch_size=32, shuffle=True, load_in_memory=True):
-
-        self.batch_size = batch_size
-        self.data_directory = data_directory
-        self.shuffle = shuffle
-        self.load_in_memory = load_in_memory
-
-        # Process the index dictionary to get the matching name/class_id
-        self.association = {}
-        with open(index_file) as index:
-            data = json.load(index)
-            for id, value in data.items():
-                self.association[value[0]] = id
-
-        # First we process the data directory to get all the classes
-        self.classes = []
-        self.images_path = []
-        self.data = []
-        for directory in os.listdir(data_directory):
-            class_directory = os.path.join(data_directory, directory)
-            if os.path.isdir(class_directory):
-                self.classes.append(directory)
-                for image in os.listdir(class_directory):
-                    image_path = os.path.join(class_directory, image)
-                    self.images_path.append(image_path)
-                    if load_in_memory:
-                        # All the images would not fit in memory so we just load the compressed data
-                        with open(image_path, "rb") as fin:
-                            self.data.append(fin.read())
-
-        self.number_of_classes = len(self.classes)
-        
-        self.batches_per_epoch = len(self.images_path) // self.batch_size
-        self.indexes = np.arange(len(self.images_path))
-        self.on_epoch_end()
-
-    def __len__(self):
-        'Denotes the number of batches per epoch'
-        return self.batches_per_epoch
-
-    def __getitem__(self, index):
-        'Generate one batch of data'
-        # Generate indexes of the batch
-        # We have to use modulo to avoid overflowing the index size if we have too many batches per epoch
-        index = index % self.batches_per_epoch
-        indexes = self.indexes[index*self.batch_size:(index+1)*self.batch_size]
-
-        # Generate data
-        X, y = self.__data_generation(indexes)
-
-        return X, y
-
-    def on_epoch_end(self):
-        'Updates indexes after each epoch'
-        if self.shuffle == True:
-            np.random.shuffle(self.indexes)
-
-    def __data_generation(self, indexes):
-        # X : (n_samples, *dim, n_channels)
-        'Generates data containing batch_size samples'
-
-        # Two inputs for the data of one image.
-        X_y = np.empty((self.batch_size, 28, 28, 64))
-        X_cbcr = np.empty((self.batch_size, 14, 14, 128))
-        y = np.zeros((self.batch_size, self.number_of_classes))
-
-        # iterate over the indexes to get the correct values
-        for i, k in enumerate(indexes):
-
-            last_slash = self.images_path[k].rfind("/")
-            second_last_slash = self.images_path[k][:last_slash].rfind("/")
-            index_class = self.images_path[k][second_last_slash + 1:last_slash]
-
-            # if the data is already loaded in memory, we read from it
-            if self.load_in_memory:
-                dct_y, dct_cb, dct_cr = loads(self.data[k])
-            else:
-                dct_y, dct_cb, dct_cr = load(self.images_path[k])
-            
-            # We carry the "data-augmentation"
-            # For this generator, all the images have one size at 224, find it and then random select the 224 pixels from the other side
-            if dct_y.shape[0] == 28:
-                biggest = dct_y.shape[1]
-            else:
-                biggest = dct_y.shape[0]
-            
-            offset = random.randint(0, biggest - 28)
-
-            # Load the data in the matrices
-            if dct_y.shape[0] == 28:
-                X_y[i] = dct_y[:,offset:28 + offset, :]
-                X_cbcr[i] = np.concatenate((dct_cb[:,offset:14 + offset, :], dct_cr[:,offset:14 + offset, :]), -1)
-            else:
-                X_y[i] = dct_y[offset:28 + offset, :, :]
-                X_cbcr[i] = np.concatenate((dct_cb[offset:28 + offset, :, :], dct_cr[offset:28 + offset, :, :]), -1)
-
-            y[i, int(self.association[index_class])] = 1
-
-        return [X_y, X_cbcr], y
-
-class DCTGeneratorImageNet(keras.utils.Sequence):
+class DCTGeneratorJPEGDecoder(keras.utils.Sequence):
     'Generates data in the DCT space for Keras.'
 
     def __init__(self, data_directory, index_file, batch_size=32, image_shape=(224, 224, 3), shuffle=True):
