@@ -13,7 +13,7 @@ from vgg_jpeg.networks import VGG16A3CBNA, VGG16D3CBNA
 from vgg_jpeg.networks import VGG16A3CBNADeconvolution, VGG16D3CBNADeconvolution
 from vgg_jpeg.networks import VGG16A3CNoBN
 from vgg_jpeg.networks import VGG16D64CBNI
-from vgg_jpeg.generators import DCTGeneratorImageNet
+from vgg_jpeg.generators import DCTGeneratorJPEGDecoder
 from vgg_jpeg.generators import DCTGeneratorJPEG2DCT
 from vgg_jpeg.generators import DummyGenerator
 from vgg_jpeg.generators import DummyGenerator
@@ -46,14 +46,14 @@ class TrainingConfiguration(TemplateConfiguration):
 
         # Training variables
         self._epochs = 120
-        self._batch_size = 256
+        self._batch_size = 2
         self._steps_per_epoch = 1000
         self.optimizer_params = {"lr":0.01, "momentum":0.9, "decay":0.0005, "nesterov":True}
         self._optimizer = SGD(**self.optimizer_params)
         self._loss = categorical_crossentropy
         self._metrics = ['accuracy']
-        self.train_directory = "/save/2017018/bdegue01/imagenet/training"
-        self.validation_directory = "/save/2017018/bdegue01/imagenet/validation"
+        self.train_directory = "/save/2017018/bdegue01/datasets/imagenet/ILSVRC_2012/training"
+        self.validation_directory = "/save/2017018/bdegue01/datasets/imagenet/ILSVRC_2012/validation"
         self.index_file = "/home/2017018/bdegue01/git/these_code_testing/vgg_jpeg/data/imagenet_class_index.json"
 
         # Keras stuff
@@ -96,14 +96,13 @@ class TrainingConfiguration(TemplateConfiguration):
         self._evaluator = Evaluator()
 
     def prepare_testing_generator(self):
-        self._test_generator = ImageDataGenerator(preprocessing_function=preprocess_input).flow_from_directory(
-            self.train_directory, target_size=self.img_size, batch_size=self.batch_size)DummyGenerator(**self.test_generator_params)
+        self._test_generator = ImageDataGenerator(preprocessing_function=preprocess_input).flow_from_directory(self.train_directory, target_size=self.img_size, batch_size=self.batch_size)
 
     def prepare_training_generators(self):
         self._train_generator = ImageDataGenerator(preprocessing_function=preprocess_input).flow_from_directory(
             self.train_directory, target_size=self.img_size, batch_size=self.batch_size)
         self._validation_generator = ImageDataGenerator(preprocessing_function=preprocess_input).flow_from_directory(
-            self.train_directory, target_size=self.img_size, batch_size=self.batch_size)
+            self.validation_directory, target_size=self.img_size, batch_size=self.batch_size)
 
     @property
     def train_generator(self):
