@@ -5,7 +5,7 @@ from keras.models import Sequential
 from keras.layers import Input, BatchNormalization, Conv2D, MaxPooling2D, Flatten, Dense, UpSampling2D, Dropout, Conv2DTranspose
 from keras import models
 
-def VGG16_A_Initial(classes=1000):
+def VGG16A3CBNI(classes=1000):
     """Instantiates the VGG16 architecture.
         classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True, and
@@ -58,7 +58,7 @@ def VGG16_A_Initial(classes=1000):
 
     return model
 
-def VGG16_D_Initial(classes=1000):
+def VGG16D3CBNI(classes=1000):
     """Instantiates the VGG16 architecture.
         classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True, and
@@ -119,7 +119,7 @@ def VGG16_D_Initial(classes=1000):
 
     return model
 
-def VGG16_A_Deconvolution(classes=1000):
+def VGG16A3CBNIDeconvolution(classes=1000):
     """Instantiates the VGG16 architecture.
         classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True, and
@@ -187,7 +187,7 @@ def VGG16_A_Deconvolution(classes=1000):
 
     return model
 
-def VGG16_D_Deconvolution(classes=1000):
+def VGG16D3CBNIDeconvolution(classes=1000):
     """Instantiates the VGG16 architecture.
         classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True, and
@@ -266,7 +266,7 @@ def VGG16_D_Deconvolution(classes=1000):
 
     return model
 
-def VGG16AInitialBNAfter(classes=1000):
+def VGG16A3CBNA(classes=1000):
     """Instantiates the VGG16 architecture.
         classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True, and
@@ -322,7 +322,7 @@ def VGG16AInitialBNAfter(classes=1000):
 
     return model
 
-def VGG16DInitialBNAfter(classes=1000):
+def VGG16D3CBNA(classes=1000):
     """Instantiates the VGG16 architecture.
         classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True, and
@@ -386,7 +386,7 @@ def VGG16DInitialBNAfter(classes=1000):
 
     return model
 
-def VGG16ADeconvolutionBNAfter(classes=1000):
+def VGG16A3CBNADeconvolution(classes=1000):
     """Instantiates the VGG16 architecture.
         classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True, and
@@ -456,7 +456,7 @@ def VGG16ADeconvolutionBNAfter(classes=1000):
 
     return model
 
-def VGG16DDeconvolutionBNAfter(classes=1000):
+def VGG16D3CBNADeconvolution(classes=1000):
     """Instantiates the VGG16 architecture.
         classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True, and
@@ -538,7 +538,7 @@ def VGG16DDeconvolutionBNAfter(classes=1000):
 
     return model
 
-def VGG16AInitialNoBN(classes=1000):
+def VGG16A3CNoBN(classes=1000):
     """Instantiates the VGG16 architecture.
         classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True, and
@@ -591,3 +591,92 @@ def VGG16AInitialNoBN(classes=1000):
     model.add(Dense(classes, activation='softmax', name='predictions'))
 
     return model
+
+def VGG16D64CBNI(classes=1000):
+    """Instantiates the VGG16 architecture.
+        classes: optional number of classes to classify images
+            into, only to be specified if `include_top` is True, and
+            if no `weights` argument is specified.
+    # Returns
+        A Keras model instance.
+    """
+
+    # We have two inputs, Y/CBCr
+    if K.image_data_format() == 'channels_last':
+        input_shape_y = (28, 28, 64)
+        input_shape_cbcr = (14, 14, 128)
+    else:
+        input_shape_y = (64, 28, 28)
+        input_shape_cbcr = (14, 14, 128)
+
+    img_input_y = Input(shape=input_shape_y, name="input_y")
+    img_input_cbcr = Input(shape=input_shape_cbcr, name="input_cbcr")
+
+    # Block 1
+    x_y = BatchNormalization(name="bn_y")(img_input_y)
+    x_cbcr = BatchNormalization(name="bn_cbcr")(img_input_cbcr)
+
+    x_cbcr = Conv2DTranspose(128, (1, 1), strides=(2, 2), name="deconvolution_cbcr")(x_cbcr)
+
+    x = Concatenate([x_y, x_cbcr], name="concatenate_components")
+
+    # fit the input of the original next block
+    x = Conv2D(128, (1, 1), strides=1,
+                     activation='relu',
+                     padding='same',
+                     name='block1_conv1_dct')(x)
+
+    # Block 3
+    x = Conv2D(256, (3, 3),
+                      activation='relu',
+                      padding='same',
+                      name='block3_conv1')(x)
+    x = Conv2D(256, (3, 3),
+                      activation='relu',
+                      padding='same',
+                      name='block3_conv2')(x)
+    x = Conv2D(256, (3, 3),
+                      activation='relu',
+                      padding='same',
+                      name='block3_conv3')(x)
+    x = MaxPooling2D((2, 2), strides=(2, 2), name='block3_pool')(x)
+
+    # Block 4
+    x = Conv2D(512, (3, 3),
+                      activation='relu',
+                      padding='same',
+                      name='block4_conv1')(x)
+    x = Conv2D(512, (3, 3),
+                      activation='relu',
+                      padding='same',
+                      name='block4_conv2')(x)
+    x = Conv2D(512, (3, 3),
+                      activation='relu',
+                      padding='same',
+                      name='block4_conv3')(x)
+    x = MaxPooling2D((2, 2), strides=(2, 2), name='block4_pool')(x)
+
+    # Block 5
+    x = Conv2D(512, (3, 3),
+                      activation='relu',
+                      padding='same',
+                      name='block5_conv1')(x)
+    x = Conv2D(512, (3, 3),
+                      activation='relu',
+                      padding='same',
+                      name='block5_conv2')(x)
+    x = Conv2D(512, (3, 3),
+                      activation='relu',
+                      padding='same',
+                      name='block5_conv3')(x)
+    x = MaxPooling2D((2, 2), strides=(2, 2), name='block5_pool')(x)
+
+    # Classification block
+    x = Flatten(name='flatten')(x)
+    x = Dense(4096, activation='relu', name='fc1')(x)
+    x = Dropout(0.5)(x)
+    x = Dense(4096, activation='relu', name='fc2')(x)
+    x = Dropout(0.5)(x)
+    x = Dense(classes, activation='softmax', name='predictions')(x)
+
+    return Model([img_input_y, img_input_cbcr], x)
