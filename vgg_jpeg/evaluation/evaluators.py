@@ -1,8 +1,8 @@
-from template.evaluators import TemplateEvaluator
+#from template.evaluators import TemplateEvaluator
 
 import numpy as np
 
-class Evaluator(TemplateEvaluator):
+class Evaluator(object):
 
     def __init__(self, generator=None):
         self.score = None

@@ -5,8 +5,8 @@ import json
 import random
 
 from jpeg2dct.numpy import load, loads
-import jpegdecoder
-
+#import jpegdecoder
+jpegdecoder = None
 
 class DCTGeneratorJPEG2DCT(keras.utils.Sequence):
     'Generates data in the DCT space for Keras.'

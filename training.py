@@ -176,6 +176,7 @@ else:
                             steps_per_epoch=config.steps_per_epoch,
                             callbacks=config.callbacks,
                             workers=config.workers,
-                            use_multiprocessing=config.multiprocessing)
+                            use_multiprocessing=config.multiprocessing,
+                            validation_steps=1000)
 
 model.save(join(checkpoints_output_dir, "final.h5"))

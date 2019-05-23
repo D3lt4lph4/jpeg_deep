@@ -20,19 +20,19 @@ from vgg_jpeg.generators import DummyGenerator
 from vgg_jpeg.evaluation import Evaluator
 from vgg_jpeg.displayer import Displayer
 
-from template.config import TemplateConfiguration
+#from template.config import TemplateConfiguration
 
 
-class TrainingConfiguration(TemplateConfiguration):
+class TrainingConfiguration(object):
 
     def __init__(self):
         # Variables to hold the description of the experiment
         self.config_description = "This is the template config file."
 
         # System dependent variable
-        self._workers = 1
-        self._multiprocessing = False
-        self._gpus = 1
+        self._workers = 28 
+        self._multiprocessing = True
+        self._gpus = 2
 
         # Variables for comet.ml
         self._project_name = "vgg_jpeg"
@@ -46,14 +46,14 @@ class TrainingConfiguration(TemplateConfiguration):
 
         # Training variables
         self._epochs = 120
-        self._batch_size = 2
+        self._batch_size = 128 
         self._steps_per_epoch = 1000
         self.optimizer_params = {"lr":0.01, "momentum":0.9, "decay":0.0005, "nesterov":True}
         self._optimizer = SGD(**self.optimizer_params)
         self._loss = categorical_crossentropy
         self._metrics = ['accuracy']
-        self.train_directory = "/save/2017018/bdegue01/datasets/imagenet/ILSVRC_2012/training"
-        self.validation_directory = "/save/2017018/bdegue01/datasets/imagenet/ILSVRC_2012/validation"
+        self.train_directory = "/save/2017018/bdegue01/datasets/imagenet/training"
+        self.validation_directory = "/save/2017018/bdegue01/datasets/imagenet/validation"
         self.index_file = "/home/2017018/bdegue01/git/these_code_testing/vgg_jpeg/data/imagenet_class_index.json"
 
         # Keras stuff
