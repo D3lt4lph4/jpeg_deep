@@ -50,7 +50,7 @@ class TrainingConfiguration(TemplateConfiguration):
         self._metrics = ['accuracy']
         self.train_directory = "/save/2017018/bdegue01/imagenet/training"
         self.validation_directory = "/save/2017018/bdegue01/imagenet/validation"
-        self.index_file = "/home/2017018/bdegue01/git/these_code_testing/dct_vgg/data/imagenet_class_index.json"
+        self.index_file = "/home/2017018/bdegue01/git/these_code_testing/vgg_jpeg/data/imagenet_class_index.json"
 
         # Keras stuff
         self.model_checkpoint = None

@@ -5,7 +5,8 @@ import json
 import random
 
 from jpeg2dct.numpy import load, loads
-import jpegdecoder
+#import jpegdecoder
+jpegdecoder = None
 
 from template_keras.generators import TemplateGenerator
 
@@ -112,7 +113,7 @@ class GeneratorPreResized(TemplateGenerator):
 
         return [X_y, X_cbcr], y
 
-class GeneratorOnlineResize(TemplateGenerator):
+class DCTGeneratorJPEG2DCT(TemplateGenerator):
     'Generates data in the DCT space for Keras.'
 
     def __init__(self, data_directory, index_file, batch_size=32, shuffle=True, load_in_memory=True):
