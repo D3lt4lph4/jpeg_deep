@@ -5,8 +5,7 @@ import json
 import random
 
 from jpeg2dct.numpy import load, loads
-#import jpegdecoder
-jpegdecoder = None
+import jpegdecoder
 
 from template_keras.generators import TemplateGenerator
 
@@ -222,7 +221,7 @@ class DCTGeneratorImageNet(TemplateGenerator):
     def __init__(self, data_directory, index_file, batch_size=32, image_shape=(224, 224, 3), shuffle=True):
         'Initialization'
         self.image_shape = image_shape
-        self.batch_size = batch_size
+        self._batch_size = batch_size
         self.data_directory = data_directory
         self.decoder = jpegdecoder.decoder.JPEGDecoder()
 
@@ -245,7 +244,7 @@ class DCTGeneratorImageNet(TemplateGenerator):
                         os.path.join(class_directory, image))
 
         self.number_of_classes = len(self.classes)
-        self.shuffle = shuffle
+        self._shuffle = shuffle
         self.batches_per_epoch = len(self.images_path) // self.batch_size
         self.indexes = np.arange(len(self.images_path))
         self.on_epoch_end()
@@ -308,6 +307,14 @@ class DCTGeneratorImageNet(TemplateGenerator):
             y[i, int(image_path[1])] = 1
 
         return X, y
+
+    @property
+    def batch_size(self):
+        return self._batch_size
+    
+    @property
+    def shuffle(self):
+        return self._shuffle
 
 class DummyGenerator(TemplateGenerator):
     'Generates data in the DCT space for Keras.'
