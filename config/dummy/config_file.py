@@ -5,10 +5,10 @@ from keras.losses import categorical_crossentropy
 from keras.callbacks import ModelCheckpoint, TerminateOnNaN, CSVLogger, EarlyStopping, ReduceLROnPlateau
 
 from vgg_jpeg.networks import VGG16_A, VGG16_D
-from vgg_jpeg.networks import VGG16_A_Initial, VGG16_A_Deconvolution
-from vgg_jpeg.networks import VGG16_D_Initial, VGG16_D_Deconvolution
-from vgg_jpeg.networks import VGG16AInitialBNAfter
-from vgg_jpeg.networks import VGG16AInitialNoBN
+from vgg_jpeg.networks import VGG16A3CBNI, VGG16A3CBNIDeconvolution
+from vgg_jpeg.networks import VGG16D3CBNI, VGG16D3CBNIDeconvolution
+from vgg_jpeg.networks import VGG16A3CBNA
+from vgg_jpeg.networks import VGG16A3CNoBN
 from vgg_jpeg.generators import DummyGenerator
 from vgg_jpeg.evaluation import Evaluator
 
@@ -33,7 +33,7 @@ class TrainingConfiguration(TemplateConfiguration):
         self.num_classes = 1000
         self.img_size = (224, 224)
         self._weights = None
-        self._network = VGG16_D_Initial(self.num_classes)
+        self._network = VGG16D3CBNI(self.num_classes)
 
         # Training variables
         self._epochs = 120
