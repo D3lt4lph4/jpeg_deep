@@ -7,8 +7,9 @@ import random
 from jpeg2dct.numpy import load, loads
 import jpegdecoder
 
+from template_keras.generators import TemplateGenerator
 
-class GeneratorPreResized(keras.utils.Sequence):
+class GeneratorPreResized(TemplateGenerator):
     'Generates data in the DCT space for Keras.'
 
     def __init__(self, data_directory, index_file, batch_size=32, shuffle=True, load_in_memory=True):
@@ -111,7 +112,7 @@ class GeneratorPreResized(keras.utils.Sequence):
 
         return [X_y, X_cbcr], y
 
-class GeneratorOnlineResize(keras.utils.Sequence):
+class GeneratorOnlineResize(TemplateGenerator):
     'Generates data in the DCT space for Keras.'
 
     def __init__(self, data_directory, index_file, batch_size=32, shuffle=True, load_in_memory=True):
@@ -214,7 +215,7 @@ class GeneratorOnlineResize(keras.utils.Sequence):
 
         return [X_y, X_cbcr], y
 
-class DCTGeneratorImageNet(keras.utils.Sequence):
+class DCTGeneratorImageNet(TemplateGenerator):
     'Generates data in the DCT space for Keras.'
 
     def __init__(self, data_directory, index_file, batch_size=32, image_shape=(224, 224, 3), shuffle=True):
@@ -307,7 +308,7 @@ class DCTGeneratorImageNet(keras.utils.Sequence):
 
         return X, y
 
-class DummyGenerator(keras.utils.Sequence):
+class DummyGenerator(TemplateGenerator):
     'Generates data in the DCT space for Keras.'
 
     def __init__(self, num_batches, batch_size=32, number_of_classes=1000, image_shape=(224, 224, 3), shuffle=True):

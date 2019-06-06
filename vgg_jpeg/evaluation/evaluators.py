@@ -1,4 +1,4 @@
-from template.evaluators import TemplateEvaluator
+from template_keras.evaluators import TemplateEvaluator
 
 import numpy as np
 

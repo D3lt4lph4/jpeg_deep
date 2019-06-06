@@ -1,5 +1,5 @@
 """ 
-The script will:
+The script can:
 
     - log the experiment on comet.ml
     - create a config file locally with the configuration in it
@@ -25,13 +25,11 @@ import keras.backend as K
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-r', '--restart', help="Restart the training from a previous stopped config. The argument is the path to the experiment folder.", type=str)
-parser.add_argument('-c', '--configuration', help="Path to the config file to use.")
-parser.add_argument('--comet', dest='comet', action='store_true')
+parser.add_argument('-c', '--configuration', help="Path to the directory containing the config file to use. The configuration file should be named 'config_file.py' (see the examples in the config folder of the repository).")
+parser.add_argument('--comet', dest='comet', action='store_true', help="If the experiment should be saved to comet ml in addition to locally")
 parser.add_argument('--no-comet', dest='comet', action='store_false')
-parser.add_argument('--myria', dest='myria', action='store_true')
-parser.add_argument('--no-myria', dest='myria', action='store_false')
 parser.set_defaults(feature=False)
-parser.add_argument('-ji', '--jobid', type=int)
+parser.add_argument('-ji', '--jobid', type=int, help="The id of the job (for instance if run on a super calculator). If specified, the id will be stored in a job.txt file in the LOG_DIRECTORY")
 args = parser.parse_args()
 
 # Class to be able to train with multiple gpus and use the checkpoints
@@ -56,32 +54,35 @@ restart_epoch = None
 restart_lr = None
 key = ""
 
-output_dir = args.restart
-
 # If we restart an experiment, no need to check for a configuration, we load the one from the config file.
-if output_dir is not None:
+if args.restart is not None:
     sys.path.append(join(args.restart, "config"))
     from saved_config import TrainingConfiguration
     config = TrainingConfiguration()
     key = dirname(args.restart).split("_")[-1]
 
+    # The results will be saved in an other directory not to pollute the original one.
+    key += "_temp"
 
+    # We extract the last saved weight and the corresponding epoch
+    weights_path = join(args.restart, "checkpoints")
+    weights_files = sorted([[f, int(f.split('_')[0].split('-')[1])] for f in listdir(weights_path) if isfile(join(weights_path, f))], key=itemgetter(1))
+
+
+    config.weights = join(weights_path, weights_files[-1][0])
+    restart_epoch = weights_files[-1][1]
+    
     # We load the results file to get the epoch learning rate.
-    with open(join(output_dir, 'results/results.csv'), newline='') as csvfile:
+    with open(join(args.restart, 'results/results.csv'), newline='') as csvfile:
         results = csv.reader(csvfile, delimiter=',')
         data = []
         for row in results:
             data.append(row)
         lr_index = data[0].index('lr')
-        restart_lr = float(data[-1][lr_index])
-        restart_epoch = len(data) - 1
+        restart_lr = float(data[restart_epoch][lr_index])
+        print(data[restart_epoch])
 
-    # We extract the last saved weight and the corresponding epoch
-    weights_path = join(output_dir, "checkpoints")
-    weights_files = sorted([[f, int(f.split('_')[0].split('-')[1])] for f in listdir(weights_path) if isfile(join(weights_path, f))], key=itemgetter(1))
-
-
-    config.weights = join(weights_path, weights_files[-1][0])
+    output_dir = "{}_{}_{}".format(config.workspace, config.project_name, key)
 
 else:
     sys.path.append(args.configuration)
@@ -90,7 +91,7 @@ else:
 
     # Starting the experiment
     if args.comet:
-        experiment = Experiment(api_key="F5aa0Le4aKpPPyCiGBIUrvfQ0",
+        experiment = Experiment(api_key=environ["COMET_API_KEY"],
                                 project_name=config.project_name, workspace=config.workspace)
         key = experiment.get_key()
 
@@ -100,21 +101,23 @@ else:
 
     output_dir = "{}_{}_{}".format(config.workspace, config.project_name, key)
 
-if args.myria:
-    output_dir = join(environ["LOCAL_WORK_DIR"], "{}_{}_{}".format(config.workspace, config.project_name, key))
+
+output_dir = join(environ["EXPERIMENTS_OUTPUT_DIRECTORY"], "{}_{}_{}".format(config.workspace, config.project_name, key))
+
+print("The experiment will be written to {}".format(output_dir))
+
 checkpoints_output_dir = join(output_dir, "checkpoints")
 config_output_dir = join(output_dir, "config")
 results_output_dir = join(output_dir, "results")
 
 # We create all the output directories
-if args.restart is None or args.myria:
-    mkdir(output_dir)
-    mkdir(checkpoints_output_dir)
-    mkdir(config_output_dir)
-    mkdir(results_output_dir)
+mkdir(output_dir)
+mkdir(checkpoints_output_dir)
+mkdir(config_output_dir)
+mkdir(results_output_dir)
 
 if args.jobid is not None:
-    with open(join(expanduser("~"), "job.txt"), "a+") as text_file:
+    with open(join(os.environ["LOG_DIRECTORY"], "job.txt"), "a+") as text_file:
         print("{} => {}".format(key, args.jobid), file=text_file)
 
 config.add_csv_logger(results_output_dir)
@@ -124,8 +127,7 @@ config.add_model_checkpoint(checkpoints_output_dir)
 if args.restart is None:
     copyfile(join(args.configuration, "config_file.py"), join(config_output_dir, "saved_config.py"))
     copyfile(join(args.configuration, "config_file.py"), join(config_output_dir, "temp_config.py"))
-
-if args.restart is not None and args.myria:
+else:
     copyfile(join(args.restart, "config/saved_config.py"), join(config_output_dir, "saved_config.py"))
     copyfile(join(args.restart, "config/saved_config.py"), join(config_output_dir, "temp_config.py"))
 
@@ -138,7 +140,7 @@ if args.restart is None:
 model = config.network
 
 if config.weights is not None:
-    print("Reloading weights: {}".format(config.weights))
+    print("Loading weights (by name): {}".format(config.weights))
     model.load_weights(config.weights, by_name=True)
 
 if config.gpus == 0 or config.gpus == 1:
@@ -177,5 +179,3 @@ else:
                             callbacks=config.callbacks,
                             workers=config.workers,
                             use_multiprocessing=config.multiprocessing)
-
-model.save(join(checkpoints_output_dir, "final.h5"))
