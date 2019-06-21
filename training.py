@@ -36,8 +36,14 @@ parser.add_argument('--no-myria', dest='myria', action='store_false')
 parser.set_defaults(feature=False)
 parser.add_argument('-ji', '--jobid', type=int, help="When submitting through sbatch, a job id might be specified. If so, the id will be stored in a job.txt file in the LOG_DIRECTORY")
 parser.add_argument('--horovod', dest='horovod', action='store_true')
-
 args = parser.parse_args()
+
+hvd.init()
+
+config_tf = tf.ConfigProto()
+config_tf.gpu_options.allow_growth = True
+config_tf.gpu_options.visible_device_list = str(hvd.local_rank())
+K.set_session(tf.Session(config=config_tf))
 
 # Class to be able to train with multiple gpus and use the checkpoints
 class ModelMultiGPU(Model):
@@ -125,6 +131,9 @@ if args.jobid is not None:
     with open(join(os.environ["LOG_DIRECTORY"], "job.txt"), "a+") as text_file:
         print("{} => {}".format(key, args.jobid), file=text_file)
 
+if args.horovod:
+    config.prepare_horovod(hvd)
+
 config.add_csv_logger(results_output_dir)
 config.add_model_checkpoint(checkpoints_output_dir)
 
@@ -148,7 +157,7 @@ if config.weights is not None:
     print("Loading weights (by name): {}".format(config.weights))
     model.load_weights(config.weights, by_name=True)
 
-if config.gpus == 0 or config.gpus == 1:
+if args.horovod or config.gpus == 0 or config.gpus == 1:
     model_gpu = model
 else:
     model_gpu = ModelMultiGPU(model, config.gpus)
