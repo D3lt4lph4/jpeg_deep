@@ -10,7 +10,7 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras.applications.vgg16 import preprocess_input
 from keras.metrics import top_k_categorical_accuracy
 
-from vgg_jpeg.networks import VGG16_A
+from vgg_jpeg.networks import VGG16A
 from vgg_jpeg.evaluation import Evaluator
 
 from template.config import TemplateConfiguration
@@ -21,7 +21,7 @@ def _top_k_accuracy(k):
     return _func
 
 def vgg_processing_function(image):
-    
+
     x_size, y_size, _ = image.shape
 
     smallest = "x" if x_size < y_size else "y"
@@ -30,7 +30,7 @@ def vgg_processing_function(image):
         ratio = 224 / x_size
     else:
         ratio = 224 / y_size
-    
+
     x_size, y_size = int(x_size * ratio), int(y_size * ratio)
 
     # resize the image size to random value
@@ -42,7 +42,7 @@ def vgg_processing_function(image):
     else:
         position = randint(0, x_size - 224)
         image = image[position:position+224, :, :]
-    
+
     return preprocess_input(image)
 
     
@@ -66,7 +66,7 @@ class TrainingConfiguration(TemplateConfiguration):
         self.num_classes = 1000
         self.img_size = (224, 224)
         self._weights = None
-        self._network = VGG16_A(self.num_classes)
+        self._network = VGG16A(self.num_classes)
 
         # Training variables
         self._epochs = 120
@@ -153,7 +153,7 @@ class TrainingConfiguration(TemplateConfiguration):
         self._optimizer_parameters["lr"] = self._optimizer_parameters["lr"] * hvd.size()
         self._optimizer = hvd.DistributedOptimizer(self._optimizer)
         self._steps_per_epoch = self._steps_per_epoch // hvd.size()
-        self._validationi_steps = 3 * self._validation_steps // hvd.size()
+        self._validation_steps = 3 * self._validation_steps // hvd.size()
 
     def prepare_for_inference(self):
         pass
@@ -166,7 +166,7 @@ class TrainingConfiguration(TemplateConfiguration):
 
     def prepare_training_generators(self):
         self.train_generator = ImageDataGenerator(
-            preprocessing_function=vgg_processing_function).flow_from_directory(
+            preprocessing_function=preprocess_input).flow_from_directory(
                 self.train_directory,
                 target_size=self.img_size,
                 batch_size=self.batch_size)
