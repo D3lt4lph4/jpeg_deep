@@ -23,6 +23,9 @@ from keras.utils import multi_gpu_model
 from keras.models import Model
 import keras.backend as K
 
+import tensorflow as tf
+import horovod.keras as hvd
+
 parser = argparse.ArgumentParser()
 parser.add_argument('-r', '--restart', help="Restart the training from a previous stopped config. The argument is the path to the experiment folder.", type=str)
 parser.add_argument('-c', '--configuration', help="Path to the directory containing the config file to use. The configuration file should be named 'config_file.py' (see the examples in the config folder of the repository).")
@@ -32,6 +35,8 @@ parser.add_argument('--myria', dest='myria', action='store_true')
 parser.add_argument('--no-myria', dest='myria', action='store_false')
 parser.set_defaults(feature=False)
 parser.add_argument('-ji', '--jobid', type=int, help="When submitting through sbatch, a job id might be specified. If so, the id will be stored in a job.txt file in the LOG_DIRECTORY")
+parser.add_argument('--horovod', dest='horovod', action='store_true')
+
 args = parser.parse_args()
 
 # Class to be able to train with multiple gpus and use the checkpoints
