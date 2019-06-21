@@ -1,8 +1,8 @@
-#from template.evaluators import TemplateEvaluator
+from template_keras.evaluators import TemplateEvaluator
 
 import numpy as np
 
-class Evaluator(object):
+class Evaluator(TemplateEvaluator):
 
     def __init__(self, generator=None):
         self.score = None
