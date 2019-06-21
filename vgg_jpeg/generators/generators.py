@@ -11,7 +11,7 @@ jpegdecoder = None
 class DCTGeneratorJPEG2DCT(keras.utils.Sequence):
     'Generates data in the DCT space for Keras.'
 
-    def __init__(self, data_directory, index_file, batch_size=32, shuffle=True, load_in_memory=True):
+    def __init__(self, data_directory, index_file, batch_size=32, shuffle=True, load_in_memory=False):
 
         self.batch_size = batch_size
         self.data_directory = data_directory
