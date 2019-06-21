@@ -26,10 +26,12 @@ import keras.backend as K
 parser = argparse.ArgumentParser()
 parser.add_argument('-r', '--restart', help="Restart the training from a previous stopped config. The argument is the path to the experiment folder.", type=str)
 parser.add_argument('-c', '--configuration', help="Path to the directory containing the config file to use. The configuration file should be named 'config_file.py' (see the examples in the config folder of the repository).")
-parser.add_argument('--comet', dest='comet', action='store_true', help="If the experiment should be saved to comet ml in addition to locally")
+parser.add_argument('--comet', dest='comet', action='store_true')
 parser.add_argument('--no-comet', dest='comet', action='store_false')
+parser.add_argument('--myria', dest='myria', action='store_true')
+parser.add_argument('--no-myria', dest='myria', action='store_false')
 parser.set_defaults(feature=False)
-parser.add_argument('-ji', '--jobid', type=int, help="The id of the job (for instance if run on a super calculator). If specified, the id will be stored in a job.txt file in the LOG_DIRECTORY")
+parser.add_argument('-ji', '--jobid', type=int, help="When submitting through sbatch, a job id might be specified. If so, the id will be stored in a job.txt file in the LOG_DIRECTORY")
 args = parser.parse_args()
 
 # Class to be able to train with multiple gpus and use the checkpoints
@@ -91,7 +93,7 @@ else:
 
     # Starting the experiment
     if args.comet:
-        experiment = Experiment(api_key=environ["COMET_API_KEY"],
+        experiment = Experiment(api_key=os.environ["COMET_API_KEY"],
                                 project_name=config.project_name, workspace=config.workspace)
         key = experiment.get_key()
 
@@ -102,9 +104,7 @@ else:
     output_dir = "{}_{}_{}".format(config.workspace, config.project_name, key)
 
 
-output_dir = join(environ["EXPERIMENTS_OUTPUT_DIRECTORY"], "{}_{}_{}".format(config.workspace, config.project_name, key))
-
-print("The experiment will be written to {}".format(output_dir))
+output_dir = join(os.environ["EXPERIMENTS_OUTPUT_DIRECTORY"], "{}_{}_{}".format(config.workspace, config.project_name, key))
 
 checkpoints_output_dir = join(output_dir, "checkpoints")
 config_output_dir = join(output_dir, "config")
@@ -179,5 +179,3 @@ else:
                             callbacks=config.callbacks,
                             workers=config.workers,
                             use_multiprocessing=config.multiprocessing)
-
-model.save(join(checkpoints_output_dir, "final.h5"))
