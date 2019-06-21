@@ -1,6 +1,7 @@
 from os.path import join
 
 import cv2
+from random import randint
 
 from keras.optimizers import SGD
 from keras.losses import categorical_crossentropy
@@ -20,16 +21,28 @@ def _top_k_accuracy(k):
     return _func
 
 def vgg_processing_function(image):
-    random_number = 4
+    
+    x_size, y_size, _ = image.shape
+
+    smallest = "x" if x_size < y_size else "y"
+
+    if smallest == "x":
+        ratio = 224 / x_size
+    else:
+        ratio = 224 / y_size
+    
+    x_size, y_size = int(x_size * ratio), int(y_size * ratio)
 
     # resize the image size to random value
-    image = cv2.resize(image, dsize=(54, 140), interpolation=cv2.INTER_LINEAR)
+    image = cv2.resize(image, dsize=(x_size, y_size), interpolation=cv2.INTER_LINEAR)
 
-    x, y = 1, 1
-
-    # extract the sub_image
-    image = image[x:x+224, y:y+224]
-
+    if smallest == "x":
+        position = randint(0, y_size - 224)
+        image = image[:, position:position+224, :]
+    else:
+        position = randint(0, x_size - 224)
+        image = image[position:position+224, :, :]
+    
     return preprocess_input(image)
 
     
