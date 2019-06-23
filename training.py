@@ -192,4 +192,5 @@ else:
                             steps_per_epoch=config.steps_per_epoch,
                             callbacks=config.callbacks,
                             workers=config.workers,
+                            validation_steps=config.validation_steps,
                             use_multiprocessing=config.multiprocessing)
