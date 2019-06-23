@@ -77,8 +77,8 @@ class TrainingConfiguration(TemplateConfiguration):
         self._optimizer = SGD(**self._optimizer_parameters)
         self._loss = categorical_crossentropy
         self._metrics = [_top_k_accuracy(1), _top_k_accuracy(5)]
-        self.train_directory = "/save/2017018/bdegue01/imagenet/training"
-        self.validation_directory = "/save/2017018/bdegue01/imagenet/validation"
+        self.train_directory = "/save/2017018/bdegue01/datasets/imagenet/training"
+        self.validation_directory = "/save/2017018/bdegue01/datasets/imagenet/validation"
 
         # Keras stuff
         self.model_checkpoint = None
@@ -88,11 +88,13 @@ class TrainingConfiguration(TemplateConfiguration):
                                             min_delta=0,
                                             patience=7)
 
-        self.callbacks = [self.terminate_on_nan, self.early_stopping]
+        self._callbacks = [self.terminate_on_nan, self.early_stopping]
 
         # Creating the training and validation generator
-        self.train_generator = None
-        self.validation_generator = None
+        self._train_generator = None
+        self._validation_generator = None
+
+        self._horovod = None
 
     def add_csv_logger(self,
                        output_path,
@@ -104,18 +106,18 @@ class TrainingConfiguration(TemplateConfiguration):
                 self.csv_logger = CSVLogger(filename=join(output_path, filename),
                                     separator=separator,
                                     append=append)
-                self.callbacks.append(self.csv_logger)
+                self._callbacks.append(self.csv_logger)
         else:
             self.csv_logger = CSVLogger(filename=join(output_path, filename),
                                         separator=separator,
                                         append=append)
-            self.callbacks.append(self.csv_logger)
+            self._callbacks.append(self.csv_logger)
 
     def add_model_checkpoint(self, output_path, verbose=1,
                              save_best_only=True):
         if self.horovod is not None:
             if self.horovod.rank() == 0:
-                self.callbacks.append(ModelCheckpoint(filepath=join(
+                self._callbacks.append(ModelCheckpoint(filepath=join(
                                 output_path,
                                 "epoch-{epoch:02d}_loss-{loss:.4f}_val_loss-{val_loss:.4f}.h5"),
                                                                     verbose=verbose,
@@ -126,11 +128,11 @@ class TrainingConfiguration(TemplateConfiguration):
                 "epoch-{epoch:02d}_loss-{loss:.4f}_val_loss-{val_loss:.4f}.h5"),
                                                     verbose=verbose,
                                                     save_best_only=save_best_only)
-            self.callbacks.append(self.model_checkpoint)
+            self._callbacks.append(self.model_checkpoint)
 
     def prepare_horovod(self, hvd):
         self.horovod = hvd
-        self.callbacks = [
+        self._callbacks = [
             hvd.callbacks.BroadcastGlobalVariablesCallback(0),
 
             # Note: This callback must be in the list before the ReduceLROnPlateau,
@@ -255,3 +257,7 @@ class TrainingConfiguration(TemplateConfiguration):
     @property
     def workspace(self):
         return self._workspace
+
+    @property
+    def horovod(self):
+        return self._horovod

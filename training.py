@@ -115,7 +115,7 @@ else:
     output_dir = "{}_{}_{}".format(config.workspace, config.project_name, key)
 
 
-output_dir = join(os.environ["EXPERIMENTS_OUTPUT_DIRECTORY"], "{}_{}_{}".format(config.workspace, config.project_name, key))
+output_dir = join(environ["EXPERIMENTS_OUTPUT_DIRECTORY"], "{}_{}_{}".format(config.workspace, config.project_name, key))
 
 checkpoints_output_dir = join(output_dir, "checkpoints")
 config_output_dir = join(output_dir, "config")
@@ -128,7 +128,7 @@ mkdir(config_output_dir)
 mkdir(results_output_dir)
 
 if args.jobid is not None:
-    with open(join(os.environ["LOG_DIRECTORY"], "job.txt"), "a+") as text_file:
+    with open(join(environ["LOG_DIRECTORY"], "job.txt"), "a+") as text_file:
         print("{} => {}".format(key, args.jobid), file=text_file)
 
 if args.horovod:
