@@ -7,11 +7,11 @@ This project aims to to train a classification neural network using compressed J
 ```bash
 cd deep_template/template_keras/template_keras
 
-python setup.py install
+pip install . --user
 
 cd ../../..
 
-pip install requirements.txt
+pip install -r requirements.txt --user
 ```
 
 ## How to start the calculations
