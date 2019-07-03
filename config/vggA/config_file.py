@@ -77,7 +77,7 @@ class TrainingConfiguration(TemplateConfiguration):
         self._optimizer = SGD(**self._optimizer_parameters)
         self._loss = categorical_crossentropy
         self._metrics = [_top_k_accuracy(1), _top_k_accuracy(5)]
-        self.train_directory = "/save/2017018/bdegue01/datasets/imagenet/training"
+        self.train_directory = "/save/2017018/bdegue01/datasets/imagenet/validation"
         self.validation_directory = "/save/2017018/bdegue01/datasets/imagenet/validation"
 
         # Keras stuff
