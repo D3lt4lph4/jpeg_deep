@@ -7,7 +7,7 @@ The script can:
     - save the checkpoints locally
 """
 import sys
-from os import mkdir, listdir, environ
+from os import mkdir, listdir, environ, makedirs
 from os.path import join, dirname, isfile, expanduser
 from shutil import copyfile
 import argparse
@@ -19,8 +19,8 @@ from operator import itemgetter
 
 from comet_ml import Experiment
 
-from keras.utils import multi_gpu_model
-from keras.models import Model
+#from keras.utils import multi_gpu_model
+#from keras.models import Model
 import keras.backend as K
 
 import tensorflow as tf
@@ -46,21 +46,21 @@ config_tf.gpu_options.visible_device_list = str(hvd.local_rank())
 K.set_session(tf.Session(config=config_tf))
 
 # Class to be able to train with multiple gpus and use the checkpoints
-class ModelMultiGPU(Model):
-    def __init__(self, ser_model, gpus):
-        pmodel = multi_gpu_model(ser_model, gpus)
-        self.__dict__.update(pmodel.__dict__)
-        self._smodel = ser_model
+#class ModelMultiGPU(Model):
+#    def __init__(self, ser_model, gpus):
+#        pmodel = multi_gpu_model(ser_model, gpus)
+#        self.__dict__.update(pmodel.__dict__)
+#        self._smodel = ser_model
 
-    def __getattribute__(self, attrname):
-        '''Override load and save methods to be used from the serial-model. The
-        serial-model holds references to the weights in the multi-gpu model.
-        '''
-        # return Model.__getattribute__(self, attrname)
-        if 'load' in attrname or 'save' in attrname:
-            return getattr(self._smodel, attrname)
-
-        return super(ModelMultiGPU, self).__getattribute__(attrname)
+#    def __getattribute__(self, attrname):
+#        '''Override load and save methods to be used from the serial-model. The
+#        serial-model holds references to the weights in the multi-gpu model.
+#        '''
+#        # return Model.__getattribute__(self, attrname)
+#        if 'load' in attrname or 'save' in attrname:
+#            return getattr(self._smodel, attrname)
+#
+#        return super(ModelMultiGPU, self).__getattribute__(attrname)
 
 # Keras variable if restart
 restart_epoch = None
@@ -122,10 +122,11 @@ config_output_dir = join(output_dir, "config")
 results_output_dir = join(output_dir, "results")
 
 # We create all the output directories
-mkdir(output_dir)
-mkdir(checkpoints_output_dir)
-mkdir(config_output_dir)
-mkdir(results_output_dir)
+makedirs(output_dir, exist_ok=True)
+makedirs(checkpoints_output_dir, exist_ok=True)
+makedirs(config_output_dir, exist_ok=True)
+makedirs(results_output_dir, exist_ok=True)
+makedirs(environ["LOG_DIRECTORY"], exist_ok=True)
 
 if args.jobid is not None:
     with open(join(environ["LOG_DIRECTORY"], "job.txt"), "a+") as text_file:
@@ -159,8 +160,8 @@ if config.weights is not None:
 
 if args.horovod or config.gpus == 0 or config.gpus == 1:
     model_gpu = model
-else:
-    model_gpu = ModelMultiGPU(model, config.gpus)
+#else:
+#    model_gpu = ModelMultiGPU(model, config.gpus)
 
 # Setting the iteration variable if restarting the training.
 if args.restart is not None:

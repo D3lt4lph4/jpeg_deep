@@ -13,7 +13,7 @@ from keras.metrics import top_k_categorical_accuracy
 from vgg_jpeg.networks import VGG16A
 from vgg_jpeg.evaluation import Evaluator
 
-from template.config import TemplateConfiguration
+from template_keras.config import TemplateConfiguration
 
 def _top_k_accuracy(k):
     def _func(y_true, y_pred):
@@ -54,7 +54,7 @@ class TrainingConfiguration(TemplateConfiguration):
         self.experiment_name = "VGG16_A 224x224"
 
         # System dependent variable
-        self._workers = 1
+        self._workers = 10
         self._multiprocessing = True
         self._gpus = 1
 
@@ -70,15 +70,15 @@ class TrainingConfiguration(TemplateConfiguration):
 
         # Training variables
         self._epochs = 120
-        self._batch_size = 256
+        self._batch_size = 128
         self._steps_per_epoch = 5000
         self._validation_steps = 50000 / self._batch_size
         self._optimizer_parameters = {"lr":0.01, "momentum":0.9, "decay":0, "nesterov":True}
         self._optimizer = SGD(**self._optimizer_parameters)
         self._loss = categorical_crossentropy
         self._metrics = [_top_k_accuracy(1), _top_k_accuracy(5)]
-        self.train_directory = "/save/2017018/bdegue01/datasets/imagenet/ILSVRC_2012/training"
-        self.validation_directory = "/save/2017018/bdegue01/datasets/imagenet/ILSVRC_2012/validation"
+        self.train_directory = "/save/2017018/bdegue01/datasets/imagenet/training"
+        self.validation_directory = "/save/2017018/bdegue01/datasets/imagenet/validation"
 
         # Keras stuff
         self.model_checkpoint = None
@@ -131,7 +131,7 @@ class TrainingConfiguration(TemplateConfiguration):
             self._callbacks.append(self.model_checkpoint)
 
     def prepare_horovod(self, hvd):
-        self.horovod = hvd
+        self._horovod = hvd
         self._callbacks = [
             hvd.callbacks.BroadcastGlobalVariablesCallback(0),
 
@@ -261,3 +261,7 @@ class TrainingConfiguration(TemplateConfiguration):
     @property
     def horovod(self):
         return self._horovod
+
+    @property
+    def validation_steps(self):
+        return self._validation_steps
