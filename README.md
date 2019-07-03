@@ -5,6 +5,10 @@ This project aims to to train a classification neural network using compressed J
 ## How to install
 
 ```bash
+
+git submodule init
+git submodule update
+
 cd deep_template/template_keras/template_keras
 
 pip install . --user
