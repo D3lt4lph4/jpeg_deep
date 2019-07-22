@@ -17,7 +17,7 @@ class Evaluator(TemplateEvaluator):
         if test_generator is not None:
             self._generator = test_generator
 
-        self.score = model.evaluate_generator(self._generator, verbose=1)
+        self.score = model.evaluate_generator(self._generator, verbose=1, steps=50)
 
     def make_runs(self, model, test_generator=None, number_of_runs=10):
 
