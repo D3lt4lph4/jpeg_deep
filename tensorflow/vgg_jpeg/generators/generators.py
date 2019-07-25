@@ -1,10 +1,12 @@
 import numpy as np
 
+import tensorflow as tf
+
 from tensorflow.keras.utils import to_categorical
 
 from template_tensorflow.generators import TemplateGenerator
 
-class MNISTGenerator(TemplateGenerator):
+class DCTGenerator(TemplateGenerator):
     'Generates data for Keras'
     def __init__(self, data, batch_size=32, image_shape=(28, 28), shuffle=True, num_classes=10):
         'Initialization'
@@ -47,6 +49,33 @@ class MNISTGenerator(TemplateGenerator):
     @shuffle.setter
     def shuffle(self, value):
         self._shuffle = value
+    
+    def _decode_and_random_crop(self, image_buffer, bbox, image_size):
+        """Randomly crops image and then scales to target size."""
+        with tf.name_scope('distorted_bounding_box_crop',
+                            values=[image_buffer, bbox]):
+            sample_distorted_bounding_box = tf.image.sample_distorted_bounding_box(
+                tf.image.extract_jpeg_shape(image_buffer),
+                bounding_boxes=bbox,
+                min_object_covered=0.1,
+                aspect_ratio_range=[0.75, 1.33],
+                area_range=[0.08, 1.0],
+                max_attempts=10,
+                use_image_if_no_bounding_boxes=True)
+            bbox_begin, bbox_size, _ = sample_distorted_bounding_box
+
+        # Crop the image to the specified bounding box.
+        offset_y, offset_x, _ = tf.unstack(bbox_begin)
+        target_height, target_width, _ = tf.unstack(bbox_size)
+        crop_window = tf.stack([offset_y, offset_x, target_height, target_width])
+        image = tf.image.decode_and_crop_jpeg(image_buffer, crop_window, channels=3)
+        image = tf.image.convert_image_dtype(
+            image, dtype=tf.float32)
+
+        image = tf.image.resize_bicubic([image],
+                                        [image_size, image_size])[0]
+
+        return image
 
     def __len__(self):
         'Denotes the number of batches per epoch'
