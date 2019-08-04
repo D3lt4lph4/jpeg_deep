@@ -5,6 +5,7 @@ from keras.models import Sequential
 from keras.layers import Input, BatchNormalization, Conv2D, MaxPooling2D, Flatten, Dense, UpSampling2D, Dropout, Conv2DTranspose
 from keras import models
 
+
 def VGG16A3CBNI(classes=1000):
     """Instantiates the VGG16 architecture.
         classes: optional number of classes to classify images
@@ -20,33 +21,26 @@ def VGG16A3CBNI(classes=1000):
 
     model = Sequential()
     # Block 1
-    model.add(BatchNormalization(name="b_norm", input_shape=input_shape))
-    model.add(Conv2D(196, (8, 8), strides=8,
-                     activation='relu',
-                     padding='same',
-                     name='block1_conv1'))
+    model.add(BatchNormalization(name="b_norm_192", input_shape=input_shape))
+    model.add(
+        Conv2D(256, (3, 3),
+               activation='relu',
+               padding='same',
+               name='conv1_1_dct_256'))
 
     # Block 4
-    model.add(Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block4_conv1'))
-    model.add(Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block4_conv2'))
-    model.add(MaxPooling2D((2, 2), strides=(2, 2), name='block4_pool'))
+    model.add(
+        Conv2D(512, (3, 3), activation='relu', padding='same', name='conv4_1'))
+    model.add(
+        Conv2D(512, (3, 3), activation='relu', padding='same', name='conv4_2'))
+    model.add(MaxPooling2D((2, 2), strides=(2, 2), name='pool4'))
 
     # Block 5
-    model.add(Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block5_conv1'))
-    model.add(Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block5_conv2'))
-    model.add(MaxPooling2D((2, 2), strides=(2, 2), name='block5_pool'))
+    model.add(
+        Conv2D(512, (3, 3), activation='relu', padding='same', name='conv5_1'))
+    model.add(
+        Conv2D(512, (3, 3), activation='relu', padding='same', name='conv5_2'))
+    model.add(MaxPooling2D((2, 2), strides=(2, 2), name='pool5'))
 
     # Classification block
     model.add(Flatten(name='flatten'))
@@ -57,6 +51,7 @@ def VGG16A3CBNI(classes=1000):
     model.add(Dense(classes, activation='softmax', name='predictions'))
 
     return model
+
 
 def VGG16D3CBNI(classes=1000):
     """Instantiates the VGG16 architecture.
@@ -73,41 +68,49 @@ def VGG16D3CBNI(classes=1000):
 
     model = Sequential()
     # Block 1
-    model.add(BatchNormalization(name="b_norm", input_shape=input_shape))
-    model.add(Conv2D(196, (8, 8), strides=8,
-                     activation='relu',
-                     padding='same',
-                     name='block1_conv1'))
+    model.add(BatchNormalization(name="b_norm_192", input_shape=input_shape))
+    model.add(
+        Conv2D(196, (8, 8),
+               strides=8,
+               activation='relu',
+               padding='same',
+               name='conv1_1_dct_256'))
 
     # Block 4
-    model.add(Conv2D(512, (3, 3),
-                     activation='relu',
-                     padding='same',
-                     name='block4_conv1'))
-    model.add(Conv2D(512, (3, 3),
-                     activation='relu',
-                     padding='same',
-                     name='block4_conv2'))
-    model.add(Conv2D(512, (3, 3),
-                     activation='relu',
-                     padding='same',
-                     name='block4_conv3'))
-    model.add(MaxPooling2D((2, 2), strides=(2, 2), name='block4_pool'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='conv4_1'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='conv4_2'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='conv4_3'))
+    model.add(MaxPooling2D((2, 2), strides=(2, 2), name=''))
 
     # Block 5
-    model.add(Conv2D(512, (3, 3),
-                     activation='relu',
-                     padding='same',
-                     name='block5_conv1'))
-    model.add(Conv2D(512, (3, 3),
-                     activation='relu',
-                     padding='same',
-                     name='block5_conv2'))
-    model.add(Conv2D(512, (3, 3),
-                     activation='relu',
-                     padding='same',
-                     name='block5_conv3'))
-    model.add(MaxPooling2D((2, 2), strides=(2, 2), name='block5_pool'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='conv5_1'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='conv5_2'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='conv5_3'))
+    model.add(MaxPooling2D((2, 2), strides=(2, 2), name=''))
 
     # Classification block
     model.add(Flatten(name='flatten'))
@@ -118,6 +121,7 @@ def VGG16D3CBNI(classes=1000):
     model.add(Dense(classes, activation='softmax', name='predictions'))
 
     return model
+
 
 def VGG16A3CBNIDeconvolution(classes=1000):
     """Instantiates the VGG16 architecture.
@@ -135,46 +139,54 @@ def VGG16A3CBNIDeconvolution(classes=1000):
     model = Sequential()
 
     # Block 1
-    model.add(BatchNormalization(name="bn_1",input_shape=input_shape))
-    model.add(Conv2D(196, (8, 8), strides=8,
-                     activation='relu',
-                     padding='same',
-                     name='block1_conv1'))
+    model.add(BatchNormalization(name="bn_1", input_shape=input_shape))
+    model.add(
+        Conv2D(196, (8, 8),
+               strides=8,
+               activation='relu',
+               padding='same',
+               name='block1_conv1'))
 
     # Block '2'
     model.add(Conv2DTranspose(196, (3, 3), strides=(2, 2)))
 
     # Block 3
-    model.add(Conv2D(256, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block3_conv1'))
-    model.add(Conv2D(256, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block3_conv2'))
+    model.add(
+        Conv2D(256, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block3_conv1'))
+    model.add(
+        Conv2D(256, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block3_conv2'))
     model.add(MaxPooling2D((2, 2), strides=(2, 2), name='block3_pool'))
 
     # Block 4
-    model.add(Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block4_conv1'))
-    model.add(Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block4_conv2'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block4_conv1'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block4_conv2'))
     model.add(MaxPooling2D((2, 2), strides=(2, 2), name='block4_pool'))
 
     # Block 5
-    model.add(Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block5_conv1'))
-    model.add(Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block5_conv2'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block5_conv1'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block5_conv2'))
     model.add(MaxPooling2D((2, 2), strides=(2, 2), name='block5_pool'))
 
     # Classification block
@@ -186,6 +198,7 @@ def VGG16A3CBNIDeconvolution(classes=1000):
     model.add(Dense(classes, activation='softmax', name='predictions'))
 
     return model
+
 
 def VGG16D3CBNIDeconvolution(classes=1000):
     """Instantiates the VGG16 architecture.
@@ -202,58 +215,69 @@ def VGG16D3CBNIDeconvolution(classes=1000):
 
     model = Sequential()
     # Block 1
-    model.add(BatchNormalization(name="bn_1",input_shape=input_shape))
-    model.add(Conv2D(196, (8, 8), strides=8,
-                     activation='relu',
-                     padding='same',
-                     name='block1_conv1'))
+    model.add(BatchNormalization(name="bn_1", input_shape=input_shape))
+    model.add(
+        Conv2D(196, (8, 8),
+               strides=8,
+               activation='relu',
+               padding='same',
+               name='block1_conv1'))
 
     # Block '2'
     model.add(Conv2DTranspose(196, (3, 3), strides=(2, 2)))
 
     # Block 3
-    model.add(Conv2D(256, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block3_conv1'))
-    model.add(Conv2D(256, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block3_conv2'))
-    model.add(Conv2D(256, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block3_conv3'))
+    model.add(
+        Conv2D(256, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block3_conv1'))
+    model.add(
+        Conv2D(256, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block3_conv2'))
+    model.add(
+        Conv2D(256, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block3_conv3'))
     model.add(MaxPooling2D((2, 2), strides=(2, 2), name='block3_pool'))
 
     # Block 4
-    model.add(Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block4_conv1'))
-    model.add(Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block4_conv2'))
-    model.add(Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block4_conv3'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block4_conv1'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block4_conv2'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block4_conv3'))
     model.add(MaxPooling2D((2, 2), strides=(2, 2), name='block4_pool'))
 
     # Block 5
-    model.add(Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block5_conv1'))
-    model.add(Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block5_conv2'))
-    model.add(Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block5_conv3'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block5_conv1'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block5_conv2'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block5_conv3'))
     model.add(MaxPooling2D((2, 2), strides=(2, 2), name='block5_pool'))
 
     # Classification block
@@ -265,6 +289,7 @@ def VGG16D3CBNIDeconvolution(classes=1000):
     model.add(Dense(classes, activation='softmax', name='predictions'))
 
     return model
+
 
 def VGG16A3CBNA(classes=1000):
     """Instantiates the VGG16 architecture.
@@ -281,35 +306,41 @@ def VGG16A3CBNA(classes=1000):
 
     model = Sequential()
     # Block 1
-    
-    model.add(Conv2D(196, (8, 8), strides=8,
-                     activation='relu',
-                     padding='same',
-                     name='block1_conv1',
-                     input_shape=input_shape))
-    
+
+    model.add(
+        Conv2D(196, (8, 8),
+               strides=8,
+               activation='relu',
+               padding='same',
+               name='block1_conv1',
+               input_shape=input_shape))
+
     model.add(BatchNormalization(name="b_norm_after"))
 
     # Block 4
-    model.add(Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block4_conv1'))
-    model.add(Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block4_conv2'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block4_conv1'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block4_conv2'))
     model.add(MaxPooling2D((2, 2), strides=(2, 2), name='block4_pool'))
 
     # Block 5
-    model.add(Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block5_conv1'))
-    model.add(Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block5_conv2'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block5_conv1'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block5_conv2'))
     model.add(MaxPooling2D((2, 2), strides=(2, 2), name='block5_pool'))
 
     # Classification block
@@ -321,6 +352,7 @@ def VGG16A3CBNA(classes=1000):
     model.add(Dense(classes, activation='softmax', name='predictions'))
 
     return model
+
 
 def VGG16D3CBNA(classes=1000):
     """Instantiates the VGG16 architecture.
@@ -338,42 +370,50 @@ def VGG16D3CBNA(classes=1000):
     model = Sequential()
 
     # Block 1
-    model.add(Conv2D(196, (8, 8), strides=8,
-                activation='relu',
-                padding='same',
-                name='block1_conv1',
-                input_shape=input_shape))
-    
+    model.add(
+        Conv2D(196, (8, 8),
+               strides=8,
+               activation='relu',
+               padding='same',
+               name='block1_conv1',
+               input_shape=input_shape))
+
     model.add(BatchNormalization(name="b_norm_after"))
 
     # Block 4
-    model.add(Conv2D(512, (3, 3),
-                     activation='relu',
-                     padding='same',
-                     name='block4_conv1'))
-    model.add(Conv2D(512, (3, 3),
-                     activation='relu',
-                     padding='same',
-                     name='block4_conv2'))
-    model.add(Conv2D(512, (3, 3),
-                     activation='relu',
-                     padding='same',
-                     name='block4_conv3'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block4_conv1'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block4_conv2'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block4_conv3'))
     model.add(MaxPooling2D((2, 2), strides=(2, 2), name='block4_pool'))
 
     # Block 5
-    model.add(Conv2D(512, (3, 3),
-                     activation='relu',
-                     padding='same',
-                     name='block5_conv1'))
-    model.add(Conv2D(512, (3, 3),
-                     activation='relu',
-                     padding='same',
-                     name='block5_conv2'))
-    model.add(Conv2D(512, (3, 3),
-                     activation='relu',
-                     padding='same',
-                     name='block5_conv3'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block5_conv1'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block5_conv2'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block5_conv3'))
     model.add(MaxPooling2D((2, 2), strides=(2, 2), name='block5_pool'))
 
     # Classification block
@@ -385,6 +425,7 @@ def VGG16D3CBNA(classes=1000):
     model.add(Dense(classes, activation='softmax', name='predictions'))
 
     return model
+
 
 def VGG16A3CBNADeconvolution(classes=1000):
     """Instantiates the VGG16 architecture.
@@ -402,48 +443,57 @@ def VGG16A3CBNADeconvolution(classes=1000):
     model = Sequential()
 
     # Block 1
-    model.add(Conv2D(196, (8, 8), strides=8,
-                activation='relu',
-                padding='same',
-                name='block1_conv1',
-                input_shape=input_shape))
-    
+    model.add(
+        Conv2D(196, (8, 8),
+               strides=8,
+               activation='relu',
+               padding='same',
+               name='block1_conv1',
+               input_shape=input_shape))
+
     model.add(BatchNormalization(name="b_norm_after"))
 
     # Block '2'
-    model.add(Conv2DTranspose(196, (3, 3), strides=(2, 2), name="block2_convt1"))
+    model.add(
+        Conv2DTranspose(196, (3, 3), strides=(2, 2), name="block2_convt1"))
 
     # Block 3
-    model.add(Conv2D(256, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block3_conv1'))
-    model.add(Conv2D(256, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block3_conv2'))
+    model.add(
+        Conv2D(256, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block3_conv1'))
+    model.add(
+        Conv2D(256, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block3_conv2'))
     model.add(MaxPooling2D((2, 2), strides=(2, 2), name='block3_pool'))
 
     # Block 4
-    model.add(Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block4_conv1'))
-    model.add(Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block4_conv2'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block4_conv1'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block4_conv2'))
     model.add(MaxPooling2D((2, 2), strides=(2, 2), name='block4_pool'))
 
     # Block 5
-    model.add(Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block5_conv1'))
-    model.add(Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block5_conv2'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block5_conv1'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block5_conv2'))
     model.add(MaxPooling2D((2, 2), strides=(2, 2), name='block5_pool'))
 
     # Classification block
@@ -455,6 +505,7 @@ def VGG16A3CBNADeconvolution(classes=1000):
     model.add(Dense(classes, activation='softmax', name='predictions'))
 
     return model
+
 
 def VGG16D3CBNADeconvolution(classes=1000):
     """Instantiates the VGG16 architecture.
@@ -472,60 +523,72 @@ def VGG16D3CBNADeconvolution(classes=1000):
     model = Sequential()
 
     # Block 1
-    model.add(Conv2D(196, (8, 8), strides=8,
-                activation='relu',
-                padding='same',
-                name='block1_conv1',
-                input_shape=input_shape))
-    
+    model.add(
+        Conv2D(196, (8, 8),
+               strides=8,
+               activation='relu',
+               padding='same',
+               name='block1_conv1',
+               input_shape=input_shape))
+
     model.add(BatchNormalization(name="b_norm_after"))
 
     # Block '2'
-    model.add(Conv2DTranspose(196, (3, 3), strides=(2, 2), name="block2_convt1"))
+    model.add(
+        Conv2DTranspose(196, (3, 3), strides=(2, 2), name="block2_convt1"))
 
     # Block 3
-    model.add(Conv2D(256, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block3_conv1'))
-    model.add(Conv2D(256, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block3_conv2'))
-    model.add(Conv2D(256, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block3_conv3'))
+    model.add(
+        Conv2D(256, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block3_conv1'))
+    model.add(
+        Conv2D(256, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block3_conv2'))
+    model.add(
+        Conv2D(256, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block3_conv3'))
     model.add(MaxPooling2D((2, 2), strides=(2, 2), name='block3_pool'))
 
     # Block 4
-    model.add(Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block4_conv1'))
-    model.add(Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block4_conv2'))
-    model.add(Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block4_conv3'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block4_conv1'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block4_conv2'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block4_conv3'))
     model.add(MaxPooling2D((2, 2), strides=(2, 2), name='block4_pool'))
 
     # Block 5
-    model.add(Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block5_conv1'))
-    model.add(Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block5_conv2'))
-    model.add(Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block5_conv3'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block5_conv1'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block5_conv2'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block5_conv3'))
     model.add(MaxPooling2D((2, 2), strides=(2, 2), name='block5_pool'))
 
     # Classification block
@@ -537,6 +600,7 @@ def VGG16D3CBNADeconvolution(classes=1000):
     model.add(Dense(classes, activation='softmax', name='predictions'))
 
     return model
+
 
 def VGG16A3CNoBN(classes=1000):
     """Instantiates the VGG16 architecture.
@@ -554,32 +618,38 @@ def VGG16A3CNoBN(classes=1000):
     model = Sequential()
 
     # Block 1
-    model.add(Conv2D(196, (8, 8), strides=8,
-                     activation='relu',
-                     padding='same',
-                     name='block1_conv1',
-                     input_shape=input_shape))
+    model.add(
+        Conv2D(196, (8, 8),
+               strides=8,
+               activation='relu',
+               padding='same',
+               name='block1_conv1',
+               input_shape=input_shape))
 
     # Block 4
-    model.add(Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block4_conv1'))
-    model.add(Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block4_conv2'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block4_conv1'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block4_conv2'))
     model.add(MaxPooling2D((2, 2), strides=(2, 2), name='block4_pool'))
 
     # Block 5
-    model.add(Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block5_conv1'))
-    model.add(Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block5_conv2'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block5_conv1'))
+    model.add(
+        Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               name='block5_conv2'))
     model.add(MaxPooling2D((2, 2), strides=(2, 2), name='block5_pool'))
 
     # Classification block
@@ -591,6 +661,7 @@ def VGG16A3CNoBN(classes=1000):
     model.add(Dense(classes, activation='softmax', name='predictions'))
 
     return model
+
 
 def VGG16D64CBNI(classes=1000):
     """Instantiates the VGG16 architecture.
@@ -616,59 +687,62 @@ def VGG16D64CBNI(classes=1000):
     x_y = BatchNormalization(name="bn_y")(img_input_y)
     x_cbcr = BatchNormalization(name="bn_cbcr")(img_input_cbcr)
 
-    x_cbcr = Conv2DTranspose(128, (1, 1), strides=(2, 2), name="deconvolution_cbcr")(x_cbcr)
+    x_cbcr = Conv2DTranspose(128, (1, 1),
+                             strides=(2, 2),
+                             name="deconvolution_cbcr")(x_cbcr)
 
     x = Concatenate([x_y, x_cbcr], name="concatenate_components")
 
     # fit the input of the original next block
-    x = Conv2D(128, (1, 1), strides=1,
-                     activation='relu',
-                     padding='same',
-                     name='block1_conv1_dct')(x)
+    x = Conv2D(128, (1, 1),
+               strides=1,
+               activation='relu',
+               padding='same',
+               name='block1_conv1_dct')(x)
 
     # Block 3
     x = Conv2D(256, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block3_conv1')(x)
+               activation='relu',
+               padding='same',
+               name='block3_conv1')(x)
     x = Conv2D(256, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block3_conv2')(x)
+               activation='relu',
+               padding='same',
+               name='block3_conv2')(x)
     x = Conv2D(256, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block3_conv3')(x)
+               activation='relu',
+               padding='same',
+               name='block3_conv3')(x)
     x = MaxPooling2D((2, 2), strides=(2, 2), name='block3_pool')(x)
 
     # Block 4
     x = Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block4_conv1')(x)
+               activation='relu',
+               padding='same',
+               name='block4_conv1')(x)
     x = Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block4_conv2')(x)
+               activation='relu',
+               padding='same',
+               name='block4_conv2')(x)
     x = Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block4_conv3')(x)
+               activation='relu',
+               padding='same',
+               name='block4_conv3')(x)
     x = MaxPooling2D((2, 2), strides=(2, 2), name='block4_pool')(x)
 
     # Block 5
     x = Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block5_conv1')(x)
+               activation='relu',
+               padding='same',
+               name='block5_conv1')(x)
     x = Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block5_conv2')(x)
+               activation='relu',
+               padding='same',
+               name='block5_conv2')(x)
     x = Conv2D(512, (3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block5_conv3')(x)
+               activation='relu',
+               padding='same',
+               name='block5_conv3')(x)
     x = MaxPooling2D((2, 2), strides=(2, 2), name='block5_pool')(x)
 
     # Classification block
