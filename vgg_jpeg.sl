@@ -14,8 +14,8 @@
 #SBATCH --nodes 4
 #SBATCH --output %J.out
 #SBATCH --error %J.err
-#SBATCH --tasks-per-node=4
-#SBATCH --cpus-per-task=7
+#SBATCH --tasks-per-node=2
+#SBATCH --cpus-per-task=14
 
 module load cuda/9.0
 module load python3-DL/3.6.1
