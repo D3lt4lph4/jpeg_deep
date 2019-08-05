@@ -219,7 +219,6 @@ class DCTGeneratorJPEG2DCT_111(TemplateGenerator):
             with Image.open(self.images_path[k]) as im:
 
                 im = im.convert("RGB")
-
                 if self.scale:
                     min_side = min(im.size)
                     scaling_ratio = self.target_length / min_side
@@ -244,9 +243,8 @@ class DCTGeneratorJPEG2DCT_111(TemplateGenerator):
             try:
                 X_y[i] = dct_y
                 X_cbcr[i] = np.concatenate([dct_cb, dct_cr], axis=-1)
-            except ValueError as e:
-                print(self.images_path[k])
-                raise e
+            except Exception as e:
+                raise Exception(str(e) + str(self.images_path[k]))
             y[i, int(self.association[index_class])] = 1
 
         return [X_y, X_cbcr], y
