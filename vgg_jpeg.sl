@@ -29,4 +29,4 @@ export DATASET_PATH_VAL=/dlocal/home/2017018/bdegue01/imagenet/validation
 cd /home/2017018/bdegue01/git/vgg_jpeg/keras
 
 # We re install the package
-srun python3 /home/2017018/bdegue01/git/vgg_jpeg/keras/training.py -c /home/2017018/bdegue01/git/vgg_jpeg/keras/config/vggA_dct/ -ji $SLURM_JOB_ID --horovod 
+srun python3 /home/2017018/bdegue01/git/vgg_jpeg/keras/training.py -c /home/2017018/bdegue01/git/vgg_jpeg/keras/config/vggA_dct/ --horovod 
