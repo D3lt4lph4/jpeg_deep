@@ -122,7 +122,7 @@ class DCTGeneratorJPEG2DCT_111(TemplateGenerator):
 
         self._batch_size = batch_size
         self.data_directory = data_directory
-        self.shuffle = shuffle
+        self._shuffle = shuffle
         self.scale = scale
 
         # Process the index dictionary to get the matching name/class_id
@@ -168,7 +168,7 @@ class DCTGeneratorJPEG2DCT_111(TemplateGenerator):
 
     def on_epoch_end(self):
         'Updates indexes after each epoch'
-        if self.shuffle == True:
+        if self._shuffle == True:
             np.random.shuffle(self.indexes)
 
     def __data_generation(self, indexes):
