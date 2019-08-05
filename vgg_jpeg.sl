@@ -28,4 +28,4 @@ export DATASET_PATH=/save/2017018/bdegue01/datasets
 cd /home/2017018/bdegue01/git/vgg_jpeg/
 
 # We re install the package
-srun python3 /home/2017018/bdegue01/git/vgg_jpeg/training.py -c /home/2017018/bdegue01/git/vgg_jpeg/config/vggA/ -ji $SLURM_JOB_ID --horovod 
+srun python3 /home/2017018/bdegue01/git/vgg_jpeg/keras/training.py -c /home/2017018/bdegue01/git/vgg_jpeg/keras/config/vggA/ -ji $SLURM_JOB_ID --horovod 
