@@ -217,6 +217,9 @@ class DCTGeneratorJPEG2DCT_111(TemplateGenerator):
 
             # Load the image in RGB,
             with Image.open(self.images_path[k]) as im:
+
+                im = im.convert("RGB")
+
                 if self.scale:
                     min_side = min(im.size)
                     scaling_ratio = self.target_length / min_side
