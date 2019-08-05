@@ -238,9 +238,12 @@ class DCTGeneratorJPEG2DCT_111(TemplateGenerator):
 
             dct_y, dct_cb, dct_cr = loads(fake_file.getvalue())
 
-
-            X_y[i] = dct_y
-            X_cbcr[i] = np.concatenate([dct_cb, dct_cr], axis=-1)
+            try:
+                X_y[i] = dct_y
+                X_cbcr[i] = np.concatenate([dct_cb, dct_cr], axis=-1)
+            except ValueError as e:
+                print(self.images_path[k])
+                raise e
             y[i, int(self.association[index_class])] = 1
 
         return [X_y, X_cbcr], y
