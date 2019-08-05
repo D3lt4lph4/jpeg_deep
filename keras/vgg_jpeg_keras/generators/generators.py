@@ -215,15 +215,15 @@ class DCTGeneratorJPEG2DCT_111(TemplateGenerator):
             index_class = self.images_path[k][second_last_slash + 1:last_slash]
 
             # Load the image in RGB,
-            with Image.open(self.images_path[k]) as im:
-                if self.scale:
-                    min_side = min(im.size)
-                    scaling_ratio = self.target_length / min_side
+            im = Image.open(self.images_path[k])
+            if self.scale:
+                min_side = min(im.size)
+                scaling_ratio = self.target_length / min_side
 
-                    width, height = im.size
-                    im.resize((int(round(width * scaling_ratio)), int(round(height * scaling_ratio))))
-                else:
-                    im.resize((int(self.target_length), int(self.target_length)))
+                width, height = im.size
+                im.resize((int(round(width * scaling_ratio)), int(round(height * scaling_ratio))))
+            else:
+                im.resize((int(self.target_length), int(self.target_length)))
 
             if self.scale:
                 offset = random.randint(0, max(im.size) - self.target_length)
