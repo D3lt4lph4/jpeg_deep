@@ -247,7 +247,7 @@ class DCTGeneratorJPEG2DCT_111(TemplateGenerator):
             temp_cr[0::2, 0::2, :] = dct_cr
             temp_cr[1::2, 1::2, :] = dct_cr
 
-            X[i] = np.concatenate([dct_y, dct_cb, dct_cr])
+            X[i] = np.concatenate([dct_y, temp_cb, temp_cr])
 
             y[i, int(self.association[index_class])] = 1
 
