@@ -8,6 +8,7 @@ from io import BytesIO
 
 import cv2
 
+from PIL import Image
 from jpeg2dct.numpy import load, loads
 
 from template_keras.generators import TemplateGenerator
