@@ -51,7 +51,7 @@ class TrainingConfiguration(TemplateConfiguration):
         self._loss = categorical_crossentropy
         self._metrics = [_top_k_accuracy(1), _top_k_accuracy(5)]
         self.train_directory = join(environ["DATASET_PATH_TRAIN"], "imagenet/train")
-        self.validation_directory = join(environ["DATASET_PATH_VAL"], "imagenet/train")
+        self.validation_directory = join(environ["DATASET_PATH_VAL"], "imagenet/validation")
         self.index_file = "/home/2017018/bdegue01/git/vgg_jpeg/data/imagenet_class_index.json"
 
         # Keras stuff
