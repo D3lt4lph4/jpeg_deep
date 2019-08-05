@@ -50,8 +50,8 @@ class TrainingConfiguration(TemplateConfiguration):
         self._optimizer = SGD(**self._optimizer_parameters)
         self._loss = categorical_crossentropy
         self._metrics = [_top_k_accuracy(1), _top_k_accuracy(5)]
-        self.train_directory = join(environ["DATASET_PATH"], "imagenet/train")
-        self.validation_directory = join(environ["DATASET_PATH"], "imagenet/train")
+        self.train_directory = join(environ["DATASET_PATH_TRAIN"], "imagenet/train")
+        self.validation_directory = join(environ["DATASET_PATH_VAL"], "imagenet/train")
 
         # Keras stuff
         self.model_checkpoint = None

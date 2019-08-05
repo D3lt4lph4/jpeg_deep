@@ -23,9 +23,10 @@ module load python3-DL/3.6.1
 export PYTHONUSERBASE=/home/2017018/bdegue01/.virtualenvs/vgg_jpeg_test
 export EXPERIMENTS_OUTPUT_DIRECTORY=$LOCAL_WORK_DIR/experiment
 export LOG_DIRECTORY=$LOCAL_WORK_DIR/logs
-export DATASET_PATH=/save/2017018/bdegue01/datasets
+export DATASET_PATH_TRAIN=/save/2017018/bdegue01/datasets
+export DATASET_PATH_VAL=/dlocal/home/2017018/bdegue01/imagenet/validation
 
-cd /home/2017018/bdegue01/git/vgg_jpeg/
+cd /home/2017018/bdegue01/git/vgg_jpeg/keras
 
 # We re install the package
-srun python3 /home/2017018/bdegue01/git/vgg_jpeg/keras/training.py -c /home/2017018/bdegue01/git/vgg_jpeg/keras/config/vggA/ -ji $SLURM_JOB_ID --horovod 
+srun python3 /home/2017018/bdegue01/git/vgg_jpeg/keras/training.py -c /home/2017018/bdegue01/git/vgg_jpeg/keras/config/vggA_dct/ -ji $SLURM_JOB_ID --horovod 
