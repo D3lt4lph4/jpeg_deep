@@ -227,12 +227,12 @@ class DCTGeneratorJPEG2DCT_111(TemplateGenerator):
 
             if self.scale:
                 offset = random.randint(0, max(im.size) - self.target_length)
-                fake_file = BytesIO()
+                
                 if im.size[0] > im.size[1]:
                     im = im.crop((offset, 0, self.target_length + offset, self.target_length))
                 else:
                     im = im.crop((0, offset, self.target_length, self.target_length + offset))
-
+            fake_file = BytesIO()
             im.save(fake_file, format="jpeg", subsampling=0)
 
             dct_y, dct_cb, dct_cr = loads(fake_file.getvalue())
