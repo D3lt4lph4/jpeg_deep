@@ -9,7 +9,6 @@ from io import BytesIO
 import cv2
 
 from jpeg2dct.numpy import load, loads
-import jpegdecoder
 
 from template_keras.generators import TemplateGenerator
 
