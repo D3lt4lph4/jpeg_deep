@@ -35,7 +35,7 @@ def vgga_dct(classes=1000):
     x = MaxPooling2D((2, 2), strides=(2, 2), name='pool4')(x)
 
 
-    concat = Concatenate([x, norm_cbcr], axis=-1)
+    concat = Concatenate(axis=-1)([x, norm_cbcr])
     # Block 5
     x = Conv2D(512, (3, 3), activation='relu', padding='same', name='conv5_1')(concat)
     x = Conv2D(512, (3, 3), activation='relu', padding='same', name='conv5_2')(x)
