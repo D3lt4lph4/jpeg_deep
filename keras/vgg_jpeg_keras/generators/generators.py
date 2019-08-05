@@ -119,12 +119,13 @@ class GeneratorPreResized(TemplateGenerator):
 class DCTGeneratorJPEG2DCT_111(TemplateGenerator):
     'Generates data in the DCT space for Keras.'
 
-    def __init__(self, data_directory, index_file, batch_size=32, shuffle=True, scale=True):
+    def __init__(self, data_directory, index_file, batch_size=32, shuffle=True, scale=True, target_length=224):
 
         self._batch_size = batch_size
         self.data_directory = data_directory
         self._shuffle = shuffle
         self.scale = scale
+        self.target_length = target_length
 
         # Process the index dictionary to get the matching name/class_id
         self.association = {}
@@ -245,12 +246,13 @@ class DCTGeneratorJPEG2DCT_111(TemplateGenerator):
 class DCTGeneratorImageNet(TemplateGenerator):
     'Generates data in the DCT space for Keras.'
 
-    def __init__(self, data_directory, index_file, batch_size=32, image_shape=(224, 224, 3), shuffle=True):
+    def __init__(self, data_directory, index_file, batch_size=32, image_shape=(224, 224, 3), shuffle=True, target_length=224):
         'Initialization'
         self.image_shape = image_shape
         self._batch_size = batch_size
         self.data_directory = data_directory
         self.decoder = jpegdecoder.decoder.JPEGDecoder()
+        self.target_length = target_length
 
         # Process the index dictionary to get the matching name/class_id
         self.association = {}
