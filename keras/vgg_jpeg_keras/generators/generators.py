@@ -120,7 +120,7 @@ class DCTGeneratorJPEG2DCT_111(TemplateGenerator):
 
     def __init__(self, data_directory, index_file, batch_size=32, shuffle=True, scale=True):
 
-        self.batch_size = batch_size
+        self._batch_size = batch_size
         self.data_directory = data_directory
         self.shuffle = shuffle
         self.scale = scale
@@ -146,7 +146,7 @@ class DCTGeneratorJPEG2DCT_111(TemplateGenerator):
                     
         self.number_of_classes = len(self.classes)
         
-        self.batches_per_epoch = len(self.images_path) // self.batch_size
+        self.batches_per_epoch = len(self.images_path) // self._batch_size
         self.indexes = np.arange(len(self.images_path))
         self.on_epoch_end()
 
@@ -159,7 +159,7 @@ class DCTGeneratorJPEG2DCT_111(TemplateGenerator):
         # Generate indexes of the batch
         # We have to use modulo to avoid overflowing the index size if we have too many batches per epoch
         index = index % self.batches_per_epoch
-        indexes = self.indexes[index*self.batch_size:(index+1)*self.batch_size]
+        indexes = self.indexes[index*self.batch_size:(index+1)*self._batch_size]
 
         # Generate data
         X, y = self.__data_generation(indexes)
@@ -176,8 +176,8 @@ class DCTGeneratorJPEG2DCT_111(TemplateGenerator):
         'Generates data containing batch_size samples'
 
         # Two inputs for the data of one image.
-        X = np.empty((self.batch_size, 28, 28, 192), dtype=np.int32)
-        y = np.zeros((self.batch_size, self.number_of_classes))
+        X = np.empty((self._batch_size, 28, 28, 192), dtype=np.int32)
+        y = np.zeros((self._batch_size, self.number_of_classes))
 
         # iterate over the indexes to get the correct values
         for i, k in enumerate(indexes):

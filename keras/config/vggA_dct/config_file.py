@@ -142,8 +142,8 @@ class TrainingConfiguration(TemplateConfiguration):
         pass
 
     def prepare_training_generators(self):
-        self._train_generator = DCTGeneratorJPEG2DCT_111(self.train_directory, self.index_file, self.batch_size, scale=False)
-        self._validation_generator = DCTGeneratorJPEG2DCT_111(self.validation_directory, self.index_file, self.batch_size, scale=False)
+        self._train_generator = DCTGeneratorJPEG2DCT_111(self.train_directory, self.index_file, self._batch_size, scale=False)
+        self._validation_generator = DCTGeneratorJPEG2DCT_111(self.validation_directory, self.index_file, self._batch_size, scale=False)
 
     @property
     def train_generator(self):
