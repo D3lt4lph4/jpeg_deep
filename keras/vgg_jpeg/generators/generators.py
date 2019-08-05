@@ -4,6 +4,10 @@ import os
 import json
 import random
 
+from io import BytesIO
+
+import cv2
+
 from jpeg2dct.numpy import load, loads
 import jpegdecoder
 
@@ -112,15 +116,15 @@ class GeneratorPreResized(TemplateGenerator):
 
         return [X_y, X_cbcr], y
 
-class DCTGeneratorJPEG2DCT(TemplateGenerator):
+class DCTGeneratorJPEG2DCT_111(TemplateGenerator):
     'Generates data in the DCT space for Keras.'
 
-    def __init__(self, data_directory, index_file, batch_size=32, shuffle=True, load_in_memory=False):
+    def __init__(self, data_directory, index_file, batch_size=32, shuffle=True, scale=True):
 
         self.batch_size = batch_size
         self.data_directory = data_directory
         self.shuffle = shuffle
-        self.load_in_memory = load_in_memory
+        self.scale = scale
 
         # Process the index dictionary to get the matching name/class_id
         self.association = {}
@@ -140,11 +144,7 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
                 for image in os.listdir(class_directory):
                     image_path = os.path.join(class_directory, image)
                     self.images_path.append(image_path)
-                    if load_in_memory:
-                        # All the images would not fit in memory so we just load the compressed data
-                        with open(image_path, "rb") as fin:
-                            self.data.append(fin.read())
-
+                    
         self.number_of_classes = len(self.classes)
         
         self.batches_per_epoch = len(self.images_path) // self.batch_size
@@ -177,8 +177,7 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
         'Generates data containing batch_size samples'
 
         # Two inputs for the data of one image.
-        X_y = np.empty((self.batch_size, 28, 28, 64))
-        X_cbcr = np.empty((self.batch_size, 14, 14, 128))
+        X = np.empty((self.batch_size, 28, 28, 192), dtype=np.int32)
         y = np.zeros((self.batch_size, self.number_of_classes))
 
         # iterate over the indexes to get the correct values
@@ -188,32 +187,34 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
             second_last_slash = self.images_path[k][:last_slash].rfind("/")
             index_class = self.images_path[k][second_last_slash + 1:last_slash]
 
-            # if the data is already loaded in memory, we read from it
-            if self.load_in_memory:
-                dct_y, dct_cb, dct_cr = loads(self.data[k])
-            else:
-                dct_y, dct_cb, dct_cr = load(self.images_path[k])
-            
-            # We carry the "data-augmentation"
-            # For this generator, all the images have one size at 224, find it and then random select the 224 pixels from the other side
-            if dct_y.shape[0] == 28:
-                biggest = dct_y.shape[1]
-            else:
-                biggest = dct_y.shape[0]
-            
-            offset = random.randint(0, biggest - 28)
+            # Load the image in RGB,
+            with Image.open(self.images_path[k]) as im:
+                if self.scale:
+                    min_side = min(im.size)
+                    scaling_ratio = self.target_length / min_side
 
-            # Load the data in the matrices
-            if dct_y.shape[0] == 28:
-                X_y[i] = dct_y[:,offset:28 + offset, :]
-                X_cbcr[i] = np.concatenate((dct_cb[:,offset:14 + offset, :], dct_cr[:,offset:14 + offset, :]), -1)
-            else:
-                X_y[i] = dct_y[offset:28 + offset, :, :]
-                X_cbcr[i] = np.concatenate((dct_cb[offset:28 + offset, :, :], dct_cr[offset:28 + offset, :, :]), -1)
+                    width, height = im.size
+                    im.resize((int(round(width * scaling_ratio)), int(round(height * scaling_ratio))))
+                else:
+                    im.resize((int(self.target_length), int(self.target_length)))
+
+            if self.scale:
+                offset = random.randint(0, max(im.size) - self.target_length)
+                fake_file = BytesIO()
+                if im.size[0] > im.size[1]:
+                    im = im.crop((offset, 0, self.target_length + offset, self.target_length))
+                else:
+                    im = im.crop((0, offset, self.target_length, self.target_length + offset))
+
+            im.save(fake_file, format="jpeg", subsampling=0)
+
+            dct_y, dct_cb, dct_cr = loads(fake_file.getvalue())
+
+            X[i] = np.concatenate([dct_y, dct_cb, dct_cr])
 
             y[i, int(self.association[index_class])] = 1
 
-        return [X_y, X_cbcr], y
+        return X, y
 
 class DCTGeneratorImageNet(TemplateGenerator):
     'Generates data in the DCT space for Keras.'
