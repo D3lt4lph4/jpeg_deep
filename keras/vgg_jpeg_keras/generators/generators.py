@@ -204,7 +204,8 @@ class DCTGeneratorJPEG2DCT_111(TemplateGenerator):
         'Generates data containing batch_size samples'
 
         # Two inputs for the data of one image.
-        X = np.empty((self._batch_size, 28, 28, 192), dtype=np.int32)
+        X_y = np.empty((self._batch_size, 28, 28, 64), dtype=np.int32)
+        X_cbcr = np.empty((self._batch_size, 14, 14, 128), dtype=np.int32)
         y = np.zeros((self._batch_size, self.number_of_classes))
 
         # iterate over the indexes to get the correct values
@@ -238,20 +239,12 @@ class DCTGeneratorJPEG2DCT_111(TemplateGenerator):
 
             dct_y, dct_cb, dct_cr = loads(fake_file.getvalue())
 
-            temp_cb = np.empty(dct_y.shape, dtype=np.int32)
-            temp_cr = np.empty(dct_y.shape, dtype=np.int32)
 
-            temp_cb[0::2, 0::2, :] = dct_cb
-            temp_cb[1::2, 1::2, :] = dct_cb
-
-            temp_cr[0::2, 0::2, :] = dct_cr
-            temp_cr[1::2, 1::2, :] = dct_cr
-
-            X[i] = np.concatenate([dct_y, temp_cb, temp_cr])
-
+            X_y[i] = 
+            X_cbcr[i] = np.concatenate([dct_cb, dct_cr])
             y[i, int(self.association[index_class])] = 1
 
-        return X, y
+        return [X_y, X_cbcr], y
 
 class DCTGeneratorImageNet(TemplateGenerator):
     'Generates data in the DCT space for Keras.'
