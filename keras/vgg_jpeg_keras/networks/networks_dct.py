@@ -60,66 +60,67 @@ def vggd_dct(classes=1000):
     # Returns
         A Keras model instance.
     """
-    if K.image_data_format() == 'channels_last':
-        input_shape = (224, 224, 3)
-    else:
-        input_shape = (3, 224, 224)
+    input_shape_y = (28, 28, 64)
+    input_shape_cbcr = (14, 14, 128)
 
-    model = Sequential()
+    input_y = Input(input_shape_y)
+    input_cbcr = Input(input_shape_cbcr)
+
+    x = BatchNormalization(name="b_norm_64", input_shape=input_shape_y)(input_y)
+    
+    x = Conv2D(256, (3, 3),
+            activation='relu',
+            padding='same',
+            name='conv1_1_dct_256')(x)
     # Block 1
-    model.add(BatchNormalization(name="b_norm_192", input_shape=input_shape))
-    model.add(
-        Conv2D(196, (8, 8),
+    x = BatchNormalization(name="b_norm_192", input_shape=input_shape))(x)
+    x = Conv2D(196, (8, 8),
                strides=8,
                activation='relu',
                padding='same',
-               name='conv1_1_dct_256'))
+               name='conv1_1_dct_256'))(x)
 
     # Block 4
-    model.add(
-        Conv2D(512, (3, 3),
+    x = Conv2D(512, (3, 3),
                activation='relu',
                padding='same',
-               name='conv4_1'))
-    model.add(
-        Conv2D(512, (3, 3),
+               name='conv4_1'))(x)
+    x = Conv2D(512, (3, 3),
                activation='relu',
                padding='same',
-               name='conv4_2'))
-    model.add(
-        Conv2D(512, (3, 3),
+               name='conv4_2'))(x)
+    x = Conv2D(512, (3, 3),
                activation='relu',
                padding='same',
-               name='conv4_3'))
-    model.add(MaxPooling2D((2, 2), strides=(2, 2), name=''))
+               name='conv4_3'))(x)
+    x = MaxPooling2D((2, 2), strides=(2, 2), name='pool4'))(x)
+
+    concat = Concatenate(axis=-1)([x, norm_cbcr])
 
     # Block 5
-    model.add(
-        Conv2D(512, (3, 3),
+    x = Conv2D(512, (3, 3),
                activation='relu',
                padding='same',
-               name='conv5_1'))
-    model.add(
-        Conv2D(512, (3, 3),
+               name='conv5_1'))(concat)
+    x = Conv2D(512, (3, 3),
                activation='relu',
                padding='same',
-               name='conv5_2'))
-    model.add(
-        Conv2D(512, (3, 3),
+               name='conv5_2'))(x)
+    x = Conv2D(512, (3, 3),
                activation='relu',
                padding='same',
-               name='conv5_3'))
-    model.add(MaxPooling2D((2, 2), strides=(2, 2), name=''))
+               name='conv5_3'))(x)
+    x = MaxPooling2D((2, 2), strides=(2, 2), name='pool5'))(x)
 
     # Classification block
-    model.add(Flatten(name='flatten'))
-    model.add(Dense(4096, activation='relu', name='fc1'))
-    model.add(Dropout(0.5))
-    model.add(Dense(4096, activation='relu', name='fc2'))
-    model.add(Dropout(0.5))
-    model.add(Dense(classes, activation='softmax', name='predictions'))
+    x = Flatten(name='flatten')(x)
+    x = Dense(4096, activation='relu', name='fc1')(x)
+    x = Dropout(0.5)(x)
+    x = Dense(4096, activation='relu', name='fc2')(x)
+    x = Dropout(0.5)(x)
+    x = Dense(classes, activation='softmax', name='predictions')(x)
 
-    return model
+    return Model(inputs=[input_y, input_cbcr], outputs=x)
 
 
 def VGG16A3CBNIDeconvolution(classes=1000):
