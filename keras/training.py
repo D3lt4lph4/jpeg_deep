@@ -79,14 +79,9 @@ else:
     config = TrainingConfiguration()
 
     # Starting the experiment
-    if args.comet:
-        experiment = Experiment(api_key=environ["COMET_API_KEY"],
-                                project_name=config.project_name, workspace=config.workspace)
-        key = experiment.get_key()
 
-    else:
-        key = ''.join(random.choice(string.ascii_uppercase +
-                                        string.ascii_lowercase + string.digits) for _ in range(32))
+    key = ''.join(random.choice(string.ascii_uppercase +
+                                    string.ascii_lowercase + string.digits) for _ in range(32))
 
     output_dir = "{}_{}_{}".format(config.workspace, config.project_name, key)
 
