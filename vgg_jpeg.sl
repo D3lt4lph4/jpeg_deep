@@ -12,8 +12,8 @@
 #SBATCH --partition gpu_p100
 #SBATCH --gres gpu:2
 #SBATCH --nodes 4
-#SBATCH --output %J.out
-#SBATCH --error %J.err
+#SBATCH --output /home/2018017/bdegue01/logs/%J.out
+#SBATCH --error /home/2018017/bdegue01/logs/%J.err
 #SBATCH --tasks-per-node=2
 #SBATCH --cpus-per-task=14
 
