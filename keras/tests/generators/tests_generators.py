@@ -8,7 +8,7 @@ import tensorflow as tf
 
 import numpy as np
 
-from vgg_jpeg_keras.generators import DCTGeneratorJPEG2DCT_111
+from vgg_jpeg_keras.generators import DCTGeneratorJPEG2DCT_111, prepare_imagenet
 
 class test_DCTGeneratorJPEG2DCT_111(unittest.TestCase):
 
@@ -65,6 +65,16 @@ class test_DCTGeneratorJPEG2DCT_111(unittest.TestCase):
         self.assertTrue(batch[1][0,0,0,0:5].tolist() == [0, 0, 0, 0, 0])
         self.assertTrue(y[0, 462] == 1)
         
+    def test_prepare_imagenet(self):
+        index_file = "data/imagenet_class_index.json"
+        data_directory = "/save/2017018/bdegue01/datasets/imagenet/ILSVRC_2012/validation/"
+        association, classes, images_path = prepare_imagenet(index_file, data_directory)
+
+        self.assertTrue(len(classes) == 1000)
+        print(association.keys())
+        self.assertTrue(len(association.keys()) == 1000)
+        self.assertTrue(len(images_path) == 50000)
+
 
 
 if __name__ == '__main__':

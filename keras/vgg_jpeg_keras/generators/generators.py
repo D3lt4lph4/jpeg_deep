@@ -13,6 +13,28 @@ from jpeg2dct.numpy import load, loads
 
 from template_keras.generators import TemplateGenerator
 
+def prepare_imagenet(index_file, data_directory):
+
+    association = {}
+    with open(index_file) as index:
+        data = json.load(index)
+        for id, value in data.items():
+            association[value[0]] = id
+
+    # First we process the data directory to get all the classes
+    classes = []
+    images_path = []
+
+    for directory in os.listdir(data_directory):
+        class_directory = os.path.join(data_directory, directory)
+        if os.path.isdir(class_directory):
+            classes.append(directory)
+            for image in os.listdir(class_directory):
+                image_path = os.path.join(class_directory, image)
+                images_path.append(image_path)
+                
+    return association, classes, images_path
+
 class GeneratorPreResized(TemplateGenerator):
     'Generates data in the DCT space for Keras.'
 
@@ -128,23 +150,7 @@ class DCTGeneratorJPEG2DCT_111(TemplateGenerator):
         self.target_length = target_length
 
         # Process the index dictionary to get the matching name/class_id
-        self.association = {}
-        with open(index_file) as index:
-            data = json.load(index)
-            for id, value in data.items():
-                self.association[value[0]] = id
-
-        # First we process the data directory to get all the classes
-        self.classes = []
-        self.images_path = []
-        self.data = []
-        for directory in os.listdir(data_directory):
-            class_directory = os.path.join(data_directory, directory)
-            if os.path.isdir(class_directory):
-                self.classes.append(directory)
-                for image in os.listdir(class_directory):
-                    image_path = os.path.join(class_directory, image)
-                    self.images_path.append(image_path)
+        self.association, self.classes, self.images_path = prepare_imagenet(index_file, data_directory)
                     
         self.number_of_classes = len(self.classes)
 
