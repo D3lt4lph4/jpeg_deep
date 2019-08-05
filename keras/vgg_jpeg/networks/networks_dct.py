@@ -6,7 +6,7 @@ from keras.layers import Input, BatchNormalization, Conv2D, MaxPooling2D, Flatte
 from keras import models
 
 
-def VGG16A3CBNI(classes=1000):
+def vgga_dct(classes=1000):
     """Instantiates the VGG16 architecture.
         classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True, and
@@ -14,10 +14,7 @@ def VGG16A3CBNI(classes=1000):
     # Returns
         A Keras model instance.
     """
-    if K.image_data_format() == 'channels_last':
-        input_shape = (224, 224, 3)
-    else:
-        input_shape = (3, 224, 224)
+    input_shape = (28, 28, 192)
 
     model = Sequential()
     # Block 1
@@ -53,7 +50,7 @@ def VGG16A3CBNI(classes=1000):
     return model
 
 
-def VGG16D3CBNI(classes=1000):
+def vggd_dct(classes=1000):
     """Instantiates the VGG16 architecture.
         classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True, and
