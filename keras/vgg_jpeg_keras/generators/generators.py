@@ -215,25 +215,26 @@ class DCTGeneratorJPEG2DCT_111(TemplateGenerator):
             index_class = self.images_path[k][second_last_slash + 1:last_slash]
 
             # Load the image in RGB,
-            im = Image.open(self.images_path[k])
-            if self.scale:
-                min_side = min(im.size)
-                scaling_ratio = self.target_length / min_side
+            with Image.open(self.images_path[k]) as im:
+                if self.scale:
+                    min_side = min(im.size)
+                    scaling_ratio = self.target_length / min_side
 
-                width, height = im.size
-                im.resize((int(round(width * scaling_ratio)), int(round(height * scaling_ratio))))
-            else:
-                im.resize((int(self.target_length), int(self.target_length)))
-
-            if self.scale:
-                offset = random.randint(0, max(im.size) - self.target_length)
-                
-                if im.size[0] > im.size[1]:
-                    im = im.crop((offset, 0, self.target_length + offset, self.target_length))
+                    width, height = im.size
+                    im.resize((int(round(width * scaling_ratio)), int(round(height * scaling_ratio))))
                 else:
-                    im = im.crop((0, offset, self.target_length, self.target_length + offset))
-            fake_file = BytesIO()
-            im.save(fake_file, format="jpeg", subsampling=0)
+                    im.resize((int(self.target_length), int(self.target_length)))
+
+                if self.scale:
+                    offset = random.randint(0, max(im.size) - self.target_length)
+                    
+                    if im.size[0] > im.size[1]:
+                        im = im.crop((offset, 0, self.target_length + offset, self.target_length))
+                    else:
+                        im = im.crop((0, offset, self.target_length, self.target_length + offset))
+                fake_file = BytesIO()
+                print("hey")
+                im.save(fake_file, format="jpeg", subsampling=0)
 
             dct_y, dct_cb, dct_cr = loads(fake_file.getvalue())
 
