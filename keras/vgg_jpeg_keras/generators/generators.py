@@ -221,9 +221,9 @@ class DCTGeneratorJPEG2DCT_111(TemplateGenerator):
                     scaling_ratio = self.target_length / min_side
 
                     width, height = im.size
-                    im.resize((int(round(width * scaling_ratio)), int(round(height * scaling_ratio))))
+                    im = im.resize((int(round(width * scaling_ratio)), int(round(height * scaling_ratio))))
                 else:
-                    im.resize((int(self.target_length), int(self.target_length)))
+                    im = im.resize((int(self.target_length), int(self.target_length)))
 
                 if self.scale:
                     offset = random.randint(0, max(im.size) - self.target_length)
