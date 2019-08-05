@@ -27,12 +27,6 @@ import horovod.keras as hvd
 parser = argparse.ArgumentParser()
 parser.add_argument('-r', '--restart', help="Restart the training from a previous stopped config. The argument is the path to the experiment folder.", type=str)
 parser.add_argument('-c', '--configuration', help="Path to the directory containing the config file to use. The configuration file should be named 'config_file.py' (see the examples in the config folder of the repository).")
-parser.add_argument('--comet', dest='comet', action='store_true')
-parser.add_argument('--no-comet', dest='comet', action='store_false')
-parser.add_argument('--myria', dest='myria', action='store_true')
-parser.add_argument('--no-myria', dest='myria', action='store_false')
-parser.set_defaults(feature=False)
-parser.add_argument('-ji', '--jobid', type=int, help="When submitting through sbatch, a job id might be specified. If so, the id will be stored in a job.txt file in the LOG_DIRECTORY")
 parser.add_argument('--horovod', dest='horovod', action='store_true')
 args = parser.parse_args()
 
@@ -96,23 +90,20 @@ else:
 
     output_dir = "{}_{}_{}".format(config.workspace, config.project_name, key)
 
+if args.horovod and hvd.rank() == 0:
+    output_dir = join(environ["EXPERIMENTS_OUTPUT_DIRECTORY"], "{}_{}_{}".format(config.workspace, config.project_name, key))
 
-output_dir = join(environ["EXPERIMENTS_OUTPUT_DIRECTORY"], "{}_{}_{}".format(config.workspace, config.project_name, key))
+    checkpoints_output_dir = join(output_dir, "checkpoints")
+    config_output_dir = join(output_dir, "config")
+    results_output_dir = join(output_dir, "results")
 
-checkpoints_output_dir = join(output_dir, "checkpoints")
-config_output_dir = join(output_dir, "config")
-results_output_dir = join(output_dir, "results")
+    # We create all the output directories
 
-# We create all the output directories
-makedirs(output_dir, exist_ok=True)
-makedirs(checkpoints_output_dir, exist_ok=True)
-makedirs(config_output_dir, exist_ok=True)
-makedirs(results_output_dir, exist_ok=True)
-makedirs(environ["LOG_DIRECTORY"], exist_ok=True)
-
-if args.jobid is not None:
-    with open(join(environ["LOG_DIRECTORY"], "job.txt"), "a+") as text_file:
-        print("{} => {}".format(key, args.jobid), file=text_file)
+    makedirs(output_dir, exist_ok=True)
+    makedirs(checkpoints_output_dir, exist_ok=True)
+    makedirs(config_output_dir, exist_ok=True)
+    makedirs(results_output_dir, exist_ok=True)
+    makedirs(environ["LOG_DIRECTORY"], exist_ok=True)
 
 if args.horovod:
     config.prepare_horovod(hvd)
@@ -122,16 +113,13 @@ config.add_model_checkpoint(checkpoints_output_dir)
 
 # Saving the config file.
 if args.restart is None:
-    copyfile(join(args.configuration, "config_file.py"), join(config_output_dir, "saved_config.py"))
-    copyfile(join(args.configuration, "config_file.py"), join(config_output_dir, "temp_config.py"))
+    if args.horovod and hvd.rank() == 0:
+        copyfile(join(args.configuration, "config_file.py"), join(config_output_dir, "saved_config.py"))
+        copyfile(join(args.configuration, "config_file.py"), join(config_output_dir, "temp_config.py"))
 else:
-    copyfile(join(args.restart, "config/saved_config.py"), join(config_output_dir, "saved_config.py"))
-    copyfile(join(args.restart, "config/saved_config.py"), join(config_output_dir, "temp_config.py"))
-
-# Logging the experiment
-if args.restart is None:
-    if args.comet:
-        experiment.log_parameters(config.__dict__)
+    if args.horovod and hvd.rank() == 0:
+        copyfile(join(args.restart, "config/saved_config.py"), join(config_output_dir, "saved_config.py"))
+        copyfile(join(args.restart, "config/saved_config.py"), join(config_output_dir, "temp_config.py"))
 
 # Creating the model
 model = config.network
