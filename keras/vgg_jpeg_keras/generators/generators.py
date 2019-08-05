@@ -206,7 +206,7 @@ class DCTGeneratorJPEG2DCT_111(TemplateGenerator):
         # Two inputs for the data of one image.
         X_y = np.empty((self._batch_size, 28, 28, 64), dtype=np.int32)
         X_cbcr = np.empty((self._batch_size, 14, 14, 128), dtype=np.int32)
-        y = np.zeros((self._batch_size, self.number_of_classes))
+        y = np.zeros((self._batch_size, self.number_of_classes), dtype=np.int32)
 
         # iterate over the indexes to get the correct values
         for i, k in enumerate(indexes):
