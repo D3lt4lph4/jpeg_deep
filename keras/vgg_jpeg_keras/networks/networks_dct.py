@@ -49,7 +49,7 @@ def vgga_dct(classes=1000):
     x = Dropout(0.5)(x)
     x = Dense(classes, activation='softmax', name='predictions')(x)
 
-    return Model(inputs=[input_y, input_cb_cr], outputs=x)
+    return Model(inputs=[input_y, input_cbcr], outputs=x)
 
 
 def vggd_dct(classes=1000):
