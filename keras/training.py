@@ -103,8 +103,9 @@ if args.horovod and hvd.rank() == 0:
 if args.horovod:
     config.prepare_horovod(hvd)
 
-config.add_csv_logger(results_output_dir)
-config.add_model_checkpoint(checkpoints_output_dir)
+if args.horovod and hvd.rank() == 0:
+    config.add_csv_logger(results_output_dir)
+    config.add_model_checkpoint(checkpoints_output_dir)
 
 # Saving the config file.
 if args.restart is None:
