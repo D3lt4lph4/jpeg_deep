@@ -52,6 +52,7 @@ class TrainingConfiguration(TemplateConfiguration):
         self._metrics = [_top_k_accuracy(1), _top_k_accuracy(5)]
         self.train_directory = join(environ["DATASET_PATH_TRAIN"], "imagenet/train")
         self.validation_directory = join(environ["DATASET_PATH_VAL"], "imagenet/train")
+        self.index_file = "/home/2017018/bdegue01/git/vgg_jpeg/data/imagenet_class_index.json"
 
         # Keras stuff
         self.model_checkpoint = None
@@ -141,16 +142,8 @@ class TrainingConfiguration(TemplateConfiguration):
         pass
 
     def prepare_training_generators(self):
-        self._train_generator = ImageDataGenerator(
-            preprocessing_function=preprocess_input).flow_from_directory(
-                self.train_directory,
-                target_size=self.img_size,
-                batch_size=self.batch_size)
-        self._validation_generator = ImageDataGenerator(
-            preprocessing_function=preprocess_input).flow_from_directory(
-                self.validation_directory,
-                target_size=self.img_size,
-                batch_size=self.batch_size)
+        self._train_generator = DCTGeneratorJPEG2DCT_111(self.train_directory, self.index_file, self.batch_size, scale=False)
+        self._validation_generator = DCTGeneratorJPEG2DCT_111(self.validation_directory, self.index_file, self.batch_size, scale=False)
 
     @property
     def train_generator(self):
