@@ -6,9 +6,9 @@ from keras.losses import categorical_crossentropy
 from keras.callbacks import ModelCheckpoint, TerminateOnNaN, CSVLogger, EarlyStopping, ReduceLROnPlateau
 from keras.metrics import top_k_categorical_accuracy
 
-from vgg_jpeg.networks import vgga_dct
-from vgg_jpeg.evaluation import Evaluator
-from vgg_jpeg.generators import DCTGeneratorJPEG2DCT_111
+from vgg_jpeg_keras.networks import vgga_dct
+from vgg_jpeg_keras.evaluation import Evaluator
+from vgg_jpeg_keras.generators import DCTGeneratorJPEG2DCT_111
 
 from template_keras.config import TemplateConfiguration
 
