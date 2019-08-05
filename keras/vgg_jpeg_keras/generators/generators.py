@@ -145,10 +145,36 @@ class DCTGeneratorJPEG2DCT_111(TemplateGenerator):
                     self.images_path.append(image_path)
                     
         self.number_of_classes = len(self.classes)
+
+        self._number_of_data_samples = len(self.images_path)
         
         self.batches_per_epoch = len(self.images_path) // self._batch_size
         self.indexes = np.arange(len(self.images_path))
         self.on_epoch_end()
+    
+    @property
+    def batch_size(self):
+        return self._batch_size
+    
+    @batch_size.setter
+    def batch_size(self, value):
+        self._batch_size = value
+
+    @property
+    def number_of_data_samples(self):
+        return self._number_of_data_samples
+    
+    @number_of_data_samples.setter
+    def number_of_data_samples(self, value):
+        self._number_of_data_samples = value
+
+    @property
+    def shuffle(self):
+        return self._shuffle
+
+    @shuffle.setter
+    def shuffle(self, value):
+        self._shuffle = value
 
     def __len__(self):
         'Denotes the number of batches per epoch'
