@@ -43,6 +43,7 @@ class TrainingConfiguration(TemplateConfiguration):
         # Training variables
         self._epochs = 120
         self._batch_size = 256
+        self.batch_size_divider = 2
         self._steps_per_epoch = 5000
         self._validation_steps = 50000 // self._batch_size
         self._optimizer_parameters = {"lr":0.01, "momentum":0.9, "decay":0, "nesterov":True}
@@ -124,9 +125,10 @@ class TrainingConfiguration(TemplateConfiguration):
             self.early_stopping
         ]
         
-        self._optimizer_parameters["lr"] = self._optimizer_parameters["lr"] * hvd.size()
+        self._optimizer_parameters["lr"] = self._optimizer_parameters["lr"] * hvd.size() / self.batch_size_divider
         self._optimizer = hvd.DistributedOptimizer(self._optimizer)
-        self._steps_per_epoch = self._steps_per_epoch // hvd.size()
+        self._batch_size = self._batch_size // self.batch_size_divider
+        self._steps_per_epoch = self._steps_per_epoch // (hvd.size() // self.batch_size_divider)
         self._validation_steps = 3 * self._validation_steps // hvd.size()
 
     def prepare_for_inference(self):
