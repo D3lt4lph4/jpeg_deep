@@ -234,14 +234,13 @@ class DCTGeneratorJPEG2DCT_111(TemplateGenerator):
                     else:
                         im = im.crop((0, offset, self.target_length, self.target_length + offset))
                 fake_file = BytesIO()
-                print("hey")
-                im.save(fake_file, format="jpeg", subsampling=0)
+                im.save(fake_file, format="jpeg")
 
             dct_y, dct_cb, dct_cr = loads(fake_file.getvalue())
 
 
             X_y[i] = dct_y
-            X_cbcr[i] = np.concatenate([dct_cb, dct_cr])
+            X_cbcr[i] = np.concatenate([dct_cb, dct_cr], axis=-1)
             y[i, int(self.association[index_class])] = 1
 
         return [X_y, X_cbcr], y
