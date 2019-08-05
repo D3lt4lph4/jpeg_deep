@@ -75,7 +75,5 @@ class test_DCTGeneratorJPEG2DCT_111(unittest.TestCase):
         self.assertTrue(len(association.keys()) == 1000)
         self.assertTrue(len(images_path) == 50000)
 
-
-
 if __name__ == '__main__':
     unittest.main()
