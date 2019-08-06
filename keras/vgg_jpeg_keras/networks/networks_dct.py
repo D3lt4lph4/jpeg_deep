@@ -66,19 +66,15 @@ def vggd_dct(classes=1000):
     input_y = Input(input_shape_y)
     input_cbcr = Input(input_shape_cbcr)
 
+    norm_cbcr = BatchNormalization(name="b_norm_128", input_shape=input_shape_cbcr)(input_cbcr)
+
+    # Block 1
     x = BatchNormalization(name="b_norm_64", input_shape=input_shape_y)(input_y)
     
     x = Conv2D(256, (3, 3),
             activation='relu',
             padding='same',
             name='conv1_1_dct_256')(x)
-    # Block 1
-    x = BatchNormalization(name="b_norm_192", input_shape=input_shape)(x)
-    x = Conv2D(196, (8, 8),
-               strides=8,
-               activation='relu',
-               padding='same',
-               name='conv1_1_dct_256')(x)
 
     # Block 4
     x = Conv2D(512, (3, 3),
@@ -139,7 +135,7 @@ def VGG16A3CBNIDeconvolution(classes=1000):
     model = Sequential()
 
     # Block 1
-    model.add(BatchNormalization(name="bn_1", input_shape=input_shape))
+    model.add(BatchNormalization(name="bn_1", input_shape=input_shape_y))
     model.add(
         Conv2D(196, (8, 8),
                strides=8,
