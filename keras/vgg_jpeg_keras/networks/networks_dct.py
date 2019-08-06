@@ -78,22 +78,22 @@ def vggd_dct(classes=1000):
                strides=8,
                activation='relu',
                padding='same',
-               name='conv1_1_dct_256'))(x)
+               name='conv1_1_dct_256')(x)
 
     # Block 4
     x = Conv2D(512, (3, 3),
                activation='relu',
                padding='same',
-               name='conv4_1'))(x)
+               name='conv4_1')(x)
     x = Conv2D(512, (3, 3),
                activation='relu',
                padding='same',
-               name='conv4_2'))(x)
+               name='conv4_2')(x)
     x = Conv2D(512, (3, 3),
                activation='relu',
                padding='same',
                name='conv4_3'))(x)
-    x = MaxPooling2D((2, 2), strides=(2, 2), name='pool4'))(x)
+    x = MaxPooling2D((2, 2), strides=(2, 2), name='pool4')(x)
 
     concat = Concatenate(axis=-1)([x, norm_cbcr])
 
@@ -101,16 +101,16 @@ def vggd_dct(classes=1000):
     x = Conv2D(512, (3, 3),
                activation='relu',
                padding='same',
-               name='conv5_1'))(concat)
+               name='conv5_1')(concat)
     x = Conv2D(512, (3, 3),
                activation='relu',
                padding='same',
-               name='conv5_2'))(x)
+               name='conv5_2')(x)
     x = Conv2D(512, (3, 3),
                activation='relu',
                padding='same',
-               name='conv5_3'))(x)
-    x = MaxPooling2D((2, 2), strides=(2, 2), name='pool5'))(x)
+               name='conv5_3')(x)
+    x = MaxPooling2D((2, 2), strides=(2, 2), name='pool5')(x)
 
     # Classification block
     x = Flatten(name='flatten')(x)
