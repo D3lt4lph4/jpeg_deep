@@ -73,7 +73,7 @@ def vggd_dct(classes=1000):
             padding='same',
             name='conv1_1_dct_256')(x)
     # Block 1
-    x = BatchNormalization(name="b_norm_192", input_shape=input_shape))(x)
+    x = BatchNormalization(name="b_norm_192", input_shape=input_shape)(x)
     x = Conv2D(196, (8, 8),
                strides=8,
                activation='relu',
