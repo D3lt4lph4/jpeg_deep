@@ -61,6 +61,7 @@ class TrainingConfiguration(TemplateConfiguration):
         self.early_stopping = EarlyStopping(monitor='val_loss',
                                             min_delta=0,
                                             patience=7)
+        
 
         self._callbacks = [self.terminate_on_nan, self.early_stopping]
 
@@ -119,7 +120,7 @@ class TrainingConfiguration(TemplateConfiguration):
             hvd.callbacks.LearningRateWarmupCallback(warmup_epochs=5, verbose=1),
 
             # Reduce the learning rate if training plateaues.
-            ReduceLROnPlateau(patience=10, verbose=1),
+            ReduceLROnPlateau(patience=3, verbose=1),
 
             self.terminate_on_nan,
             

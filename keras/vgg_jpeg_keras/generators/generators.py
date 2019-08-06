@@ -3,6 +3,7 @@ import keras
 import os
 import json
 import random
+import PIL
 
 from io import BytesIO
 
@@ -241,6 +242,10 @@ class DCTGeneratorJPEG2DCT_111(TemplateGenerator):
                         im = im.crop((offset, 0, self.target_length + offset, self.target_length))
                     else:
                         im = im.crop((0, offset, self.target_length, self.target_length + offset))
+
+                if random.uniform(0, 1) > 0.5:
+                    im = im.transpose(PIL.Image.FLIP_LEFT_RIGHT)
+                
                 fake_file = BytesIO()
                 im.save(fake_file, format="jpeg")
 

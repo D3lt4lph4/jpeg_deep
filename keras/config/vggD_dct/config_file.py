@@ -119,7 +119,7 @@ class TrainingConfiguration(TemplateConfiguration):
             hvd.callbacks.LearningRateWarmupCallback(warmup_epochs=5, verbose=1),
 
             # Reduce the learning rate if training plateaues.
-            ReduceLROnPlateau(patience=10, verbose=1),
+            ReduceLROnPlateau(patience=3, verbose=1),
 
             self.terminate_on_nan,
             
