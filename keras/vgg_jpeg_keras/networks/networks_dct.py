@@ -92,7 +92,7 @@ def vggd_dct(classes=1000):
     x = Conv2D(512, (3, 3),
                activation='relu',
                padding='same',
-               name='conv4_3'))(x)
+               name='conv4_3')(x)
     x = MaxPooling2D((2, 2), strides=(2, 2), name='pool4')(x)
 
     concat = Concatenate(axis=-1)([x, norm_cbcr])
