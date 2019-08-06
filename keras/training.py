@@ -120,7 +120,7 @@ else:
 # Creating the model
 model = config.network
 
-if config.weights is not None:
+if config.weights is not None and args.horovod and hvd.rank() == 0:
     print("Loading weights (by name): {}".format(config.weights))
     model.load_weights(config.weights, by_name=True)
 
