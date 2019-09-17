@@ -284,7 +284,6 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
                     for transformation in self.transformations:
                         if random.uniform(0, 1) > 0.5:
                             im = transformation(im)
-                    print(im.shape)
                     im = Image.fromarray(im)
                     im = im.convert("RGB")
 
