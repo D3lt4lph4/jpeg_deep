@@ -171,7 +171,7 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
         self.scale = scale
         self.target_length = target_length
         self.flip = flip
-        self.transformations
+        self.transformations = transformations
 
         # Process the index dictionary to get the matching name/class_id
         self.association, self.classes, self.images_path = prepare_imagenet(
