@@ -13,14 +13,14 @@ def grayscale(rgb):
 def saturation(rgb, saturation_var=0.5):
     gs = grayscale(rgb)
     alpha = 2 * np.random.random() * saturation_var
-    alpha += 1 - saturation_var
+    alpha = alpha + 1 - saturation_var
     rgb = rgb * alpha + (1 - alpha) * gs[:, :, None]
     return np.clip(rgb, 0, 255)
 
 
 def brightness(rgb, brightness_var=0.5, saturation_var=0.5):
     alpha = 2 * np.random.random() * brightness_var
-    alpha += 1 - saturation_var
+    alpha = alpha + 1 - saturation_var
     rgb = rgb * alpha
     return np.clip(rgb, 0, 255)
 
@@ -28,7 +28,7 @@ def brightness(rgb, brightness_var=0.5, saturation_var=0.5):
 def contrast(rgb, contrast_var=0.5):
     gs = grayscale(rgb).mean() * np.ones_like(rgb)
     alpha = 2 * np.random.random() * contrast_var
-    alpha += 1 - contrast_var
+    alpha = alpha + 1 - contrast_var
     rgb = rgb * alpha + (1 - alpha) * gs
     return np.clip(rgb, 0, 255)
 
@@ -38,7 +38,7 @@ def lighting(img, lighting_std=0.5):
     eigval, eigvec = np.linalg.eigh(cov)
     noise = np.random.randn(3) * lighting_std
     noise = eigvec.dot(eigval * noise) * 255
-    img += noise
+    img = img + noise
     return np.clip(img, 0, 255)
 
 
