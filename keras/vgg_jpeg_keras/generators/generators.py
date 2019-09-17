@@ -14,6 +14,7 @@ from jpeg2dct.numpy import load, loads
 
 from template_keras.generators import TemplateGenerator
 
+
 def prepare_imagenet(index_file, data_directory):
 
     association = {}
@@ -33,13 +34,19 @@ def prepare_imagenet(index_file, data_directory):
             for image in os.listdir(class_directory):
                 image_path = os.path.join(class_directory, image)
                 images_path.append(image_path)
-                
+
     return association, classes, images_path
+
 
 class GeneratorPreResized(TemplateGenerator):
     'Generates data in the DCT space for Keras.'
 
-    def __init__(self, data_directory, index_file, batch_size=32, shuffle=True, load_in_memory=True):
+    def __init__(self,
+                 data_directory,
+                 index_file,
+                 batch_size=32,
+                 shuffle=True,
+                 load_in_memory=True):
 
         self.batch_size = batch_size
         self.data_directory = data_directory
@@ -70,7 +77,7 @@ class GeneratorPreResized(TemplateGenerator):
                             self.data.append(fin.read())
 
         self.number_of_classes = len(self.classes)
-        
+
         self.batches_per_epoch = len(self.images_path) // self.batch_size
         self.indexes = np.arange(len(self.images_path))
         self.on_epoch_end()
@@ -84,7 +91,8 @@ class GeneratorPreResized(TemplateGenerator):
         # Generate indexes of the batch
         # We have to use modulo to avoid overflowing the index size if we have too many batches per epoch
         index = index % self.batches_per_epoch
-        indexes = self.indexes[index*self.batch_size:(index+1)*self.batch_size]
+        indexes = self.indexes[index * self.batch_size:(index + 1) *
+                               self.batch_size]
 
         # Generate data
         X, y = self.__data_generation(indexes)
@@ -117,54 +125,70 @@ class GeneratorPreResized(TemplateGenerator):
                 dct_y, dct_cb, dct_cr = loads(self.data[k])
             else:
                 dct_y, dct_cb, dct_cr = load(self.images_path[k])
-            
+
             # We carry the "data-augmentation"
             # For this generator, all the images have one size at 224, find it and then random select the 224 pixels from the other side
             if dct_y.shape[0] == 28:
                 biggest = dct_y.shape[1]
             else:
                 biggest = dct_y.shape[0]
-            
+
             offset = random.randint(0, biggest - 28)
 
             # Load the data in the matrices
             if dct_y.shape[0] == 28:
-                X_y[i] = dct_y[:,offset:28 + offset, :]
-                X_cbcr[i] = np.concatenate((dct_cb[:,offset:14 + offset, :], dct_cr[:,offset:14 + offset, :]), -1)
+                X_y[i] = dct_y[:, offset:28 + offset, :]
+                X_cbcr[i] = np.concatenate((dct_cb[:, offset:14 + offset, :],
+                                            dct_cr[:, offset:14 + offset, :]),
+                                           -1)
             else:
                 X_y[i] = dct_y[offset:28 + offset, :, :]
-                X_cbcr[i] = np.concatenate((dct_cb[offset:28 + offset, :, :], dct_cr[offset:28 + offset, :, :]), -1)
+                X_cbcr[i] = np.concatenate((dct_cb[offset:28 + offset, :, :],
+                                            dct_cr[offset:28 + offset, :, :]),
+                                           -1)
 
             y[i, int(self.association[index_class])] = 1
 
         return [X_y, X_cbcr], y
 
-class DCTGeneratorJPEG2DCT_111(TemplateGenerator):
+
+class DCTGeneratorJPEG2DCT(TemplateGenerator):
     'Generates data in the DCT space for Keras.'
 
-    def __init__(self, data_directory, index_file, batch_size=32, shuffle=True, scale=True, target_length=224):
+    def __init__(self,
+                 data_directory,
+                 index_file,
+                 batch_size=32,
+                 shuffle=True,
+                 scale=True,
+                 target_length=224,
+                 flip=True,
+                 transformations=None):
 
         self._batch_size = batch_size
         self.data_directory = data_directory
         self._shuffle = shuffle
         self.scale = scale
         self.target_length = target_length
+        self.flip = flip
+        self.transformations
 
         # Process the index dictionary to get the matching name/class_id
-        self.association, self.classes, self.images_path = prepare_imagenet(index_file, data_directory)
-                    
+        self.association, self.classes, self.images_path = prepare_imagenet(
+            index_file, data_directory)
+
         self.number_of_classes = len(self.classes)
 
         self._number_of_data_samples = len(self.images_path)
-        
+
         self.batches_per_epoch = len(self.images_path) // self._batch_size
         self.indexes = np.arange(len(self.images_path))
         self.on_epoch_end()
-    
+
     @property
     def batch_size(self):
         return self._batch_size
-    
+
     @batch_size.setter
     def batch_size(self, value):
         self._batch_size = value
@@ -172,7 +196,7 @@ class DCTGeneratorJPEG2DCT_111(TemplateGenerator):
     @property
     def number_of_data_samples(self):
         return self._number_of_data_samples
-    
+
     @number_of_data_samples.setter
     def number_of_data_samples(self, value):
         self._number_of_data_samples = value
@@ -194,7 +218,8 @@ class DCTGeneratorJPEG2DCT_111(TemplateGenerator):
         # Generate indexes of the batch
         # We have to use modulo to avoid overflowing the index size if we have too many batches per epoch
         index = index % self.batches_per_epoch
-        indexes = self.indexes[index*self.batch_size:(index+1)*self._batch_size]
+        indexes = self.indexes[index * self.batch_size:(index + 1) *
+                               self._batch_size]
 
         # Generate data
         X, y = self.__data_generation(indexes)
@@ -213,7 +238,8 @@ class DCTGeneratorJPEG2DCT_111(TemplateGenerator):
         # Two inputs for the data of one image.
         X_y = np.empty((self._batch_size, 28, 28, 64), dtype=np.int32)
         X_cbcr = np.empty((self._batch_size, 14, 14, 128), dtype=np.int32)
-        y = np.zeros((self._batch_size, self.number_of_classes), dtype=np.int32)
+        y = np.zeros((self._batch_size, self.number_of_classes),
+                     dtype=np.int32)
 
         # iterate over the indexes to get the correct values
         for i, k in enumerate(indexes):
@@ -225,27 +251,39 @@ class DCTGeneratorJPEG2DCT_111(TemplateGenerator):
             # Load the image in RGB,
             with Image.open(self.images_path[k]) as im:
 
+                # Scale data-augmentation
                 im = im.convert("RGB")
                 if self.scale:
                     min_side = min(im.size)
                     scaling_ratio = self.target_length / min_side
 
                     width, height = im.size
-                    im = im.resize((int(round(width * scaling_ratio)), int(round(height * scaling_ratio))))
+                    im = im.resize((int(round(width * scaling_ratio)),
+                                    int(round(height * scaling_ratio))))
                 else:
-                    im = im.resize((int(self.target_length), int(self.target_length)))
+                    im = im.resize(
+                        (int(self.target_length), int(self.target_length)))
 
                 if self.scale:
-                    offset = random.randint(0, max(im.size) - self.target_length)
-                    
-                    if im.size[0] > im.size[1]:
-                        im = im.crop((offset, 0, self.target_length + offset, self.target_length))
-                    else:
-                        im = im.crop((0, offset, self.target_length, self.target_length + offset))
+                    offset = random.randint(0,
+                                            max(im.size) - self.target_length)
 
-                if random.uniform(0, 1) > 0.5:
+                    if im.size[0] > im.size[1]:
+                        im = im.crop((offset, 0, self.target_length + offset,
+                                      self.target_length))
+                    else:
+                        im = im.crop((0, offset, self.target_length,
+                                      self.target_length + offset))
+
+                if self.flip and (random.uniform(0, 1) > 0.5):
                     im = im.transpose(PIL.Image.FLIP_LEFT_RIGHT)
-                
+
+                if self.transformations is not None:
+                    random.shuffle(self.transformations)
+                    for transformation in self.transformations:
+                        if random.uniform(0, 1) > 0.5:
+                            im = transformation(im)
+
                 fake_file = BytesIO()
                 im.save(fake_file, format="jpeg")
 
@@ -260,10 +298,17 @@ class DCTGeneratorJPEG2DCT_111(TemplateGenerator):
 
         return [X_y, X_cbcr], y
 
+
 class DCTGeneratorImageNet(TemplateGenerator):
     'Generates data in the DCT space for Keras.'
 
-    def __init__(self, data_directory, index_file, batch_size=32, image_shape=(224, 224, 3), shuffle=True, target_length=224):
+    def __init__(self,
+                 data_directory,
+                 index_file,
+                 batch_size=32,
+                 image_shape=(224, 224, 3),
+                 shuffle=True,
+                 target_length=224):
         'Initialization'
         self.image_shape = image_shape
         self._batch_size = batch_size
@@ -304,7 +349,8 @@ class DCTGeneratorImageNet(TemplateGenerator):
         # Generate indexes of the batch
         # We have to use modulo to avoid overflowing the index size if we have too many batches per epoch
         index = index % self.batches_per_epoch
-        indexes = self.indexes[index*self.batch_size:(index+1)*self.batch_size]
+        indexes = self.indexes[index * self.batch_size:(index + 1) *
+                               self.batch_size]
         batch_images_path = []
         # Find list of IDs
         for k in indexes:
@@ -338,17 +384,21 @@ class DCTGeneratorImageNet(TemplateGenerator):
             img = self.decoder.decode_file(image_path[0], 2)
             rows, cols = img.get_component_shape(0)[0:2]
             if img.get_number_of_component() == 1:
-                X[i, :, :, 0] = np.reshape(img.get_data(0), (rows, cols))[
-                    :self.image_shape[0], :self.image_shape[1]]
+                X[i, :, :, 0] = np.reshape(
+                    img.get_data(0),
+                    (rows, cols))[:self.image_shape[0], :self.image_shape[1]]
                 X[i, :, :, 1] = X[i, :, :, 0]
                 X[i, :, :, 2] = X[i, :, :, 0]
             else:
-                X[i, :, :, 0] = np.reshape(img.get_data(0), (rows, cols))[
-                    :self.image_shape[0], :self.image_shape[1]]
-                X[i, :, :, 1] = np.reshape(img.get_data(1), (rows, cols))[
-                    :self.image_shape[0], :self.image_shape[1]]
-                X[i, :, :, 2] = np.reshape(img.get_data(2), (rows, cols))[
-                    :self.image_shape[0], :self.image_shape[1]]
+                X[i, :, :, 0] = np.reshape(
+                    img.get_data(0),
+                    (rows, cols))[:self.image_shape[0], :self.image_shape[1]]
+                X[i, :, :, 1] = np.reshape(
+                    img.get_data(1),
+                    (rows, cols))[:self.image_shape[0], :self.image_shape[1]]
+                X[i, :, :, 2] = np.reshape(
+                    img.get_data(2),
+                    (rows, cols))[:self.image_shape[0], :self.image_shape[1]]
 
             y[i, int(image_path[1])] = 1
 
@@ -357,15 +407,21 @@ class DCTGeneratorImageNet(TemplateGenerator):
     @property
     def batch_size(self):
         return self._batch_size
-    
+
     @property
     def shuffle(self):
         return self._shuffle
 
+
 class DummyGenerator(TemplateGenerator):
     'Generates data in the DCT space for Keras.'
 
-    def __init__(self, num_batches, batch_size=32, number_of_classes=1000, image_shape=(224, 224, 3), shuffle=True):
+    def __init__(self,
+                 num_batches,
+                 batch_size=32,
+                 number_of_classes=1000,
+                 image_shape=(224, 224, 3),
+                 shuffle=True):
         'Initialization'
         self.image_shape = image_shape
         self.batch_size = batch_size
