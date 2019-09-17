@@ -15,14 +15,14 @@ def saturation(rgb, saturation_var=0.5):
     alpha = 2 * np.random.random() * saturation_var
     alpha = alpha + 1 - saturation_var
     rgb = rgb * alpha + (1 - alpha) * gs[:, :, None]
-    return np.clip(rgb, 0, 255)
+    return np.clip(rgb, 0, 255, dtype=np.uint8)
 
 
 def brightness(rgb, brightness_var=0.5, saturation_var=0.5):
     alpha = 2 * np.random.random() * brightness_var
     alpha = alpha + 1 - saturation_var
     rgb = rgb * alpha
-    return np.clip(rgb, 0, 255)
+    return np.clip(rgb, 0, 255, dtype=np.uint8)
 
 
 def contrast(rgb, contrast_var=0.5):
@@ -30,7 +30,7 @@ def contrast(rgb, contrast_var=0.5):
     alpha = 2 * np.random.random() * contrast_var
     alpha = alpha + 1 - contrast_var
     rgb = rgb * alpha + (1 - alpha) * gs
-    return np.clip(rgb, 0, 255)
+    return np.clip(rgb, 0, 255, dtype=np.uint8)
 
 
 def lighting(img, lighting_std=0.5):
@@ -39,7 +39,7 @@ def lighting(img, lighting_std=0.5):
     noise = np.random.randn(3) * lighting_std
     noise = eigvec.dot(eigval * noise) * 255
     img = img + noise
-    return np.clip(img, 0, 255)
+    return np.clip(img, 0, 255, dtype=np.uint8)
 
 
 def horizontal_flip(img, y, hflip_prob=0.5):
