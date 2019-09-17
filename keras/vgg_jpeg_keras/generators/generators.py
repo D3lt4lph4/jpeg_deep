@@ -285,6 +285,7 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
                         if random.uniform(0, 1) > 0.5:
                             im = transformation(im)
                     im = Image.fromarray(im)
+                    im = im.convert("RGB")
 
                 fake_file = BytesIO()
                 im.save(fake_file, format="jpeg")
