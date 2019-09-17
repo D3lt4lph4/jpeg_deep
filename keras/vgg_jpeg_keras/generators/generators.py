@@ -279,10 +279,12 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
                     im = im.transpose(PIL.Image.FLIP_LEFT_RIGHT)
 
                 if self.transformations is not None:
+                    im = np.array(im)
                     random.shuffle(self.transformations)
                     for transformation in self.transformations:
                         if random.uniform(0, 1) > 0.5:
                             im = transformation(im)
+                    im = Image.fromarray(im)
 
                 fake_file = BytesIO()
                 im.save(fake_file, format="jpeg")
