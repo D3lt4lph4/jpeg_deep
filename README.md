@@ -18,7 +18,7 @@ cd ../../..
 pip install -r requirements.txt --user
 ```
 
-## How to start the calculations
+## How to start the calculations: Slurm
 
 ```bash
 # Use the pre-set config file (training neural network in RGB)
