@@ -38,7 +38,7 @@ class TrainingConfiguration(TemplateConfiguration):
         # Network variables
         self.num_classes = 1000
         self.img_size = (224, 224)
-        self._weights = "/home/2017018/bdegue01/experiments/d3lt4lph4_vgg-dct_l54KejtmXAWlfzdCKvw4GGD0o4jtaGWG/checkpoints/epoch-61_loss-1.4509_val_loss-2.2067.h5"
+        self._weights = "/dlocal/home/2017018/bdegue01/experiments/d3lt4lph4_vgg-dct_Dy1oTqxW4ZuUGUJ7p5t8f68NVaX7K9P3/checkpoints/epoch-57_loss-1.5516_val_loss-2.1839.h5"
         self._network = vggd_dct(self.num_classes)
 
         # Training variables
