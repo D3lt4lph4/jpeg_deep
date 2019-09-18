@@ -20,7 +20,7 @@
 module load cuda/9.0
 module load python3-DL/3.6.1
 
-export PYTHONUSERBASE=/home/2017018/bdegue01/.virtualenvs/vgg_jpeg_test
+export PYTHONUSERBASE=/home/2017018/bdegue01/.virtualenvs/vgg_jpeg
 export EXPERIMENTS_OUTPUT_DIRECTORY=$LOCAL_WORK_DIR/experiment
 export LOG_DIRECTORY=$LOCAL_WORK_DIR/logs
 export DATASET_PATH_TRAIN=/save/2017018/bdegue01/datasets
