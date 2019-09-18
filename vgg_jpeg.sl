@@ -12,8 +12,8 @@
 #SBATCH --partition gpu_p100
 #SBATCH --gres gpu:2
 #SBATCH --nodes 4
-#SBATCH --output /home/2018017/bdegue01/logs/%J.out
-#SBATCH --error /home/2018017/bdegue01/logs/%J.err
+#SBATCH --output /home/2017018/bdegue01/logs/%J.out
+#SBATCH --error /home/2017018/bdegue01/logs/%J.err
 #SBATCH --tasks-per-node=2
 #SBATCH --cpus-per-task=14
 
@@ -29,4 +29,4 @@ export DATASET_PATH_VAL=/dlocal/home/2017018/bdegue01
 cd /home/2017018/bdegue01/git/vgg_jpeg/keras
 
 # We re install the package
-srun python3 /home/2017018/bdegue01/git/vgg_jpeg/keras/training.py -c /home/2017018/bdegue01/git/vgg_jpeg/keras/config/vggA_dct/ --horovod 
+srun python3 /home/2017018/bdegue01/git/vgg_jpeg/keras/training.py -c /home/2017018/bdegue01/git/vgg_jpeg/keras/config/vggD_dct/ --horovod 
