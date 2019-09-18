@@ -14,12 +14,13 @@ from template_keras.config import TemplateConfiguration
 
 from vgg_jpeg_keras.generators import grayscale, saturation, brightness, contrast, lighting
 
+
 def _top_k_accuracy(k):
     def _func(y_true, y_pred):
         return top_k_categorical_accuracy(y_true, y_pred, k)
     return _func
 
-    
+
 class TrainingConfiguration(TemplateConfiguration):
     def __init__(self):
         # Variables to hold the description of the experiment
@@ -46,12 +47,15 @@ class TrainingConfiguration(TemplateConfiguration):
         self.batch_size_divider = 2
         self._steps_per_epoch = 5000
         self._validation_steps = 50000 // self._batch_size
-        self.optimizer_parameters = {"lr":0.01, "momentum":0.9, "decay":0, "nesterov":True}
+        self.optimizer_parameters = {
+            "lr": 0.01, "momentum": 0.9, "decay": 0, "nesterov": True}
         self._optimizer = SGD(**self._optimizer_parameters)
         self._loss = categorical_crossentropy
         self._metrics = [_top_k_accuracy(1), _top_k_accuracy(5)]
-        self.train_directory = join(environ["DATASET_PATH_TRAIN"], "imagenet/train")
-        self.validation_directory = join(environ["DATASET_PATH_VAL"], "imagenet/validation")
+        self.train_directory = join(
+            environ["DATASET_PATH_TRAIN"], "imagenet/train")
+        self.validation_directory = join(
+            environ["DATASET_PATH_VAL"], "imagenet/validation")
         self.index_file = "/home/2017018/bdegue01/git/vgg_jpeg/data/imagenet_class_index.json"
 
         # Keras stuff
@@ -61,7 +65,6 @@ class TrainingConfiguration(TemplateConfiguration):
         self.early_stopping = EarlyStopping(monitor='val_loss',
                                             min_delta=0,
                                             patience=10),
-        
 
         self._callbacks = [self.terminate_on_nan, self.early_stopping]
 
@@ -79,8 +82,8 @@ class TrainingConfiguration(TemplateConfiguration):
         if self.horovod is not None:
             if self.horovod.rank() == 0:
                 self.csv_logger = CSVLogger(filename=join(output_path, filename),
-                                    separator=separator,
-                                    append=append)
+                                            separator=separator,
+                                            append=append)
                 self._callbacks.append(self.csv_logger)
         else:
             self.csv_logger = CSVLogger(filename=join(output_path, filename),
@@ -93,16 +96,16 @@ class TrainingConfiguration(TemplateConfiguration):
         if self.horovod is not None:
             if self.horovod.rank() == 0:
                 self._callbacks.append(ModelCheckpoint(filepath=join(
-                                output_path,
-                                "epoch-{epoch:02d}_loss-{loss:.4f}_val_loss-{val_loss:.4f}.h5"),
-                                                                    verbose=verbose,
-                                                                    save_best_only=save_best_only))
+                    output_path,
+                    "epoch-{epoch:02d}_loss-{loss:.4f}_val_loss-{val_loss:.4f}.h5"),
+                    verbose=verbose,
+                    save_best_only=save_best_only))
         else:
             self.model_checkpoint = ModelCheckpoint(filepath=join(
                 output_path,
                 "epoch-{epoch:02d}_loss-{loss:.4f}_val_loss-{val_loss:.4f}.h5"),
-                                                    verbose=verbose,
-                                                    save_best_only=save_best_only)
+                verbose=verbose,
+                save_best_only=save_best_only)
             self._callbacks.append(self.model_checkpoint)
 
     def prepare_horovod(self, hvd):
@@ -117,20 +120,23 @@ class TrainingConfiguration(TemplateConfiguration):
             # Horovod: using `lr = 1.0 * hvd.size()` from the very beginning leads to worse final
             # accuracy. Scale the learning rate `lr = 1.0` ---> `lr = 1.0 * hvd.size()` during
             # the first five epochs. See https://arxiv.org/abs/1706.02677 for details.
-            hvd.callbacks.LearningRateWarmupCallback(warmup_epochs=5, verbose=1),
+            hvd.callbacks.LearningRateWarmupCallback(
+                warmup_epochs=5, verbose=1),
 
             # Reduce the learning rate if training plateaues.
             ReduceLROnPlateau(patience=5, verbose=1),
 
             self.terminate_on_nan,
-            
+
             self.early_stopping
         ]
-        
-        self.optimizer_parameters["lr"] = self.optimizer_parameters["lr"] * hvd.size() / self.batch_size_divider
+
+        self.optimizer_parameters["lr"] = self.optimizer_parameters["lr"] * \
+            hvd.size() / self.batch_size_divider
         self._optimizer = hvd.DistributedOptimizer(self._optimizer)
         self._batch_size = self._batch_size // self.batch_size_divider
-        self._steps_per_epoch = self._steps_per_epoch // (hvd.size() // self.batch_size_divider)
+        self._steps_per_epoch = self._steps_per_epoch // (
+            hvd.size() // self.batch_size_divider)
         self._validation_steps = 3 * self._validation_steps // hvd.size()
 
     def prepare_for_inference(self):
@@ -143,13 +149,15 @@ class TrainingConfiguration(TemplateConfiguration):
         pass
 
     def prepare_training_generators(self):
-        self._train_generator = DCTGeneratorJPEG2DCT(self.train_directory, self.index_file, self._batch_size, scale=True, transformations=[lighting, contrast, brightness, saturation])
-        self._validation_generator = DCTGeneratorJPEG2DCT(self.validation_directory, self.index_file, self._batch_size, scale=False)
+        self._train_generator = DCTGeneratorJPEG2DCT(self.train_directory, self.index_file, self._batch_size, scale=True, transformations=[
+                                                     lighting, contrast, brightness, saturation])
+        self._validation_generator = DCTGeneratorJPEG2DCT(
+            self.validation_directory, self.index_file, self._batch_size, scale=False)
 
     @property
     def train_generator(self):
         return self._train_generator
-    
+
     @property
     def validation_generator(self):
         return self._validation_generator
@@ -201,7 +209,7 @@ class TrainingConfiguration(TemplateConfiguration):
     @property
     def weights(self):
         return self._weights
-    
+
     @weights.setter
     def weights(self, value):
         self._weights = value
