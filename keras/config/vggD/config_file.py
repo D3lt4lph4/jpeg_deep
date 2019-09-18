@@ -6,7 +6,7 @@ from keras.callbacks import ModelCheckpoint, TerminateOnNaN, CSVLogger, EarlySto
 from keras.preprocessing.image import ImageDataGenerator
 from keras.applications.vgg16 import preprocess_input
 
-from vgg_jpeg.networks import vggd
+from vgg_jpeg_keras.networks import vggd
 
 
 def _top_k_accuracy(k):
