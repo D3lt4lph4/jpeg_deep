@@ -37,7 +37,7 @@ class TrainingConfiguration(TemplateConfiguration):
         # Network variables
         self.num_classes = 1000
         self.img_size = (224, 224)
-        self._weights = None
+        self._weights = "/home/2017018/bdegue01/experiments/d3lt4lph4_vgg-dct_l54KejtmXAWlfzdCKvw4GGD0o4jtaGWG/checkpoints/epoch-61_loss-1.4509_val_loss-2.2067.h5"
         self._network = vggd_dct(self.num_classes)
 
         # Training variables
@@ -142,7 +142,8 @@ class TrainingConfiguration(TemplateConfiguration):
         pass
 
     def prepare_training_generators(self):
-        self._train_generator = DCTGeneratorJPEG2DCT_111(self.train_directory, self.index_file, self._batch_size, scale=False)
+        self._train_generator = DCTGeneratorJPEG2DCT_111(self.train_directory, self.index_file, self._batch_size, scale=True)
+
         self._validation_generator = DCTGeneratorJPEG2DCT_111(self.validation_directory, self.index_file, self._batch_size, scale=False)
 
     @property

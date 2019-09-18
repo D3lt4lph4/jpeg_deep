@@ -8,9 +8,11 @@ from keras.metrics import top_k_categorical_accuracy
 
 from vgg_jpeg_keras.networks import vgga_dct
 from vgg_jpeg_keras.evaluation import Evaluator
-from vgg_jpeg_keras.generators import DCTGeneratorJPEG2DCT_111
+from vgg_jpeg_keras.generators import DCTGeneratorJPEG2DCT
 
 from template_keras.config import TemplateConfiguration
+
+from vgg_jpeg_keras.generators import grayscale, saturation, brightness, contrast, lighting
 
 def _top_k_accuracy(k):
     def _func(y_true, y_pred):
@@ -143,8 +145,8 @@ class TrainingConfiguration(TemplateConfiguration):
         pass
 
     def prepare_training_generators(self):
-        self._train_generator = DCTGeneratorJPEG2DCT_111(self.train_directory, self.index_file, self._batch_size, scale=False)
-        self._validation_generator = DCTGeneratorJPEG2DCT_111(self.validation_directory, self.index_file, self._batch_size, scale=False)
+        self._train_generator = DCTGeneratorJPEG2DCT(self.train_directory, self.index_file, self._batch_size, scale=True, transformations=[lighting, contrast, brightness, saturation])
+        self._validation_generator = DCTGeneratorJPEG2DCT(self.validation_directory, self.index_file, self._batch_size, scale=False)
 
     @property
     def train_generator(self):
