@@ -27,7 +27,7 @@ class TrainingConfiguration(TemplateConfiguration):
         self.experiment_name = "VGG16_A 224x224"
 
         # System dependent variable
-        self._workers = 10
+        self._workers = 5
         self._multiprocessing = True
         self._gpus = 1
 
