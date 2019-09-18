@@ -8,7 +8,7 @@ from keras.metrics import top_k_categorical_accuracy
 
 from vgg_jpeg_keras.networks import vggd_dct
 from vgg_jpeg_keras.evaluation import Evaluator
-from vgg_jpeg_keras.generators import DCTGeneratorJPEG2DCT_111
+from vgg_jpeg_keras.generators import DCTGeneratorJPEG2DCT
 
 from template_keras.config import TemplateConfiguration
 
