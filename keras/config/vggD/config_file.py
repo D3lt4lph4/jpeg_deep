@@ -1,4 +1,5 @@
 from os.path import join
+from os import environ
 
 from keras.optimizers import SGD
 from keras.losses import categorical_crossentropy
