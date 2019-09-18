@@ -23,9 +23,7 @@ def _top_k_accuracy(k):
 class TrainingConfiguration(TemplateConfiguration):
     def __init__(self):
         # Variables to hold the description of the experiment
-        self.config_description = "This is the configuration file to train the VGG16 from scratch on the imagenet dataset. This config file is for training of the first network VGG16_A "
-        self.experiment_description = "Training the VGG16_A network for the 224x224 imagenet dataset. Testing with multiple workers."
-        self.experiment_name = "VGG16_A 224x224"
+        self.description = ""
 
         # System dependent variable
         self._workers = 10
@@ -48,7 +46,7 @@ class TrainingConfiguration(TemplateConfiguration):
         self.batch_size_divider = 2
         self._steps_per_epoch = 5000
         self._validation_steps = 50000 // self._batch_size
-        self._optimizer_parameters = {"lr":0.01, "momentum":0.9, "decay":0, "nesterov":True}
+        self.optimizer_parameters = {"lr":0.01, "momentum":0.9, "decay":0, "nesterov":True}
         self._optimizer = SGD(**self._optimizer_parameters)
         self._loss = categorical_crossentropy
         self._metrics = [_top_k_accuracy(1), _top_k_accuracy(5)]
@@ -62,7 +60,7 @@ class TrainingConfiguration(TemplateConfiguration):
         self.terminate_on_nan = TerminateOnNaN()
         self.early_stopping = EarlyStopping(monitor='val_loss',
                                             min_delta=0,
-                                            patience=7)
+                                            patience=10),
         
 
         self._callbacks = [self.terminate_on_nan, self.early_stopping]
@@ -122,14 +120,14 @@ class TrainingConfiguration(TemplateConfiguration):
             hvd.callbacks.LearningRateWarmupCallback(warmup_epochs=5, verbose=1),
 
             # Reduce the learning rate if training plateaues.
-            ReduceLROnPlateau(patience=3, verbose=1),
+            ReduceLROnPlateau(patience=5, verbose=1),
 
             self.terminate_on_nan,
             
             self.early_stopping
         ]
         
-        self._optimizer_parameters["lr"] = self._optimizer_parameters["lr"] * hvd.size() / self.batch_size_divider
+        self.optimizer_parameters["lr"] = self.optimizer_parameters["lr"] * hvd.size() / self.batch_size_divider
         self._optimizer = hvd.DistributedOptimizer(self._optimizer)
         self._batch_size = self._batch_size // self.batch_size_divider
         self._steps_per_epoch = self._steps_per_epoch // (hvd.size() // self.batch_size_divider)
