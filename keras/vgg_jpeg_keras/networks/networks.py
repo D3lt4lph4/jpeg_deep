@@ -7,7 +7,7 @@ from keras.models import Model
 from keras import models
 
 
-def VGG16A(classes=1000):
+def vgga(classes=1000):
     """Instantiates the VGG16 architecture.
         classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True, and
@@ -79,7 +79,7 @@ def VGG16A(classes=1000):
     return model
 
 
-def VGG16D(classes=1000):
+def vggd(classes=1000):
     """Instantiates the VGG16 architecture.
         classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True, and
