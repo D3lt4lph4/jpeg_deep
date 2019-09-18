@@ -56,4 +56,4 @@ class Evaluator(TemplateEvaluator):
         return self._generator
 
     def display_results(self):
-        pass
+       print("The evaluated score is {}.".format(self.score)) 
