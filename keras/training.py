@@ -48,7 +48,7 @@ if args.restart is not None:
     sys.path.append(join(args.restart, "config"))
     from saved_config import TrainingConfiguration
     config = TrainingConfiguration()
-    key = dirname(args.restart).split("_")[-1]
+    key = dirname(join(args.restart, "")).split("_")[-1]
 
     # We extract the last saved weight and the corresponding epoch
     weights_path = join(args.restart, "checkpoints")
