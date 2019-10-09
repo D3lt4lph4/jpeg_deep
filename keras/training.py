@@ -27,8 +27,15 @@ parser.add_argument(
     '-r', '--restart', help="Restart the training from a previous stopped config. The argument is the path to the experiment folder.", type=str)
 parser.add_argument('-c', '--configuration',
                     help="Path to the directory containing the config file to use. The configuration file should be named 'config_file.py' (see the examples in the config folder of the repository).")
-parser.add_argument('--horovod', dest='horovod', action='store_true')
+parser.add_argument('horovod')
 args = parser.parse_args()
+
+if args.horovod == "True":
+    args.horovod = True
+elif args.horovod == "False":
+    args.horovod = False
+else:
+    raise RuntimeError("Please specify if horovod should be used.")
 
 if args.horovod:
     hvd.init()
