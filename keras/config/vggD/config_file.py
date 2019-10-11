@@ -22,30 +22,32 @@ class TrainingConfiguration(object):
         self.config_description = ""
 
         # System dependent variable
-        self.workers = 10
-        self.multiprocessing = True
-        self.gpus = 1
+        self._workers = 10
+        self._multiprocessing = True
+        self._gpus = 1
 
         # Variables for comet.ml
-        self.project_name = "vgg-dct"
-        self.workspace = "d3lt4lph4"
+        self._project_name = "vgg-dct"
+        self._workspace = "d3lt4lph4"
 
         # Network variables
         self.num_classes = 1000
         self.img_size = (224, 224)
-        self.weights = "/home/2017018/bdegue01/experiments/d3lt4lph4_vgg-dct_DWqlB8A2AGBxVpomEqWuNpPrggXkvMAe/checkpoints/epoch-07_loss-2.4218_val_loss-2.5476.h5"
-        self.network = vggd(self.num_classes)
+        self._weights = "/home/2017018/bdegue01/experiments/d3lt4lph4_vgg-dct_DWqlB8A2AGBxVpomEqWuNpPrggXkvMAe/checkpoints/epoch-07_loss-2.4218_val_loss-2.5476.h5"
+        self._network = vggd(self.num_classes)
 
         # Training variables
-        self.epochs = 120
-        self.batch_size = 256
-        self.batch_per_epoch = 5000
-        self.optimizer = SGD(lr=0.01,
+        self._epochs = 120
+        self._batch_size = 256
+        self.batch_size_divider = 2
+        self._steps_per_epoch = 5000
+        self._validation_steps = 50000 // self._batch_size
+        self._optimizer = SGD(lr=0.01,
                              momentum=0.9,
                              decay=0.0005,
                              nesterov=True)
-        self.loss = categorical_crossentropy
-        self.metrics = ['accuracy']
+        self._loss = categorical_crossentropy
+        self._metrics = ['accuracy']
         self.train_directory = join(
             environ["DATASET_PATH_TRAIN"], "imagenet/train")
         self.validation_directory = join(
@@ -59,11 +61,11 @@ class TrainingConfiguration(object):
                                             min_delta=0,
                                             patience=7)
 
-        self.callbacks = [self.terminate_on_nan, self.early_stopping]
+        self._callbacks = [self.terminate_on_nan, self.early_stopping]
 
         # Creating the training and validation generator
-        self.train_generator = None
-        self.validation_generator = None
+        self._train_generator = None
+        self._validation_generator = None
 
         self._horovod = None
 
