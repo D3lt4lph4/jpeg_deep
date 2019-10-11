@@ -33,7 +33,7 @@ class TrainingConfiguration(object):
         # Network variables
         self.num_classes = 1000
         self.img_size = (224, 224)
-        self._weights = "/home/2017018/bdegue01/experiments/d3lt4lph4_vgg-dct_DWqlB8A2AGBxVpomEqWuNpPrggXkvMAe/checkpoints/epoch-07_loss-2.4218_val_loss-2.5476.h5"
+        self._weights = "/dlocal/home/2017018/bdegue01/experiments/d3lt4lph4_vgg-dct_7pJhOZMuNP429GGiuriKDUdIjdiVryQq/checkpoints/epoch-34_loss-1.7316_val_loss-2.0638.h5"
         self._network = vggd(self.num_classes)
 
         # Training variables
