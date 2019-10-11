@@ -42,10 +42,9 @@ class TrainingConfiguration(object):
         self.batch_size_divider = 2
         self._steps_per_epoch = 5000
         self._validation_steps = 50000 // self._batch_size
-        self._optimizer = SGD(lr=0.01,
-                             momentum=0.9,
-                             decay=0.0005,
-                             nesterov=True)
+        self.optimizer_parameters = {
+            "lr": 0.01, "momentum": 0.9, "decay": 0, "nesterov": True}
+        self._optimizer = SGD(**self.optimizer_parameters)
         self._loss = categorical_crossentropy
         self._metrics = ['accuracy']
         self.train_directory = join(
