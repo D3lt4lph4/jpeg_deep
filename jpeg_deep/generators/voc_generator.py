@@ -7,6 +7,8 @@ import sys
 
 import os
 
+from random import shuffle
+
 import numpy as np
 
 import sklearn.utils
@@ -27,6 +29,8 @@ from bs4 import BeautifulSoup
 from ssd_encoder_decoder.ssd_input_encoder import SSDInputEncoder
 from data_generator.object_detection_2d_image_boxes_validation_utils import BoxFilter
 
+from template_keras.generators import TemplateGenerator
+
 
 class DegenerateBatchError(Exception):
     '''
@@ -44,68 +48,38 @@ class DatasetError(Exception):
     pass
 
 
-class DataGeneratorDCT:
-    '''
-    A generator to generate batches of samples and corresponding labels indefinitely.
-
-    Can shuffle the dataset consistently after each complete pass.
-
-    Currently provides three methods to parse annotation data: A general-purpose CSV parser,
-    an XML parser for the Pascal VOC datasets, and a JSON parser for the MS COCO datasets.
-    If the annotations of your dataset are in a format that is not supported by these parsers,
-    you could just add another parser method and still use this generator.
-
-    Can perform image transformations for data conversion and data augmentation,
-    for details please refer to the documentation of the `generate()` method.
-    '''
+class DataGeneratorDCT(TemplateGenerator):
 
     def __init__(self,
-                 load_images_into_memory=False,
-                 filenames=None,
-                 labels_output_format=(
+                 batch_size: int = 32,
+                 shuffle: bool = True,
+                 load_images_into_memory: bool = False,
+                 filenames: List[str] = None,
+                 labels_output_format: List[str] = (
                      'class_id', 'xmin', 'ymin', 'xmax', 'ymax')):
         '''
-        Initializes the data generator. You can either load a dataset directly here in the constructor,
-        e.g. an HDF5 dataset, or you can use one of the parser methods to read in a dataset.
-
-        Arguments:
-            load_images_into_memory (bool, optional): If `True`, the entire dataset will be loaded into memory.
-                This enables noticeably faster data generation than loading batches of images into memory ad hoc.
-                Be sure that you have enough memory before you activate this option.
-            filenames (string or list, optional): `None` or either a Python list/tuple or a string representing
-                a filepath. If a list/tuple is passed, it must contain the file names (full paths) of the
-                images to be used. Note that the list/tuple must contain the paths to the images,
-                not the images themselves. If a filepath string is passed, it must point either to
-                (1) a pickled file containing a list/tuple as described above. In this case the `filenames_type`
-                argument must be set to `pickle`.
-                Or
-                (2) a text file. Each line of the text file contains the file name (basename of the file only,
-                not the full directory path) to one image and nothing else. In this case the `filenames_type`
-                argument must be set to `text` and you must pass the path to the directory that contains the
-                images in `images_dir`.
-            labels_output_format (list, optional): A list of five strings representing the desired order of the five
-                items class ID, xmin, ymin, xmax, ymax in the generated ground truth data (if any). The expected
-                strings are 'xmin', 'ymin', 'xmax', 'ymax', 'class_id'.
+        # Arguments:
+            - load_images_into_memory (bool, optional): If `True`, the entire dataset will be loaded into memory.
+            - filenames: A Python list/tuple or a string representing  a filepath.
         '''
         self.labels_output_format = labels_output_format
-        self.labels_format = {'class_id': labels_output_format.index('class_id'),
-                              'xmin': labels_output_format.index('xmin'),
-                              'ymin': labels_output_format.index('ymin'),
-                              'xmax': labels_output_format.index('xmax'),
-                              'ymax': labels_output_format.index('ymax')}  # This dictionary is for internal use.
+        self.labels_format = {'class_id': 0,
+                              'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}
 
         # As long as we haven't loaded anything yet, the dataset size is zero.
         self.dataset_size = 0
         self.load_images_into_memory = load_images_into_memory
+        self._batch_size = batch_size
+        self._shuffle = shuffle
 
-        # The only way that this list will not stay `None` is if `load_images_into_memory == True`.
         self.images = None
+        self.filenames = []
 
-        # `self.filenames` is a list containing all file names of the image samples (full paths).
-        # Note that it does not contain the actual image files themselves. This list is one of the outputs of the parser methods.
-        # In case you are loading an HDF5 dataset, this list will be `None`.
         if not filenames is None:
-            self.filenames = filenames
+            for file in filenames:
+                with open(file) as description_file:
+                    self.filenames += my_file.readlines()
+
             self.dataset_size = len(self.filenames)
             self.dataset_indices = np.arange(self.dataset_size, dtype=np.int32)
 
@@ -121,9 +95,65 @@ class DataGeneratorDCT:
 
         self.labels = None
         self.image_ids = None
-        self.eval_neutral = None
+        self.difficult = None
 
         self.hdf5_dataset = None
+
+    @property
+    @abstractmethod
+    def number_of_data_samples(self):
+        raise NotImplementedError(
+            "A generator should be able to tell the number of data available.")
+
+    @property
+    @abstractmethod
+    def shuffle(self):
+        return self._shuffle
+
+    @property
+    def batch_size(self):
+        return self._batch_size
+
+    def get_raw_input_label(self, index):
+        """ Should return the raw input at a given batch index, i.e something displayable.
+
+        # Argument:
+            - index: The index of the batch
+        """
+        return self.images[index]
+
+    def __len__(self):
+        """ Should return the number of batch per epoch."""
+        return len(self.filenames) // self.batch_size
+
+    @abstractmethod
+    def __getitem__(self, index):
+        """ Should return the batch target of the index specified.
+
+        # Argument:
+            - index: The index of the batch
+        """
+        raise NotImplementedError(
+            "Should return the batch target of the index specified.")
+
+    @abstractmethod
+    def get_batch_data(self, index):
+        """ Should return the data associated for the batch specified if any. Should return None else.
+
+        # Argument:
+            - index: The index of the batch
+        """
+        raise NotImplementedError(
+            "Should return the data associated for the batch specified if any. Should return None else.")
+
+    def shuffle_data(self):
+        """ Should shuffle the batches of data."""
+        shuffle(self.dataset_indices)
+
+    def on_epoch_end(self):
+        """ To be called at the end of an epoch. The indexes of the data could be shuffle here."""
+        if self.shuffle:
+            self.shuffle_batches()
 
     def load_hdf5_dataset(self, verbose=True):
         '''
@@ -311,7 +341,7 @@ class DataGeneratorDCT:
         if self.load_images_into_memory:
             self.images = []
             it = tqdm(self.filenames,
-                        desc='Loading images into memory', file=sys.stdout)
+                      desc='Loading images into memory', file=sys.stdout)
             for filename in it:
                 with Image.open(filename) as image:
                     self.images.append(np.array(image, dtype=np.uint8))
@@ -491,10 +521,10 @@ class DataGeneratorDCT:
         self.dataset_size = len(self.hdf5_dataset['images'])
         # Instead of shuffling the HDF5 dataset, we will shuffle this index list.
         self.dataset_indices = np.arange(self.dataset_size, dtype=np.int32)
-    
+
     def __len__(self):
         return self.dataset_size
-    
+
     def generate(self,
                  batch_size=32,
                  shuffle=True,
@@ -577,7 +607,6 @@ class DataGeneratorDCT:
             raise DatasetError(
                 "Cannot generate batches because you did not load a dataset.")
 
-        
         # Do a few preparatory things like maybe shuffling the dataset initially.
 
         if shuffle:
@@ -595,15 +624,14 @@ class DataGeneratorDCT:
                 objects_to_shuffle[i][:] = shuffled_objects[i]
 
         box_filter = BoxFilter(check_overlap=False,
-                                check_min_area=False,
-                                check_degenerate=True,
-                                labels_format=self.labels_format)
+                               check_min_area=False,
+                               check_degenerate=True,
+                               labels_format=self.labels_format)
 
         # Override the labels formats of all the transformations to make sure they are set correctly.
         if not (self.labels is None):
             for transform in transformations:
                 transform.labels_format = self.labels_format
-
 
         # Generate mini batches.
         current = 0
@@ -630,7 +658,6 @@ class DataGeneratorDCT:
                         *objects_to_shuffle)
                     for i in range(len(objects_to_shuffle)):
                         objects_to_shuffle[i][:] = shuffled_objects[i]
-
 
             # Get the images, (maybe) image IDs, (maybe) labels, etc. for this batch.
             # We prioritize our options in the following order:
@@ -686,7 +713,6 @@ class DataGeneratorDCT:
 
             current += batch_size
 
-
             # Maybe perform image transformations.
 
             # In case we need to remove any images from the batch, store their indices in this list.
@@ -738,7 +764,6 @@ class DataGeneratorDCT:
 
                     batch_inverse_transforms.append(inverse_transforms[::-1])
 
-
                 # Check for degenerate boxes in this batch item.
                 if not (self.labels is None):
 
@@ -751,7 +776,6 @@ class DataGeneratorDCT:
                         batch_y[i] = box_filter(batch_y[i])
                         if (batch_y[i].size == 0) and not keep_images_without_gt:
                             batch_items_to_remove.append(i)
-
 
             # Remove any items we might not want to keep from the batch.
             if batch_items_to_remove:
@@ -784,7 +808,6 @@ class DataGeneratorDCT:
                                            "(if any were given) have been applied to all images in the batch, all images " +
                                            "must be homogenous in size along all axes.")
 
-
             # If we have a label encoder, encode our labels.
             if not (label_encoder is None or self.labels is None):
 
@@ -798,7 +821,6 @@ class DataGeneratorDCT:
             else:
                 batch_y_encoded = None
                 batch_matched_anchors = None
-
 
             # Compose the output.
             new_batch_X = np.empty(batch_X.shape, dtype=np.int32)
