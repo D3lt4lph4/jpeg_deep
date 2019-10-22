@@ -29,6 +29,8 @@ from bs4 import BeautifulSoup
 from ssd_encoder_decoder.ssd_input_encoder import SSDInputEncoder
 from data_generator.object_detection_2d_image_boxes_validation_utils import BoxFilter
 
+from .helper import parse_xml_voc
+
 from template_keras.generators import TemplateGenerator
 
 
@@ -53,6 +55,8 @@ class DataGeneratorDCT(TemplateGenerator):
     def __init__(self,
                  batch_size: int = 32,
                  shuffle: bool = True,
+                 label_encoder: object = None
+                 transforms: List[object] = None
                  load_images_into_memory: bool = False,
                  images_path: List[str] = None,
                  labels_output_format: List[str] = (
@@ -68,8 +72,10 @@ class DataGeneratorDCT(TemplateGenerator):
 
         self.load_images_into_memory = load_images_into_memory
 
-        self.images = None
+        self.images = []
         self.images_path = []
+        self.transforms = transforms
+        self.label_encoder = label_encoder
 
         if not images_path is None:
             for file in images_path:
@@ -77,14 +83,6 @@ class DataGeneratorDCT(TemplateGenerator):
                     self.images_path += my_file.readlines()
 
             self.dataset_size = len(self.images_path)
-
-            if load_images_into_memory:
-                self.images = []
-                it = tqdm(self.images_path,
-                          desc='Loading images into memory', file=sys.stdout)
-                for filename in it:
-                    with Image.open(filename) as image:
-                        self.images.append(np.array(image, dtype=np.uint8))
         else:
             self.images_path = None
 
@@ -95,7 +93,7 @@ class DataGeneratorDCT(TemplateGenerator):
         self.batch_per_epoch = len(self.images_path) // self._batch_size
         self.indexes = np.arange(len(self.images_path))
 
-        self.labels = None
+        self.labels = []
         self.image_ids = None
         self.difficult = None
 
@@ -136,14 +134,14 @@ class DataGeneratorDCT(TemplateGenerator):
         return X, y
 
     def on_epoch_end(self):
-        """ To be called at the end of an epoch. The indexes of the data could be shuffle here."""
+        """ Updates indexes after each epoch. """
         if self.shuffle:
             np.random.shuffle(self.indexes)
 
     def __data_generation(self, indexes):
         # Override the labels formats of all the transformations to make sure they are set correctly.
         if not (self.labels is None):
-            for transform in transformations:
+            for transform in self.transforms:
                 transform.labels_format = self.labels_format
 
         batch_X, batch_y = [], []
@@ -202,33 +200,12 @@ class DataGeneratorDCT(TemplateGenerator):
 
             if np.any(batch_y[i][:, xmax] - batch_y[i][:, xmin] <= 0) or np.any(batch_y[i][:, ymax] - batch_y[i][:, ymin] <= 0):
                 batch_y[i] = box_filter(batch_y[i])
-                if (batch_y[i].size == 0) and not keep_images_without_gt:
-                    batch_items_to_remove.append(i)
-
-        # Remove any items we might not want to keep from the batch.
-        if batch_items_to_remove:
-            for j in sorted(batch_items_to_remove, reverse=True):
-                # This isn't efficient, but it hopefully shouldn't need to be done often anyway.
-                batch_X.pop(j)
-                batch_filenames.pop(j)
-                if batch_inverse_transforms:
-                    batch_inverse_transforms.pop(j)
-                if not (self.labels is None):
-                    batch_y.pop(j)
-                if not (self.image_ids is None):
-                    batch_image_ids.pop(j)
-                if not (self.eval_neutral is None):
-                    batch_eval_neutral.pop(j)
-                if 'original_images' in returns:
-                    batch_original_images.pop(j)
-                if 'original_labels' in returns and not (self.labels is None):
-                    batch_original_labels.pop(j)
 
         batch_X = np.array(batch_X)
-        batch_y_encoded = label_encoder(batch_y, diagnostics=False)
-
-        # Compose the output.
-        new_batch_X = np.empty(batch_X.shape, dtype=np.int32)
+        if self.label_encoder:
+            batch_y_encoded = self.label_encoder(batch_y)
+        else:
+            batch_y_encoded = batch_y
 
         X_y = np.empty((batch_X.shape[0], 38, 38, 64))
         X_cbcr = np.empty((batch_X.shape[0], 19, 19, 128))
@@ -245,7 +222,19 @@ class DataGeneratorDCT(TemplateGenerator):
         return [X_y, X_cbcr], batch_y_encoded
 
     def prepare_dataset(self):
-        pass
+        """ We load all the labels when preparing the data. If there is the load in memory option activated, we pre-load the images as well. """
+
+        if load_images_into_memory:
+            print("The images will be loaded into memory.")
+
+        it = tqdm(self.images_path,
+                  desc='Preparing the dataset', file=sys.stdout)
+        for filename in it:
+            if load_images_into_memory:
+                with Image.open(filename) as image:
+                    self.images.append(np.array(image, dtype=np.uint8))
+            boxes, _ = parse_xml_voc(filename)
+            self.labels.append(boxes)
 
     def get_raw_input_label(self, index):
         """ Should return the raw input at a given batch index, i.e something displayable.
@@ -253,10 +242,62 @@ class DataGeneratorDCT(TemplateGenerator):
         # Argument:
             - index: The index of the batch
         """
+        index = index % self.batches_per_epoch
+        indexes = self.indexes[index *
+                               self.batch_size:(index + 1) * self._batch_size]
+
+        if not (self.labels is None):
+            for transform in self.transforms:
+                transform.labels_format = self.labels_format
+
+        batch_X, batch_y = [], []
+
         if self.load_images_into_memory:
-            return self.images[index]
+            for i in batch_indices:
+                batch_X.append(self.images[i])
+                batch_y.append(deepcopy(self.labels[i]))
         else:
-            return np.array(Image.open(self.images_path[index]))
+            for i in batch_indices:
+                with Image.open(self.images_path[i]) as image:
+                    batch_X.append(np.array(image, dtype=np.uint8))
+                batch_y.append(deepcopy(self.labels[i]))
+
+        # In case we need to remove any images from the batch, store their indices in this list.
+        batch_items_to_remove = []
+        batch_inverse_transforms = []
+
+        for i in range(len(batch_X)):
+
+            batch_y[i] = np.array(batch_y[i])
+
+            # Apply any image transformations we may have received.
+            if transformations:
+                for transform in transformations:
+
+                    batch_X[i], batch_y[i] = transform(
+                        batch_X[i], batch_y[i])
+
+                    # In case the transform failed to produce an output image, which is possible for some random transforms.
+                    if batch_X[i] is None:
+                        batch_items_to_remove.append(i)
+                        batch_inverse_transforms.append([])
+                        continue
+
+            xmin = self.labels_format['xmin']
+            ymin = self.labels_format['ymin']
+            xmax = self.labels_format['xmax']
+            ymax = self.labels_format['ymax']
+
+            if np.any(batch_y[i][:, xmax] - batch_y[i][:, xmin] <= 0) or np.any(batch_y[i][:, ymax] - batch_y[i][:, ymin] <= 0):
+                batch_y[i] = box_filter(batch_y[i])
+
+        batch_X = np.array(batch_X)
+        if self.label_encoder:
+            batch_y_encoded = self.label_encoder(batch_y)
+        else:
+            batch_y_encoded = batch_y
+
+        return batch_X, batch_y_encoded
 
     def get_batch_data(self, index):
         """ Should return the data associated for the batch specified if any. Should return None else.
@@ -264,8 +305,8 @@ class DataGeneratorDCT(TemplateGenerator):
         # Argument:
             - index: The index of the batch
         """
-        raise NotImplementedError(
-            "Should return the data associated for the batch specified if any. Should return None else.")
+        batch_X, _ = self.__getitem__(index)
+        return batch_X
 
     def shuffle_data(self):
         """ Should shuffle the batches of data."""
@@ -333,137 +374,6 @@ class DataGeneratorDCT(TemplateGenerator):
                 tr = range(self.dataset_size)
             for i in tr:
                 self.eval_neutral.append(eval_neutral[i])
-
-    def parse_xml(self,
-                  images_dirs,
-                  image_set_filenames,
-                  annotations_dirs=[],
-                  classes=['background',
-                           'aeroplane', 'bicycle', 'bird', 'boat',
-                           'bottle', 'bus', 'car', 'cat',
-                           'chair', 'cow', 'diningtable', 'dog',
-                           'horse', 'motorbike', 'person', 'pottedplant',
-                           'sheep', 'sofa', 'train', 'tvmonitor'],
-                  exclude_difficult=False,
-                  ret=False):
-        '''
-        This is an XML parser for the Pascal VOC datasets. It might be applicable to other datasets with minor changes to
-        the code, but in its current form it expects the data format and XML tags of the Pascal VOC datasets.
-
-        Arguments:
-            images_dirs (list): A list of strings, where each string is the path of a directory that
-                contains images that are to be part of the dataset. This allows you to aggregate multiple datasets
-                into one (e.g. one directory that contains the images for Pascal VOC 2007, another that contains
-                the images for Pascal VOC 2012, etc.).
-            image_set_filenames (list): A list of strings, where each string is the path of the text file with the image
-                set to be loaded. Must be one file per image directory given. These text files define what images in the
-                respective image directories are to be part of the dataset and simply contains one image ID per line
-                and nothing else.
-            annotations_dirs (list, optional): A list of strings, where each string is the path of a directory that
-                contains the annotations (XML files) that belong to the images in the respective image directories given.
-                The directories must contain one XML file per image and the name of an XML file must be the image ID
-                of the image it belongs to. The content of the XML files must be in the Pascal VOC format.
-            classes (list, optional): A list containing the names of the object classes as found in the
-                `name` XML tags. Must include the class `background` as the first list item. The order of this list
-                defines the class IDs.
-            include_classes (list, optional): Either 'all' or a list of integers containing the class IDs that
-                are to be included in the dataset. If 'all', all ground truth boxes will be included in the dataset.
-            exclude_truncated (bool, optional): If `True`, excludes boxes that are labeled as 'truncated'.
-            exclude_difficult (bool, optional): If `True`, excludes boxes that are labeled as 'difficult'.
-            ret (bool, optional): Whether or not to return the outputs of the parser.
-            verbose (bool, optional): If `True`, prints out the progress for operations that may take a bit longer.
-
-        Returns:
-            None by default, optionally lists for whichever are available of images, image filenames, labels, image IDs,
-            and a list indicating which boxes are annotated with the label "difficult".
-        '''
-
-        # Erase data that might have been parsed before.
-        self.filenames = []
-        self.image_ids = []
-        self.labels = []
-        self.eval_neutral = []
-
-        for images_dir, image_set_filename, annotations_dir in zip(images_dirs, image_set_filenames, annotations_dirs):
-            # Read the image set file that so that we know all the IDs of all the images to be included in the dataset.
-            with open(image_set_filename) as f:
-                # Note: These are strings, not integers.
-                image_ids = [line.strip() for line in f]
-                self.image_ids += image_ids
-
-            it = tqdm(image_ids, desc="Processing image set '{}'".format(
-                os.path.basename(image_set_filename)), file=sys.stdout)
-
-            # Loop over all images in this dataset.
-            for image_id in it:
-
-                filename = '{}'.format(image_id) + '.jpg'
-                self.filenames.append(os.path.join(images_dir, filename))
-
-                with open(os.path.join(annotations_dir, image_id + '.xml')) as f:
-                    soup = BeautifulSoup(f, 'xml')
-
-                folder = soup.folder.text
-
-                boxes = []  # We'll store all boxes for this image here.
-                # We'll store whether a box is annotated as "difficult" here.
-                eval_neutr = []
-                # Get a list of all objects in this image.
-                objects = soup.find_all('object')
-
-                # Parse the data for each object.
-                for obj in objects:
-                    class_name = obj.find('name', recursive=False).text
-                    class_id = self.classes.index(class_name)
-                    pose = obj.find('pose', recursive=False).text
-                    truncated = int(
-                        obj.find('truncated', recursive=False).text)
-                    difficult = int(
-                        obj.find('difficult', recursive=False).text)
-
-                    # Get the bounding box coordinates.
-                    bndbox = obj.find('bndbox', recursive=False)
-                    xmin = int(bndbox.xmin.text)
-                    ymin = int(bndbox.ymin.text)
-                    xmax = int(bndbox.xmax.text)
-                    ymax = int(bndbox.ymax.text)
-                    item_dict = {'folder': folder,
-                                 'image_name': filename,
-                                 'image_id': image_id,
-                                 'class_name': class_name,
-                                 'class_id': class_id,
-                                 'pose': pose,
-                                 'truncated': truncated,
-                                 'difficult': difficult,
-                                 'xmin': xmin,
-                                 'ymin': ymin,
-                                 'xmax': xmax,
-                                 'ymax': ymax}
-                    box = []
-                    for item in self.labels_output_format:
-                        box.append(item_dict[item])
-                    boxes.append(box)
-                    if difficult:
-                        eval_neutr.append(True)
-                    else:
-                        eval_neutr.append(False)
-
-                self.labels.append(boxes)
-                self.eval_neutral.append(eval_neutr)
-
-        self.dataset_size = len(self.filenames)
-        self.dataset_indices = np.arange(self.dataset_size, dtype=np.int32)
-
-        if self.load_images_into_memory:
-            self.images = []
-            it = tqdm(self.filenames,
-                      desc='Loading images into memory', file=sys.stdout)
-            for filename in it:
-                with Image.open(filename) as image:
-                    self.images.append(np.array(image, dtype=np.uint8))
-
-        if ret:
-            return self.images, self.filenames, self.labels, self.image_ids, self.eval_neutral
 
     def create_hdf5_dataset(self,
                             file_path='dataset.h5',
@@ -637,11 +547,3 @@ class DataGeneratorDCT(TemplateGenerator):
         self.dataset_size = len(self.hdf5_dataset['images'])
         # Instead of shuffling the HDF5 dataset, we will shuffle this index list.
         self.dataset_indices = np.arange(self.dataset_size, dtype=np.int32)
-
-    def generate(self,
-                 batch_size=32,
-                 shuffle=True,
-                 transformations=[],
-                 label_encoder=None,
-                 returns={'processed_images', 'encoded_labels'},
-                 keep_images_without_gt=False):
