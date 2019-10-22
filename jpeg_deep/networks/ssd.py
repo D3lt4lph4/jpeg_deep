@@ -7,9 +7,7 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Lambda, Activation, Conv2D, MaxPooling2D, Reshape, Concatenate
 from tensorflow.keras.regularizers import l2
 
-from ssd_keras.keras_layers.keras_layer_AnchorBoxes import AnchorBoxes, AnchorBoxesTensorflow
-from ssd_keras.keras_layers.keras_layer_L2Normalization import L2Normalization
-from ssd_keras.keras_layers.keras_layer_DecodeDetections import DecodeDetections
+from jpeg_deep.layers.ssd_layers import AnchorBoxes, AnchorBoxesTensorflow, L2Normalization, DecodeDetections
 
 
 # Helper functions
@@ -262,7 +260,7 @@ def ssd300(n_classes: int,
             this_scale=scales[4], next_scale=scales[5], step=size_steps[4], aspect_ratios=aspect_ratios[4], name='conv8_2_mbox_priorbox')(conv8_2_mbox_loc)
         conv9_2_mbox_priorbox = AnchorBoxesTensorflow(
             this_scale=scales[5], next_scale=scales[6], step=size_steps[5], aspect_ratios=aspect_ratios[5], name='conv9_2_mbox_priorbox')(conv9_2_mbox_loc)
-    elif:
+    else:
         conv4_3_norm_mbox_priorbox = AnchorBoxes(
             img_h, img_w, this_scale=scales[0], next_scale=scales[1], aspect_ratios=aspect_ratios[0], this_steps=steps[0], this_offsets=offsets[0])(conv4_3_norm_mbox_loc)
         fc7_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[1], next_scale=scales[2], aspect_ratios=aspect_ratios[1],
@@ -366,7 +364,7 @@ def ssd300(n_classes: int,
                                                iou_threshold=iou_threshold,
                                                top_k=top_k,
                                                nms_max_output_size=nms_max_output_size,
-                                               name='decoded_predictions'
+                                               name='decoded_predictions',
                                                dct=dct)([predictions, input_layer])
         model = Model(inputs=input_layer, outputs=decoded_predictions)
     else:

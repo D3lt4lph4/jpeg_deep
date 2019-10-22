@@ -9,10 +9,18 @@ The installation steps are the same for classification and detection:
 git submodule init
 git submodule update
 
+# Making virtualenv
+mkdir .venv
+cd .venv
+python3 -m venv jpeg_deep
+source jpeg_deep/bin/activate
+
+cd ..
+
 # Installation of the module
 cd deep_template/template_keras/template_keras
 
-pip install . --user
+python setup.py install
 
 # Back to main directory
 cd ../../..

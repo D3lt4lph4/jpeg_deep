@@ -79,8 +79,14 @@ class VOCGeneratorDCT(TemplateGenerator):
 
         if not images_path is None:
             for file in images_path:
+                splitted = file.split("/")
+                directory_voc = "/".join(splitted[:6])
                 with open(file) as description_file:
-                    self.images_path += my_file.readlines()
+                    files = my_file.readlines()
+                
+                for filename in files:
+                    self.images_path.append(join(directory_voc, "JPEGImages", filename))
+                
 
             self.dataset_size = len(self.images_path)
         else:
