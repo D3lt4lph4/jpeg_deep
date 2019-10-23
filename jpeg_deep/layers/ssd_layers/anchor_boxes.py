@@ -22,7 +22,7 @@ import tensorflow as tf
 from tensorflow.python.keras.layers import InputSpec
 from tensorflow.python.keras.layers import Layer
 
-from ssd_keras.bounding_box_utils.bounding_box_utils import convert_coordinates
+from jpeg_deep.utils import convert_coordinates
 
 
 class AnchorBoxesTensorflow(Layer):

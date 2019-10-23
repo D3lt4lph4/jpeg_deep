@@ -7,6 +7,8 @@ import sys
 
 import os
 
+from typing import List
+
 from random import shuffle
 
 import numpy as np
@@ -26,8 +28,8 @@ import h5py
 
 from bs4 import BeautifulSoup
 
-from ssd_encoder_decoder.ssd_input_encoder import SSDInputEncoder
-from data_generator.object_detection_2d_image_boxes_validation_utils import BoxFilter
+from .helper_ssd import SSDInputEncoder
+from .helper_ssd import BoxFilter
 
 from .helper import parse_xml_voc
 
@@ -55,8 +57,8 @@ class VOCGeneratorDCT(TemplateGenerator):
     def __init__(self,
                  batch_size: int = 32,
                  shuffle: bool = True,
-                 label_encoder: object = None
-                 transforms: List[object] = None
+                 label_encoder: object = None,
+                 transforms: List[object] = None,
                  load_images_into_memory: bool = False,
                  images_path: List[str] = None,
                  labels_output_format: List[str] = (
@@ -83,10 +85,10 @@ class VOCGeneratorDCT(TemplateGenerator):
                 directory_voc = "/".join(splitted[:6])
                 with open(file) as description_file:
                     files = my_file.readlines()
-                
+
                 for filename in files:
-                    self.images_path.append(join(directory_voc, "JPEGImages", filename))
-                
+                    self.images_path.append(
+                        join(directory_voc, "JPEGImages", filename))
 
             self.dataset_size = len(self.images_path)
         else:

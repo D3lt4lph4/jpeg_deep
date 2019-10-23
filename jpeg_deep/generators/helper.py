@@ -5,6 +5,8 @@ All the functions were taken from https://github.com/rykov8/ssd_keras/blob/maste
 
 import numpy as np
 
+from typing import List
+
 
 def grayscale(rgb):
     return rgb.dot([0.299, 0.587, 0.114])

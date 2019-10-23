@@ -4,7 +4,7 @@ import numpy as np
 
 import tensorflow as tf
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Lambda, Activation, Conv2D, MaxPooling2D, Reshape, Concatenate
+from tensorflow.keras.layers import Input, Lambda, Activation, Conv2D, MaxPooling2D, Reshape, Concatenate, BatchNormalization
 from tensorflow.keras.regularizers import l2
 
 from jpeg_deep.layers.ssd_layers import AnchorBoxes, AnchorBoxesTensorflow, L2Normalization, DecodeDetections
@@ -60,7 +60,7 @@ def feature_map_rgb(image_shape: Tuple[int, int], l2_regularization: float = 0.0
                      kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='conv4_3')(conv4_2)
     pool4 = MaxPooling2D(pool_size=(2, 2), strides=(
         2, 2), padding='same', name='pool4')(conv4_3)
-    return input_layer, pool4
+    return input_layer, pool4, conv4_3
 
 
 def feature_map_dct(image_shape: Tuple[int, int], l2_regularization: float = 0.0005, kernel_initializer: str = 'he_normal'):
@@ -105,7 +105,7 @@ def feature_map_dct(image_shape: Tuple[int, int], l2_regularization: float = 0.0
 
     concat = Concatenate(axis=-1, name="")([pool4, norm_cbcr])
 
-    return [input_y, input_cbcr], concat
+    return [input_y, input_cbcr], concat, conv4_3
 
 
 def ssd300(n_classes: int,
@@ -170,10 +170,10 @@ def ssd300(n_classes: int,
         img_h, img_w = image_shape
 
     if not dct:
-        input_layer, pool4 = feature_map_rgb(
+        input_layer, pool4, conv4_3 = feature_map_rgb(
             image_shape, l2_regularization=l2_regularization, kernel_initializer=kernel_initializer)
     else:
-        input_layer, pool4 = feature_map_dct(
+        input_layer, pool4, conv4_3 = feature_map_dct(
             image_shape, l2_regularization=l2_regularization, kernel_initializer=kernel_initializer)
 
     conv5_1 = Conv2D(512, (3, 3), activation='relu', padding='same',
