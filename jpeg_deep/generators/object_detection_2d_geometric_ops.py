@@ -22,7 +22,7 @@ import numpy as np
 import cv2
 import random
 
-from ssd_keras.data_generator.object_detection_2d_image_boxes_validation_utils import BoxFilter, ImageValidator
+from .helper_ssd import BoxFilter, ImageValidator
 
 class Resize:
     '''
