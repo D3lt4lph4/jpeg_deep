@@ -38,7 +38,10 @@ X, y = config.test_generator.__getitem__(0)
 X_true, _ = config.test_generator.get_raw_input_label(0)
 
 y_pred = model.predict(X)
+y_pred_thresh = [y_pred[k][y_pred[k, :, 1] > 0.5]
+                 for k in range(y_pred.shape[0])]
 
+print(y_pred_thresh)
 if args.groundTruth:
     config.displayer.display_with_gt(y_pred, X_true, y)
 else:

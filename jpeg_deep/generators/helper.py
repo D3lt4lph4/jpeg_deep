@@ -7,6 +7,10 @@ import numpy as np
 
 from typing import List
 
+import os
+
+from bs4 import BeautifulSoup
+
 
 def grayscale(rgb):
     return rgb.dot([0.299, 0.587, 0.114])
@@ -82,7 +86,7 @@ def parse_xml_voc(data_path: str, classes: List[str] = None):
     boxes = []
     eval_difficult = []
 
-    with open(os.path.join(annotations_dir, image_id + '.xml')) as f:
+    with open(data_path) as f:
         soup = BeautifulSoup(f, 'xml')
 
     folder = soup.folder.text
@@ -93,7 +97,7 @@ def parse_xml_voc(data_path: str, classes: List[str] = None):
     # Parse the data for each object.
     for obj in objects:
         class_name = obj.find('name', recursive=False).text
-        class_id = self.classes.index(class_name)
+        class_id = classes.index(class_name)
         truncated = int(
             obj.find('truncated', recursive=False).text)
         difficult = int(

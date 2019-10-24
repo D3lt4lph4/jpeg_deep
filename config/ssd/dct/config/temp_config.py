@@ -2,11 +2,11 @@ from os import environ
 from os.path import join
 
 
-from keras.optimizers import Adadelta, SGD
-from keras.losses import categorical_crossentropy
-from keras.callbacks import ModelCheckpoint, TerminateOnNaN, CSVLogger, EarlyStopping, ReduceLROnPlateau
-from keras.preprocessing.image import ImageDataGenerator
-from keras.applications.vgg16 import preprocess_input
+from tensorflow.keras.optimizers import Adadelta, SGD
+from tensorflow.keras.losses import categorical_crossentropy
+from tensorflow.keras.callbacks import ModelCheckpoint, TerminateOnNaN, CSVLogger, EarlyStopping, ReduceLROnPlateau
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.applications.vgg16 import preprocess_input
 
 from jpeg_deep.networks import ssd300
 from jpeg_deep.generators import VOCGeneratorDCT
@@ -15,6 +15,9 @@ from jpeg_deep.generators import SSDInputEncoder
 from jpeg_deep.evaluation import Evaluator
 from jpeg_deep.displayer import Displayer
 from jpeg_deep.generators import SSDDataAugmentation
+from jpeg_deep.generators import ConvertTo3Channels, Resize
+from jpeg_deep.losses import SSDLoss
+from jpeg_deep.displayer import DisplayerObjects
 #from template.config import TemplateConfiguration
 
 
@@ -50,7 +53,8 @@ class TrainingConfiguration(object):
         self.optimizer_params = {
             "lr": 0.01, "momentum": 0.9, "decay": 0.0005, "nesterov": True}
         self._optimizer = SGD(**self.optimizer_params)
-        self._loss = ssd_loss
+        self.loss_class = SSDLoss(neg_pos_ratio=3, alpha=1.0)
+        self._loss = self.loss_class.compute_loss
         self._metrics = ['accuracy']
 
         # Generator parameters.
@@ -90,7 +94,7 @@ class TrainingConfiguration(object):
         self.validation_directory = environ["DATASET_PATH_VAL"]
         self.test_directory = environ["DATASET_PATH_TEST"]
 
-        self.training_generators_params = {
+        self.training_generator_params = {
             "batch_size": self.batch_size,
             "shuffle": True,
             "label_encoder": self.label_encoder,
@@ -103,10 +107,10 @@ class TrainingConfiguration(object):
             "batch_size": self.batch_size,
             "shuffle": False,
             "label_encoder": self.label_encoder,
-            "transforms": [convert_to_3_channels,
-                           resize],
-            "images_path": [join(self.val_directory, "VOC2007_trainval/ImageSets/Main/val.txt"),
-                            join(self.val_directory, "VOC2012_trainval/ImageSets/Main/val.txt")]
+            "transforms": [self.convert_to_3_channels,
+                           self.resize],
+            "images_path": [join(self.validation_directory, "VOC2007_trainval/ImageSets/Main/val.txt"),
+                            join(self.validation_directory, "VOC2012_trainval/ImageSets/Main/val.txt")]
         }
 
         self.testing_generator_params = {
@@ -126,10 +130,14 @@ class TrainingConfiguration(object):
         self._callbacks = [self.terminate_on_nan, self.early_stopping]
 
         # Creating the training and validation generator
-        self._train_generator = None
-        self._validation_generator = None
-        self._test_generator = None
+        self._train_generator = VOCGeneratorDCT(
+            **self.training_generator_params)
+        self._validation_generator = VOCGeneratorDCT(
+            **self.validation_generator_params)
+        self._test_generator = VOCGeneratorDCT(
+            **self.testing_generator_params)
 
+        self._displayer = DisplayerObjects()
         self._horovod = None
 
     def add_csv_logger(self,
@@ -200,7 +208,7 @@ class TrainingConfiguration(object):
     def prepare_for_inference(self):
         self.network_params["mode"] = "inference"
         self.network_params["image_shape"] = None
-        self.network = ssd300(**self.network_params)
+        self._network = ssd300(**self.network_params)
 
     def prepare_evaluator(self):
         self._evaluator = Evaluator()

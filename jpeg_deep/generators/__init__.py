@@ -12,3 +12,5 @@ from .helper import grayscale
 from .voc_generator import VOCGeneratorDCT
 from .helper_ssd import SSDInputEncoder
 from .data_augmentation_ssd import SSDDataAugmentation
+from .object_detection_photometric_ops import ConvertTo3Channels
+from .object_detection_2d_geometric_ops import Resize

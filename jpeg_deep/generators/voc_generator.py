@@ -84,11 +84,11 @@ class VOCGeneratorDCT(TemplateGenerator):
                 splitted = file.split("/")
                 directory_voc = "/".join(splitted[:6])
                 with open(file) as description_file:
-                    files = my_file.readlines()
+                    files = description_file.read().splitlines()
 
                 for filename in files:
                     self.images_path.append(
-                        join(directory_voc, "JPEGImages", filename))
+                        join(directory_voc, "JPEGImages", filename + ".jpg"))
 
             self.dataset_size = len(self.images_path)
         else:
@@ -98,7 +98,7 @@ class VOCGeneratorDCT(TemplateGenerator):
         self._shuffle = shuffle
         self._number_of_data_samples = len(self.images_path)
 
-        self.batch_per_epoch = len(self.images_path) // self._batch_size
+        self.batches_per_epoch = len(self.images_path) // self._batch_size
         self.indexes = np.arange(len(self.images_path))
 
         self.labels = []
@@ -121,6 +121,10 @@ class VOCGeneratorDCT(TemplateGenerator):
     @property
     def shuffle(self):
         return self._shuffle
+
+    @shuffle.setter
+    def shuffle(self, value):
+        self._shuffle = value
 
     def __len__(self):
         """ Should return the number of batch per epoch."""
@@ -149,8 +153,9 @@ class VOCGeneratorDCT(TemplateGenerator):
     def __data_generation(self, indexes):
         # Override the labels formats of all the transformations to make sure they are set correctly.
         if not (self.labels is None):
-            for transform in self.transforms:
-                transform.labels_format = self.labels_format
+            if self.transforms is not None:
+                for transform in self.transforms:
+                    transform.labels_format = self.labels_format
 
         batch_X, batch_y = [], []
 
@@ -159,7 +164,7 @@ class VOCGeneratorDCT(TemplateGenerator):
                 batch_X.append(self.images[i])
                 batch_y.append(deepcopy(self.labels[i]))
         else:
-            for i in batch_indices:
+            for i in indexes:
                 with Image.open(self.images_path[i]) as image:
                     batch_X.append(np.array(image, dtype=np.uint8))
                 batch_y.append(deepcopy(self.labels[i]))
@@ -189,8 +194,8 @@ class VOCGeneratorDCT(TemplateGenerator):
             batch_y[i] = np.array(batch_y[i])
 
             # Apply any image transformations we may have received.
-            if transformations:
-                for transform in transformations:
+            if self.transforms:
+                for transform in self.transforms:
 
                     batch_X[i], batch_y[i] = transform(
                         batch_X[i], batch_y[i])
@@ -215,8 +220,8 @@ class VOCGeneratorDCT(TemplateGenerator):
         else:
             batch_y_encoded = batch_y
 
-        X_y = np.empty((batch_X.shape[0], 38, 38, 64))
-        X_cbcr = np.empty((batch_X.shape[0], 19, 19, 128))
+        X_y = []
+        X_cbcr = []
         for i, image_to_save in enumerate(batch_X):
             im = Image.fromarray(image_to_save)
             fake_file = BytesIO()
@@ -224,24 +229,32 @@ class VOCGeneratorDCT(TemplateGenerator):
 
             dct_y, dct_cb, dct_cr = loads(fake_file.getvalue())
 
-            X_y[i] = dct_y
-            X_cbcr[i] = np.concatenate([dct_cb, dct_cr], axis=-1)
+            y_x, y_y, y_c = dct_y.shape
+            cb_x, cb_y, cb_c = dct_cb.shape
 
-        return [X_y, X_cbcr], batch_y_encoded
+            temp_y = np.empty((cb_x * 2, cb_y * 2, y_c))
+
+            temp_y[:y_x, :y_y, :] = dct_y
+
+            X_y.append(temp_y)
+            X_cbcr.append(np.concatenate([dct_cb, dct_cr], axis=-1))
+
+        return [np.array(X_y), np.array(X_cbcr)], batch_y_encoded
 
     def prepare_dataset(self):
         """ We load all the labels when preparing the data. If there is the load in memory option activated, we pre-load the images as well. """
 
-        if load_images_into_memory:
+        if self.load_images_into_memory:
             print("The images will be loaded into memory.")
 
         it = tqdm(self.images_path,
                   desc='Preparing the dataset', file=sys.stdout)
         for filename in it:
-            if load_images_into_memory:
+            if self.load_images_into_memory:
                 with Image.open(filename) as image:
                     self.images.append(np.array(image, dtype=np.uint8))
-            boxes, _ = parse_xml_voc(filename)
+            boxes, _ = parse_xml_voc(filename.replace(
+                "JPEGImages", "Annotations").replace("jpg", "xml"))
             self.labels.append(boxes)
 
     def get_raw_input_label(self, index):
@@ -255,8 +268,9 @@ class VOCGeneratorDCT(TemplateGenerator):
                                self.batch_size:(index + 1) * self._batch_size]
 
         if not (self.labels is None):
-            for transform in self.transforms:
-                transform.labels_format = self.labels_format
+            if self.transforms:
+                for transform in self.transforms:
+                    transform.labels_format = self.labels_format
 
         batch_X, batch_y = [], []
 
@@ -265,7 +279,7 @@ class VOCGeneratorDCT(TemplateGenerator):
                 batch_X.append(self.images[i])
                 batch_y.append(deepcopy(self.labels[i]))
         else:
-            for i in batch_indices:
+            for i in indexes:
                 with Image.open(self.images_path[i]) as image:
                     batch_X.append(np.array(image, dtype=np.uint8))
                 batch_y.append(deepcopy(self.labels[i]))
@@ -279,8 +293,8 @@ class VOCGeneratorDCT(TemplateGenerator):
             batch_y[i] = np.array(batch_y[i])
 
             # Apply any image transformations we may have received.
-            if transformations:
-                for transform in transformations:
+            if self.transforms:
+                for transform in self.transforms:
 
                     batch_X[i], batch_y[i] = transform(
                         batch_X[i], batch_y[i])
@@ -316,9 +330,9 @@ class VOCGeneratorDCT(TemplateGenerator):
         batch_X, _ = self.__getitem__(index)
         return batch_X
 
-    def shuffle_data(self):
+    def shuffle_batches(self):
         """ Should shuffle the batches of data."""
-        shuffle(self.dataset_indices)
+        shuffle(self.indexes)
 
     def load_hdf5_dataset(self, verbose=True):
         '''
