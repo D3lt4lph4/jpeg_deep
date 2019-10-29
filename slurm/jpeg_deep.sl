@@ -8,25 +8,32 @@
 #SBATCH --time 48:00:00
 #SBATCH --mem 100000 
 #SBATCH --mail-type ALL
-#SBATCH --mail-user benjamin.deguerre@insa-rouen.fr
+#SBATCH --mail-user mail@mail.com
 #SBATCH --partition gpu_p100
 #SBATCH --gres gpu:2
 #SBATCH --nodes 4
-#SBATCH --output /home/2017018/bdegue01/logs/%J.out
-#SBATCH --error /home/2017018/bdegue01/logs/%J.err
+#SBATCH --output /path/to/logs/%J.out
+#SBATCH --error /pth/to/logs/%J.err
 #SBATCH --tasks-per-node=2
 #SBATCH --cpus-per-task=14
 
+# Loading modules if your environement define some
 module load cuda/9.0
 module load python3-DL/3.6.1
 
+# Custom python path
 export PYTHONUSERBASE=/home/2017018/bdegue01/.virtualenvs/vgg_jpeg
+
+# required training variables
 export EXPERIMENTS_OUTPUT_DIRECTORY=$LOCAL_WORK_DIR/experiment
 export LOG_DIRECTORY=$LOCAL_WORK_DIR/logs
 export DATASET_PATH_TRAIN=/save/2017018/bdegue01/datasets
 export DATASET_PATH_VAL=/dlocal/home/2017018/bdegue01
 
-cd /home/2017018/bdegue01/git/vgg_jpeg/keras
+cd /path/to/sl_script
 
-# We re install the package
-srun python3 /home/2017018/bdegue01/git/vgg_jpeg/keras/training.py -c /home/2017018/bdegue01/git/vgg_jpeg/keras/config/vggD_dct/ --horovod 
+# Start the calculation
+srun python3 /path/to/training.py -c /path/to/config/vggD_dct/ --horovod 
+
+# Optionaly remove the verbose to run faster
+# srun python3 /path/to/training.py -c /path/to/config/vggD_dct/ --horovod --no-verbose
