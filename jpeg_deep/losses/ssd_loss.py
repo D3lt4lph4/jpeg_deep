@@ -1,6 +1,8 @@
 '''
 The tensorflow.keras-compatible loss function for the SSD model. Currently supports TensorFlow only.
 
+Copyright (C) 2019 Deguerre Benjamin
+
 Copyright (C) 2018 Pierluigi Ferrari
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,8 +17,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-
-from __future__ import division
 import tensorflow as tf
 
 
@@ -26,25 +26,19 @@ class SSDLoss:
     '''
 
     def __init__(self,
-                 neg_pos_ratio=3,
-                 n_neg_min=0,
-                 alpha=1.0):
+                 neg_pos_ratio: int = 3,
+                 n_neg_min: int = 0,
+                 alpha: float = 1.0):
         '''
-        Arguments:
-            neg_pos_ratio (int, optional): The maximum ratio of negative (i.e. background)
-                to positive ground truth boxes to include in the loss computation.
-                There are no actual background ground truth boxes of course, but `y_true`
-                contains anchor boxes labeled with the background class. Since
-                the number of background boxes in `y_true` will usually exceed
-                the number of positive boxes by far, it is necessary to balance
-                their influence on the loss. Defaults to 3 following the paper.
-            n_neg_min (int, optional): The minimum number of negative ground truth boxes to
+        # Arguments:
+            - neg_pos_ratio (int, optional): The maximum ratio of negative (i.e. background) to positive ground truth boxes to include in the loss computation.
+            - n_neg_min (int, optional): The minimum number of negative ground truth boxes to
                 enter the loss computation *per batch*. This argument can be used to make
                 sure that the model learns from a minimum number of negatives in batches
                 in which there are very few, or even none at all, positive ground truth
                 boxes. It defaults to 0 and if used, it should be set to a value that
                 stands in reasonable proportion to the batch size used for training.
-            alpha (float, optional): A factor to weight the localization loss in the
+            alpha: A factor to weight the localization loss in the
                 computation of the total loss. Defaults to 1.0 following the paper.
         '''
         self.neg_pos_ratio = neg_pos_ratio
@@ -55,15 +49,15 @@ class SSDLoss:
         '''
         Compute smooth L1 loss, see references.
 
-        Arguments:
-            y_true (nD tensor): A TensorFlow tensor of any shape containing the ground truth data.
+        # Arguments:
+            - y_true: A TensorFlow tensor of any shape containing the ground truth data.
                 In this context, the expected tensor has shape `(batch_size, #boxes, 4)` and
                 contains the ground truth bounding box coordinates, where the last dimension
                 contains `(xmin, xmax, ymin, ymax)`.
-            y_pred (nD tensor): A TensorFlow tensor of identical structure to `y_true` containing
+            - y_pred (nD tensor): A TensorFlow tensor of identical structure to `y_true` containing
                 the predicted data, in this context the predicted bounding box coordinates.
 
-        Returns:
+        # Returns:
             The smooth L1 loss, a nD-1 Tensorflow tensor. In this context a 2D tensor
             of shape (batch, n_boxes_total).
 
@@ -80,15 +74,15 @@ class SSDLoss:
         '''
         Compute the softmax log loss.
 
-        Arguments:
-            y_true (nD tensor): A TensorFlow tensor of any shape containing the ground truth data.
+        # Arguments:
+            - y_true (nD tensor): A TensorFlow tensor of any shape containing the ground truth data.
                 In this context, the expected tensor has shape (batch_size, #boxes, #classes)
                 and contains the ground truth bounding box categories.
-            y_pred (nD tensor): A TensorFlow tensor of identical structure to `y_true` containing
+            - y_pred (nD tensor): A TensorFlow tensor of identical structure to `y_true` containing
                 the predicted data, in this context the predicted bounding box categories.
 
-        Returns:
-            The softmax log loss, a nD-1 Tensorflow tensor. In this context a 2D tensor
+        # Returns:
+            - The softmax log loss, a nD-1 Tensorflow tensor. In this context a 2D tensor
             of shape (batch, n_boxes_total).
         '''
         # Make sure that `y_pred` doesn't contain any zeros (which would break the log function)
@@ -101,8 +95,8 @@ class SSDLoss:
         '''
         Compute the loss of the SSD model prediction against the ground truth.
 
-        Arguments:
-            y_true (array): A Numpy array of shape `(batch_size, #boxes, #classes + 12)`,
+        # Arguments:
+            - y_true (array): A Numpy array of shape `(batch_size, #boxes, #classes + 12)`,
                 where `#boxes` is the total number of boxes that the model predicts
                 per image. Be careful to make sure that the index of each given
                 box in `y_true` is the same as the index for the corresponding
@@ -115,7 +109,7 @@ class SSDLoss:
                 coordinates, which are needed during inference. Important: Boxes that
                 you want the cost function to ignore need to have a one-hot
                 class vector of all zeros.
-            y_pred (tensorflow.keras tensor): The model prediction. The shape is identical
+            - y_pred (tensorflow.keras tensor): The model prediction. The shape is identical
                 to that of `y_true`, i.e. `(batch_size, #boxes, #classes + 12)`.
                 The last axis must contain entries in the format
                 `[classes one-hot encoded, 4 predicted box coordinate offsets, 8 arbitrary entries]`.
