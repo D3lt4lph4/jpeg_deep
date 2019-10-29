@@ -1,6 +1,8 @@
 '''
 Various photometric image transformations, both deterministic and probabilistic.
 
+Copyright (C) 2019 Deguerre Benjamin
+
 Copyright (C) 2018 Pierluigi Ferrari
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +18,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-from __future__ import division
 import numpy as np
 import cv2
 
