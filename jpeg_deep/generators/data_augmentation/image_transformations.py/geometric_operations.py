@@ -2,6 +2,8 @@
 Various geometric image transformations for 2D object detection, both deterministic
 and probabilistic.
 
+Copyright (C) 2019 Deguerre Benjamin
+
 Copyright (C) 2018 Pierluigi Ferrari
 
 Licensed under the Apache License, Version 2.0 (the "License");
