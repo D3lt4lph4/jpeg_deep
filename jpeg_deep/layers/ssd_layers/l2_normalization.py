@@ -1,6 +1,8 @@
 '''
 A custom tensorflow.keras layer to perform L2-normalization.
 
+Copyright (C) 2019 Deguerre Benjamin
+
 Copyright (C) 2018 Pierluigi Ferrari
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +24,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.python.keras.layers import InputSpec
 from tensorflow.python.keras.layers import Layer
+
 
 class L2Normalization(Layer):
     '''
@@ -53,7 +56,8 @@ class L2Normalization(Layer):
     def build(self, input_shape):
         self.input_spec = [InputSpec(shape=input_shape)]
         gamma = self.gamma_init * np.ones((input_shape[self.axis],))
-        self.gamma = tf.Variable(gamma, name='{}_gamma'.format(self.name), trainable=True)
+        self.gamma = tf.Variable(
+            gamma, name='{}_gamma'.format(self.name), trainable=True)
         super(L2Normalization, self).build(input_shape)
 
     def call(self, x, mask=None):

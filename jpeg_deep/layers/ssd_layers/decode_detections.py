@@ -4,6 +4,8 @@ and more efficient version of the `DetectionOutput` layer type in the original C
 implementation of SSD. For a faithful replication of the original layer, please
 refer to the `DecodeDetections` layer.
 
+Copyright (C) 2019 Deguerre Benjamin
+
 Copyright (C) 2018 Pierluigi Ferrari
 
 Licensed under the Apache License, Version 2.0 (the "License");

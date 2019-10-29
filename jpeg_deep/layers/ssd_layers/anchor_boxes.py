@@ -1,6 +1,8 @@
 '''
 A custom tensorflow.keras layer to generate anchor boxes.
 
+Copyright (C) 2019 Deguerre Benjamin
+
 Copyright (C) 2018 Pierluigi Ferrari
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,50 +17,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-
-from __future__ import division
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.keras.layers import InputSpec
 from tensorflow.python.keras.layers import Layer
 
-from jpeg_deep.utils import convert_coordinates
-
 
 class AnchorBoxesTensorflow(Layer):
-    '''
-    A tensorflow.keras layer to create an output tensor containing anchor box coordinates
-    and variances based on the input tensor and the passed arguments.
-
-    A set of 2D anchor boxes of different aspect ratios is created for each spatial unit of
-    the input tensor. The number of anchor boxes created per unit depends on the arguments
-    `aspect_ratios` and `two_boxes_for_ar1`, in the default case it is 4. The boxes
-    are parameterized by the coordinate tuple `(xmin, xmax, ymin, ymax)`.
-
-    The logic implemented by this layer is identical to the logic in the module
-    `ssd_box_encode_decode_utils.py`.
-
-    The purpose of having this layer in the network is to make the model self-sufficient
-    at inference time. Since the model is predicting offsets to the anchor boxes
-    (rather than predicting absolute box coordinates directly), one needs to know the anchor
-    box coordinates in order to construct the final prediction boxes from the predicted offsets.
-    If the model's output tensor did not contain the anchor box coordinates, the necessary
-    information to convert the predicted offsets back to absolute coordinates would be missing
-    in the model output. The reason why it is necessary to predict offsets to the anchor boxes
-    rather than to predict absolute box coordinates directly is explained in `README.md`.
-
-    Input shape:
-        4D tensor of shape `(batch, channels, height, width)` if `dim_ordering = 'th'`
-        or `(batch, height, width, channels)` if `dim_ordering = 'tf'`.
-
-    Output shape:
-        5D tensor of shape `(batch, height, width, n_boxes, 8)`. The last axis contains
-        the four anchor box coordinates and the four variance values for each box.
-    '''
-
     def __init__(self,
-                 this_scale,
-                 next_scale,
+                 this_scale: float,
+                 next_scale: float,
                  step,
                  aspect_ratios=[0.5, 1.0, 2.0],
                  **kwargs):
@@ -67,26 +35,12 @@ class AnchorBoxesTensorflow(Layer):
         Some of these arguments are explained in more detail in the documentation of the `SSDBoxEncoder` class.
 
         Arguments:
-            img_height (int): The height of the input images.
-            img_width (int): The width of the input images.
             this_scale (float): A float in [0, 1], the scaling factor for the size of the generated anchor boxes
                 as a fraction of the shorter side of the input image.
             next_scale (float): A float in [0, 1], the next larger scaling factor. Only relevant if
                 `self.two_boxes_for_ar1 == True`.
             aspect_ratios (list, optional): The list of aspect ratios for which default boxes are to be
                 generated for this layer.
-            two_boxes_for_ar1 (bool, optional): Only relevant if `aspect_ratios` contains 1.
-                If `True`, two default boxes will be generated for aspect ratio 1. The first will be generated
-                using the scaling factor for the respective layer, the second one will be generated using
-                geometric mean of said scaling factor and next bigger scaling factor.
-            clip_boxes (bool, optional): If `True`, clips the anchor box coordinates to stay within image boundaries.
-            variances (list, optional): A list of 4 floats >0. The anchor box offset for each coordinate will be divided by
-                its respective variance value.
-            coords (str, optional): The box coordinate format to be used internally in the model (i.e. this is not the input format
-                of the ground truth labels). Can be either 'centroids' for the format `(cx, cy, w, h)` (box center coordinates, width, and height),
-                'corners' for the format `(xmin, ymin, xmax,  ymax)`, or 'minmax' for the format `(xmin, xmax, ymin, ymax)`.
-            normalize_coords (bool, optional): Set to `True` if the model uses relative instead of absolute coordinates,
-                i.e. if the model predicts box coordinates within [0,1] instead of absolute coordinates.
         '''
         if (this_scale < 0) or (next_scale < 0) or (this_scale > 1):
             raise ValueError("`this_scale` must be in [0, 1] and `next_scale` must be >0, but `this_scale` == {}, `next_scale` == {}".format(
@@ -143,9 +97,6 @@ class AnchorBoxesTensorflow(Layer):
                                                             tf.float32) - 1) * self.tf_step, feature_map_width)
         cy = tf.linspace(0.5 * self.tf_step, (0.5 + tf.cast(feature_map_height,
                                                             tf.float32) - 1) * self.tf_step, feature_map_height)
-
-        #cx = tf.linspace(0.5 * self.tf_step / tf.cast(feature_map_width, tf.float32), 1 - (0.5 * self.tf_step / tf.cast(feature_map_width, tf.float32)), feature_map_width)
-        #cy = tf.linspace(0.5 * self.tf_step / tf.cast(feature_map_height, tf.float32), 1 - (0.5 * self.tf_step / tf.cast(feature_map_height, tf.float32)), feature_map_height)
 
         cx_grid, cy_grid = tf.meshgrid(cx, cy)
         cx_grid = tf.expand_dims(cx_grid, -1)
