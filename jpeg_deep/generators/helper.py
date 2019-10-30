@@ -12,6 +12,30 @@ import os
 from bs4 import BeautifulSoup
 
 
+class ConvertTo3Channels:
+    '''
+    Converts 1-channel and 4-channel images to 3-channel images. Does nothing to images that
+    already have 3 channels. In the case of 4-channel images, the fourth channel will be
+    discarded.
+    '''
+
+    def __init__(self):
+        pass
+
+    def __call__(self, image, labels=None):
+        if image.ndim == 2:
+            image = np.stack([image] * 3, axis=-1)
+        elif image.ndim == 3:
+            if image.shape[2] == 1:
+                image = np.concatenate([image] * 3, axis=-1)
+            elif image.shape[2] == 4:
+                image = image[:, :, :3]
+        if labels is None:
+            return image
+        else:
+            return image, labels
+
+
 def parse_xml_voc(data_path: str, classes: List[str] = None):
     '''
     This is an XML parser for datasets in the Pascal VOC format.

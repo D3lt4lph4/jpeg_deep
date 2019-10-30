@@ -36,22 +36,6 @@ from .helper import parse_xml_voc
 from template_keras.generators import TemplateGenerator
 
 
-class DegenerateBatchError(Exception):
-    '''
-    An exception class to be raised if a generated batch ends up being degenerate,
-    e.g. if a generated batch is empty.
-    '''
-    pass
-
-
-class DatasetError(Exception):
-    '''
-    An exception class to be raised if a anything is wrong with the dataset,
-    in particular if you try to generate batches when no dataset was loaded.
-    '''
-    pass
-
-
 class VOCGeneratorDCT(TemplateGenerator):
 
     def __init__(self,
@@ -60,9 +44,7 @@ class VOCGeneratorDCT(TemplateGenerator):
                  label_encoder: object = None,
                  transforms: List[object] = None,
                  load_images_into_memory: bool = False,
-                 images_path: List[str] = None,
-                 labels_output_format: List[str] = (
-                     'class_id', 'xmin', 'ymin', 'xmax', 'ymax')):
+                 set_files_path: List[str] = None):
         '''
         # Arguments:
             - load_images_into_memory (bool, optional): If `True`, the entire dataset will be loaded into memory.
@@ -79,8 +61,8 @@ class VOCGeneratorDCT(TemplateGenerator):
         self.transforms = transforms
         self.label_encoder = label_encoder
 
-        if not images_path is None:
-            for file in images_path:
+        if not set_files_path is None:
+            for file in set_files_path:
                 splitted = file.split("/")
                 directory_voc = "/".join(splitted[:6])
                 with open(file) as description_file:
@@ -104,9 +86,6 @@ class VOCGeneratorDCT(TemplateGenerator):
         self.labels = []
         self.image_ids = None
         self.difficult = None
-
-        self.box_filter = BoxFilter(check_overlap=False, check_min_area=False,
-                                    check_degenerate=True, labels_format=self.labels_format)
 
         self.on_epoch_end()
 
