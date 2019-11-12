@@ -47,60 +47,25 @@ class SSDPhotometricDistortions:
     def __init__(self):
 
         self.convert_to_3_channels = ConvertTo3Channels()
-        self.random_brightness = RandomBrightness(
-            lower=-32, upper=32, prob=0.5)
-        self.random_contrast = RandomContrast(lower=0.5, upper=1.5, prob=0.5)
-        self.random_saturation = RandomSaturation(
-            lower=0.5, upper=1.5, prob=0.5)
-        self.random_hue = RandomHue(max_delta=18, prob=0.5)
-        self.random_channel_swap = RandomChannelSwap(prob=0.0)
 
         self.bbox_params = BboxParams(
             format='pascal_voc', min_area=0.0, min_visibility=0.0, label_fields=['category_id'])
 
-        self.sequence1 = Compose([], bbox_params=self.bbox_params)
+        self.sequence1 = Compose(
+            [RandomBrightness(0.32, p=0.5), RandomContrast(0.5, p=0.5), HueSaturationValue()], bbox_params=self.bbox_params)
 
-        self.sequence1 = [self.convert_to_float32,
-                          self.random_brightness,
-                          self.random_contrast,
-                          self.convert_to_uint8,
-                          self.convert_RGB_to_HSV,
-                          self.convert_to_float32,
-                          self.random_saturation,
-                          self.random_hue,
-                          self.convert_to_uint8,
-                          self.convert_HSV_to_RGB,
-                          self.random_channel_swap]
-                        
-        self.sequence1 = Compose([], bbox_params=self.bbox_params)
-
-        self.sequence2 = [self.convert_to_float32,
-                          self.random_brightness,
-                          self.convert_to_uint8,
-                          self.convert_RGB_to_HSV,
-                          self.convert_to_float32,
-                          self.random_saturation,
-                          self.random_hue,
-                          self.convert_to_uint8,
-                          self.convert_HSV_to_RGB,
-                          self.convert_to_float32,
-                          self.random_contrast,
-                          self.convert_to_uint8,
-                          self.random_channel_swap]
+        self.sequence2 = Compose([RandomBrightness(0.32, p=0.5), HueSaturationValue(
+        ), RandomContrast(0.5, p=0.5)], bbox_params=self.bbox_params)
 
     def __call__(self, image, labels):
 
         # Choose sequence 1 with probability 0.5.
         if np.random.choice(2):
-
-            for transform in self.sequence1:
-                image, labels = transform(image, labels)
+            augmented = self.sequence1(**annotations)
             return image, labels
         # Choose sequence 2 with probability 0.5.
         else:
-
-            for transform in self.sequence2:
-                image, labels = transform(image, labels)
+            augmented = self.sequence2(**annotations)
             return image, labels
 
 
