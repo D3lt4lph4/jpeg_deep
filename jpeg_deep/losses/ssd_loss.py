@@ -32,12 +32,7 @@ class SSDLoss:
         '''
         # Arguments:
             - neg_pos_ratio (int, optional): The maximum ratio of negative (i.e. background) to positive ground truth boxes to include in the loss computation.
-            - n_neg_min (int, optional): The minimum number of negative ground truth boxes to
-                enter the loss computation *per batch*. This argument can be used to make
-                sure that the model learns from a minimum number of negatives in batches
-                in which there are very few, or even none at all, positive ground truth
-                boxes. It defaults to 0 and if used, it should be set to a value that
-                stands in reasonable proportion to the batch size used for training.
+            - n_neg_min (int, optional): The minimum number of negative ground truth boxes to take into consideration.
             alpha: A factor to weight the localization loss in the
                 computation of the total loss. Defaults to 1.0 following the paper.
         '''
