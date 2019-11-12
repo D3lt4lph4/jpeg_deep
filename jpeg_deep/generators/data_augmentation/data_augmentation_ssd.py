@@ -21,11 +21,21 @@ import numpy as np
 import cv2
 import inspect
 
-from .object_detection_photometric_ops import ConvertColor, ConvertDataType, ConvertTo3Channels, RandomBrightness, RandomContrast, RandomHue, RandomSaturation, RandomChannelSwap
-from .object_detection_2d_patch_sampling_ops import PatchCoordinateGenerator, RandomPatch, RandomPatchInf
-from .object_detection_2d_geometric_ops import ResizeRandomInterp, RandomFlip
-from .helper_ssd import BoundGenerator, BoxFilter, ImageValidator
+from albumentations import (
+    BboxParams,
+    HueSaturationValue,
+    RandomBrightness,
+    ChannelShuffle,
+    RandomContrast,
+    HorizontalFlip,
+    Resize,
+    CenterCrop,
+    RandomCrop,
+    Crop,
+    Compose
+)
 
+from jpeg_deep.generators.helper import ConvertTo3Channels
 
 
 class SSDPhotometricDistortions:
@@ -36,10 +46,6 @@ class SSDPhotometricDistortions:
 
     def __init__(self):
 
-        self.convert_RGB_to_HSV = ConvertColor(current='RGB', to='HSV')
-        self.convert_HSV_to_RGB = ConvertColor(current='HSV', to='RGB')
-        self.convert_to_float32 = ConvertDataType(to='float32')
-        self.convert_to_uint8 = ConvertDataType(to='uint8')
         self.convert_to_3_channels = ConvertTo3Channels()
         self.random_brightness = RandomBrightness(
             lower=-32, upper=32, prob=0.5)
@@ -49,8 +55,12 @@ class SSDPhotometricDistortions:
         self.random_hue = RandomHue(max_delta=18, prob=0.5)
         self.random_channel_swap = RandomChannelSwap(prob=0.0)
 
-        self.sequence1 = [self.convert_to_3_channels,
-                          self.convert_to_float32,
+        self.bbox_params = BboxParams(
+            format='pascal_voc', min_area=0.0, min_visibility=0.0, label_fields=['category_id'])
+
+        self.sequence1 = Compose([], bbox_params=self.bbox_params)
+
+        self.sequence1 = [self.convert_to_float32,
                           self.random_brightness,
                           self.random_contrast,
                           self.convert_to_uint8,
@@ -61,9 +71,10 @@ class SSDPhotometricDistortions:
                           self.convert_to_uint8,
                           self.convert_HSV_to_RGB,
                           self.random_channel_swap]
+                        
+        self.sequence1 = Compose([], bbox_params=self.bbox_params)
 
-        self.sequence2 = [self.convert_to_3_channels,
-                          self.convert_to_float32,
+        self.sequence2 = [self.convert_to_float32,
                           self.random_brightness,
                           self.convert_to_uint8,
                           self.convert_RGB_to_HSV,

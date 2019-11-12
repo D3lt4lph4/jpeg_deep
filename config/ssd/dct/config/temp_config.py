@@ -14,8 +14,7 @@ from jpeg_deep.losses import ssd_loss
 from jpeg_deep.generators import SSDInputEncoder
 from jpeg_deep.evaluation import Evaluator
 from jpeg_deep.displayer import Displayer
-from jpeg_deep.generators import SSDDataAugmentation
-from jpeg_deep.generators import ConvertTo3Channels, Resize
+from jpeg_deep.generators.data_augmentation import SSDDataAugmentation
 from jpeg_deep.losses import SSDLoss
 from jpeg_deep.displayer import DisplayerObjects
 #from template.config import TemplateConfiguration
