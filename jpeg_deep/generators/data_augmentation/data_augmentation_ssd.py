@@ -21,9 +21,9 @@ import numpy as np
 import cv2
 import inspect
 
-from .object_detection_photometric_ops import ConvertColor, ConvertDataType, ConvertTo3Channels, RandomBrightness, RandomContrast, RandomHue, RandomSaturation, RandomChannelSwap
-from .object_detection_2d_patch_sampling_ops import PatchCoordinateGenerator, RandomPatch, RandomPatchInf
-from .object_detection_2d_geometric_ops import ResizeRandomInterp, RandomFlip
+from jpeg_deep.tranformations import ConvertColor, ConvertDataType, ConvertTo3Channels, RandomBrightness, RandomContrast, RandomHue, RandomSaturation, RandomChannelSwap
+from jpeg_deep.tranformations import PatchCoordinateGenerator, RandomPatch, RandomPatchInf
+from jpeg_deep.tranformations import ResizeRandomInterp, RandomFlip
 from .helper_ssd import BoundGenerator, BoxFilter, ImageValidator
 
 
