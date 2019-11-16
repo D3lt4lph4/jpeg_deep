@@ -105,3 +105,4 @@ venv.bak/
 .virtualenvs/
 .virtualenv/
 .vscode/
+testing.sh
