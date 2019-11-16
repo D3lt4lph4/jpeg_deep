@@ -17,3 +17,5 @@ from .object_detection_2d_patch_sampling_ops import PatchCoordinateGenerator
 from .object_detection_2d_patch_sampling_ops import CropPad, Crop, Pad
 from .object_detection_2d_patch_sampling_ops import RandomPatch, RandomPatchInf
 from .object_detection_2d_patch_sampling_ops import RandomMaxCropFixedAR, RandomPadFixedAR
+
+from .data_augmentation_ssd import SSDDataAugmentation

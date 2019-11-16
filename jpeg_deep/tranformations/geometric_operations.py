@@ -24,7 +24,7 @@ import numpy as np
 import cv2
 import random
 
-from .helper_ssd import BoxFilter, ImageValidator
+from jpeg_deep.generators import BoxFilter, ImageValidator
 
 class Resize:
     '''

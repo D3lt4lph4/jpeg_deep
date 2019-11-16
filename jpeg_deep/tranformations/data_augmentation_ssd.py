@@ -24,7 +24,7 @@ import inspect
 from jpeg_deep.tranformations import ConvertColor, ConvertDataType, ConvertTo3Channels, RandomBrightness, RandomContrast, RandomHue, RandomSaturation, RandomChannelSwap
 from jpeg_deep.tranformations import PatchCoordinateGenerator, RandomPatch, RandomPatchInf
 from jpeg_deep.tranformations import ResizeRandomInterp, RandomFlip
-from .helper_ssd import BoundGenerator, BoxFilter, ImageValidator
+from jpeg_deep.generators import BoundGenerator, BoxFilter, ImageValidator
 
 
 class SSDRandomCrop:

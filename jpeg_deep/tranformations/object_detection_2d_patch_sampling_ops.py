@@ -19,7 +19,7 @@ limitations under the License.
 from __future__ import division
 import numpy as np
 
-from .helper_ssd import BoundGenerator, BoxFilter, ImageValidator
+from jpeg_deep.generators import BoundGenerator, BoxFilter, ImageValidator
 
 class PatchCoordinateGenerator:
     '''
