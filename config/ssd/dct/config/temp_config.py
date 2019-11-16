@@ -16,6 +16,7 @@ from jpeg_deep.evaluation import Evaluator
 from jpeg_deep.displayer import Displayer
 from jpeg_deep.tranformations import SSDDataAugmentation
 from jpeg_deep.tranformations import ConvertTo3Channels, Resize
+
 from jpeg_deep.losses import SSDLoss
 from jpeg_deep.displayer import DisplayerObjects
 #from template.config import TemplateConfiguration
