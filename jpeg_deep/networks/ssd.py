@@ -16,21 +16,31 @@ def identity_layer(tensor):
 
 
 def input_mean_normalization(tensor):
-    return tensor - np.array(subtract_mean)
+    return tensor - np.array([123, 117, 104])
 
 
 def feature_map_rgb(image_shape: Tuple[int, int], l2_regularization: float = 0.0005, kernel_initializer: str = 'he_normal'):
+    """ Helper function that generates the first layers of the SSD. This function generates the layers for the RGB network.
+
+    # Arguments:
+        - image_shape: A tuple containing the shape of the image.
+        - l2_regularization: The float value for the l2 normalization.
+        - kernel_initializer: The type of initializer for the convolution kernels.
+
+    # Returns:
+        Three layers: input_layer, pool4, conv4_3. These layers are used to intantiate the network.
+    """
     img_h, img_w = image_shape
     input_layer = Input(shape=(img_h, img_w, 3))
 
     # The following identity layer is only needed so that the subsequent lambda layers can be optional.
     lambda_layer = Lambda(identity_layer, output_shape=(img_h, img_w, 3),
                           name='identity_layer')(input_layer)
-    input_mean_normalization = Lambda(input_mean_normalization, output_shape=(
+    input_mean_normalization_layer = Lambda(input_mean_normalization, output_shape=(
         img_h, img_w, 3), name='input_mean_normalization')(lambda_layer)
 
     conv1_1 = Conv2D(64, (3, 3), activation='relu', padding='same',
-                     kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='conv1_1')(x1)
+                     kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='conv1_1')(input_mean_normalization_layer)
     conv1_2 = Conv2D(64, (3, 3), activation='relu', padding='same',
                      kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='conv1_2')(conv1_1)
     pool1 = MaxPooling2D(pool_size=(2, 2), strides=(
@@ -52,8 +62,8 @@ def feature_map_rgb(image_shape: Tuple[int, int], l2_regularization: float = 0.0
     pool3 = MaxPooling2D(pool_size=(2, 2), strides=(
         2, 2), padding='same', name='pool3')(conv3_3)
 
-    conv4_1 = Conv2D(512, (3, 3), activation='relu', padding='same',
-                     kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='conv4_1')(pool3)
+    conv4_1 = Conv2D(512, (3, 3), activation='relu', padding='same', kernel_initializer=kernel_initializer,
+                     kernel_regularizer=l2(l2_regularization), name='conv4_1')(pool3)
     conv4_2 = Conv2D(512, (3, 3), activation='relu', padding='same',
                      kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='conv4_2')(conv4_1)
     conv4_3 = Conv2D(512, (3, 3), activation='relu', padding='same',
@@ -64,7 +74,16 @@ def feature_map_rgb(image_shape: Tuple[int, int], l2_regularization: float = 0.0
 
 
 def feature_map_dct(image_shape: Tuple[int, int], l2_regularization: float = 0.0005, kernel_initializer: str = 'he_normal'):
+    """ Helper function that generates the first layers of the SSD. This function generates the layers for the DCT network.
 
+    # Arguments:
+        - image_shape: A tuple containing the shape of the image.
+        - l2_regularization: The float value for the l2 normalization.
+        - kernel_initializer: The type of initializer for the convolution kernels.
+
+    # Returns:
+        Three layers: input_layer, pool4, conv4_3. These layers are used to intantiate the network.
+    """
     if image_shape is None:
         input_shape_y = (None, None, 64)
         input_shape_cbcr = (None, None, 128)
@@ -119,10 +138,7 @@ def ssd300(n_classes: int,
            dct: bool = False,
            image_shape: Tuple[int, int] = None):
     '''
-    Builds a tensorflow.keras model with SSD300 architecture, see references.
-
-    The base network is a reduced atrous VGG-16, extended by the SSD architecture,
-    as described in the paper.
+    Builds a ssd network, the network built can either be an RGB or DCT network. For more details on the architecture, see [the article](https://arxiv.org/abs/1512.02325v5).
 
     # Arguments:
         - n_classes: The number of positive classes, e.g. 20 for Pascal VOC.
@@ -133,18 +149,16 @@ def ssd300(n_classes: int,
         - iou_threshold: A float in [0,1]. The IoU value above which the overlapping boxes will be removed.
         - top_k: The number of highest scoring predictions to be kept for each batch item after the non-maximum suppression stage.
         - nms_max_output_size: The maximal number of predictions that will be left over after the NMS stage.
+        - dct: A boolean to set the network for DCT inference (or RGB is False).
         - image_shape: If known, the size of the inputs, in the format (height, width).
 
 
     # Returns:
-        - model: The SSD model.
-
-    References:
-        https://arxiv.org/abs/1512.02325v5
+        - model: A keras model, representation of the SSD.
     '''
     n_classes += 1  # Account for the background class.
-    l2_reg = l2_regularization  # Make the internal name shorter.
 
+    #  Scales values for the anchor boxes
     scales = [0.1, 0.2, 0.37, 0.54, 0.71, 0.88, 1.05]
     aspect_ratios = [[1.0, 2.0, 0.5],
                      [1.0, 2.0, 0.5, 3.0, 1.0/3.0],
@@ -153,15 +167,16 @@ def ssd300(n_classes: int,
                      [1.0, 2.0, 0.5],
                      [1.0, 2.0, 0.5]]
 
+    # The size of a step between the cells.
     steps = [8, 16, 32, 64, 100, 300]
-    size_steps = steps
+
+    # The offsets for the boxes.
     offsets = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
 
+    # The number of anchor boxes for the given output layer.
     n_boxes = [4, 6, 6, 6, 4, 4]
 
-    subtract_mean = [123, 117, 104]
-    swap_channels = [2, 1, 0]
-
+    # If we train we set to the pre-set size else either None or the specified size.
     if mode == "training":
         img_h, img_w = 300, 300
     elif image_shape is None:
@@ -169,6 +184,7 @@ def ssd300(n_classes: int,
     else:
         img_h, img_w = image_shape
 
+    # Prepare the feature extractor.
     if not dct:
         input_layer, pool4, conv4_3 = feature_map_rgb(
             image_shape, l2_regularization=l2_regularization, kernel_initializer=kernel_initializer)
@@ -176,6 +192,7 @@ def ssd300(n_classes: int,
         input_layer, pool4, conv4_3 = feature_map_dct(
             image_shape, l2_regularization=l2_regularization, kernel_initializer=kernel_initializer)
 
+    # Create the network.
     conv5_1 = Conv2D(512, (3, 3), activation='relu', padding='same',
                      kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='conv5_1')(pool4)
     conv5_2 = Conv2D(512, (3, 3), activation='relu', padding='same',
@@ -249,17 +266,17 @@ def ssd300(n_classes: int,
     # Output shape of anchors: `(batch, height, width, n_boxes, 8)
     if image_shape is None:
         conv4_3_norm_mbox_priorbox = AnchorBoxesTensorflow(
-            this_scale=scales[0], next_scale=scales[1], step=size_steps[0], aspect_ratios=aspect_ratios[0], name='conv4_3_norm_mbox_priorbox')(conv4_3_norm_mbox_loc)
+            this_scale=scales[0], next_scale=scales[1], step=steps[0], aspect_ratios=aspect_ratios[0], name='conv4_3_norm_mbox_priorbox')(conv4_3_norm_mbox_loc)
         fc7_mbox_priorbox = AnchorBoxesTensorflow(
-            this_scale=scales[1], next_scale=scales[2], step=size_steps[1], aspect_ratios=aspect_ratios[1], name='fc7_mbox_priorbox')(fc7_mbox_loc)
+            this_scale=scales[1], next_scale=scales[2], step=steps[1], aspect_ratios=aspect_ratios[1], name='fc7_mbox_priorbox')(fc7_mbox_loc)
         conv6_2_mbox_priorbox = AnchorBoxesTensorflow(
-            this_scale=scales[2], next_scale=scales[3], step=size_steps[2], aspect_ratios=aspect_ratios[2], name='conv6_2_mbox_priorbox')(conv6_2_mbox_loc)
+            this_scale=scales[2], next_scale=scales[3], step=steps[2], aspect_ratios=aspect_ratios[2], name='conv6_2_mbox_priorbox')(conv6_2_mbox_loc)
         conv7_2_mbox_priorbox = AnchorBoxesTensorflow(
-            this_scale=scales[3], next_scale=scales[4], step=size_steps[3], aspect_ratios=aspect_ratios[3], name='conv7_2_mbox_priorbox')(conv7_2_mbox_loc)
+            this_scale=scales[3], next_scale=scales[4], step=steps[3], aspect_ratios=aspect_ratios[3], name='conv7_2_mbox_priorbox')(conv7_2_mbox_loc)
         conv8_2_mbox_priorbox = AnchorBoxesTensorflow(
-            this_scale=scales[4], next_scale=scales[5], step=size_steps[4], aspect_ratios=aspect_ratios[4], name='conv8_2_mbox_priorbox')(conv8_2_mbox_loc)
+            this_scale=scales[4], next_scale=scales[5], step=steps[4], aspect_ratios=aspect_ratios[4], name='conv8_2_mbox_priorbox')(conv8_2_mbox_loc)
         conv9_2_mbox_priorbox = AnchorBoxesTensorflow(
-            this_scale=scales[5], next_scale=scales[6], step=size_steps[5], aspect_ratios=aspect_ratios[5], name='conv9_2_mbox_priorbox')(conv9_2_mbox_loc)
+            this_scale=scales[5], next_scale=scales[6], step=steps[5], aspect_ratios=aspect_ratios[5], name='conv9_2_mbox_priorbox')(conv9_2_mbox_loc)
     else:
         conv4_3_norm_mbox_priorbox = AnchorBoxes(
             img_h, img_w, this_scale=scales[0], next_scale=scales[1], aspect_ratios=aspect_ratios[0], this_steps=steps[0], this_offsets=offsets[0])(conv4_3_norm_mbox_loc)
@@ -369,6 +386,6 @@ def ssd300(n_classes: int,
         model = Model(inputs=input_layer, outputs=decoded_predictions)
     else:
         raise ValueError(
-            "`mode` must be one of 'training', 'inference' or 'inference_fast', but received '{}'.".format(mode))
+            "`mode` must be one of 'training' or 'inference', but received '{}'.".format(mode))
 
     return model
