@@ -2,11 +2,11 @@ from os import environ
 from os.path import join
 
 
-from tensorflow.keras.optimizers import Adadelta, SGD
-from tensorflow.keras.losses import categorical_crossentropy
-from tensorflow.keras.callbacks import ModelCheckpoint, TerminateOnNaN, CSVLogger, EarlyStopping, ReduceLROnPlateau
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.applications.vgg16 import preprocess_input
+from keras.optimizers import Adadelta, SGD
+from keras.losses import categorical_crossentropy
+from keras.callbacks import ModelCheckpoint, TerminateOnNaN, CSVLogger, EarlyStopping, ReduceLROnPlateau
+from keras.preprocessing.image import ImageDataGenerator
+from keras.applications.vgg16 import preprocess_input
 
 from jpeg_deep.networks import ssd300
 from jpeg_deep.generators import VOCGeneratorDCT
@@ -116,6 +116,8 @@ class TrainingConfiguration(object):
 
         self.testing_generator_params = {
             "batch_size": 1,
+            "transforms": [self.convert_to_3_channels,
+                           self.resize],
             "shuffle": False,
             "images_path": [join(self.test_directory, "VOC2007_test/ImageSets/Main/test.txt")]
         }
@@ -208,7 +210,7 @@ class TrainingConfiguration(object):
 
     def prepare_for_inference(self):
         self.network_params["mode"] = "inference"
-        self.network_params["image_shape"] = None
+        self.network_params["image_shape"] = (38, 38)
         self._network = ssd300(**self.network_params)
 
     def prepare_evaluator(self):

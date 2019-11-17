@@ -3,11 +3,11 @@ from typing import Tuple
 import numpy as np
 
 import tensorflow as tf
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Lambda, Activation, Conv2D, MaxPooling2D, Reshape, Concatenate, BatchNormalization
-from tensorflow.keras.regularizers import l2
+from keras.models import Model
+from keras.layers import Input, Lambda, Activation, Conv2D, MaxPooling2D, Reshape, Concatenate, BatchNormalization, ZeroPadding2D
+from keras.regularizers import l2
 
-from jpeg_deep.layers.ssd_layers import AnchorBoxes, AnchorBoxesTensorflow, L2Normalization, DecodeDetections
+from jpeg_deep.layers.ssd_layers import AnchorBoxes, L2Normalization, DecodeDetections
 
 
 # Helper functions
@@ -92,6 +92,9 @@ def feature_map_dct(image_shape: Tuple[int, int], l2_regularization: float = 0.0
         input_shape_y = (img_h, img_w, 64)
         input_shape_cbcr = (img_h / 2, img_w / 2, 128)
 
+    input_shape_y = (38, 38, 64)
+    input_shape_cbcr = (19, 19, 128)
+
     input_y = Input(input_shape_y)
     input_cbcr = Input(input_shape_cbcr)
 
@@ -122,7 +125,7 @@ def feature_map_dct(image_shape: Tuple[int, int], l2_regularization: float = 0.0
                      name='conv4_3')(conv4_2)
     pool4 = MaxPooling2D((2, 2), strides=(2, 2), name='pool4')(conv4_3)
 
-    concat = Concatenate(axis=-1, name="")([pool4, norm_cbcr])
+    concat = Concatenate(axis=-1, name="concat_dct")([pool4, norm_cbcr])
 
     return [input_y, input_cbcr], concat, conv4_3
 
@@ -194,14 +197,13 @@ def ssd300(n_classes: int,
 
     # Create the network.
     conv5_1 = Conv2D(512, (3, 3), activation='relu', padding='same',
-                     kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='conv5_1')(pool4)
+                     kernel_initializer=kernel_initializer, name='conv5_1')(pool4)
     conv5_2 = Conv2D(512, (3, 3), activation='relu', padding='same',
-                     kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='conv5_2')(conv5_1)
+                     kernel_initializer=kernel_initializer, name='conv5_2')(conv5_1)
     conv5_3 = Conv2D(512, (3, 3), activation='relu', padding='same',
-                     kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='conv5_3')(conv5_2)
+                     kernel_initializer=kernel_initializer, name='conv5_3')(conv5_2)
     pool5 = MaxPooling2D(pool_size=(3, 3), strides=(
         1, 1), padding='same', name='pool5')(conv5_3)
-
     fc6 = Conv2D(1024, (3, 3), dilation_rate=(6, 6), activation='relu', padding='same',
                  kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='fc6')(pool5)
 
@@ -210,26 +212,31 @@ def ssd300(n_classes: int,
 
     conv6_1 = Conv2D(256, (1, 1), activation='relu', padding='same',
                      kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='conv6_1')(fc7)
-    conv6_2 = Conv2D(512, (3, 3), strides=(2, 2), activation='relu', padding='same',
+    conv6_1 = ZeroPadding2D(padding=((1, 1), (1, 1)),
+                            name='conv6_padding')(conv6_1)
+    conv6_2 = Conv2D(512, (3, 3), strides=(2, 2), activation='relu', padding='valid',
                      kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='conv6_2')(conv6_1)
 
     conv7_1 = Conv2D(128, (1, 1), activation='relu', padding='same',
                      kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='conv7_1')(conv6_2)
-    conv7_2 = Conv2D(256, (3, 3), strides=(2, 2), activation='relu', padding='same',
+    conv7_1 = ZeroPadding2D(padding=((1, 1), (1, 1)),
+                            name='conv7_padding')(conv7_1)
+    conv7_2 = Conv2D(256, (3, 3), strides=(2, 2), activation='relu', padding='valid',
                      kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='conv7_2')(conv7_1)
 
     conv8_1 = Conv2D(128, (1, 1), activation='relu', padding='same',
                      kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='conv8_1')(conv7_2)
-    conv8_2 = Conv2D(256, (3, 3), strides=(2, 2), activation='relu', padding='same',
+    conv8_2 = Conv2D(256, (3, 3), strides=(1, 1), activation='relu', padding='valid',
                      kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='conv8_2')(conv8_1)
 
     conv9_1 = Conv2D(128, (1, 1), activation='relu', padding='same',
                      kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='conv9_1')(conv8_2)
-    conv9_2 = Conv2D(256, (3, 3), strides=(2, 2), activation='relu', padding='valid',
+    conv9_2 = Conv2D(256, (3, 3), strides=(1, 1), activation='relu', padding='valid',
                      kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='conv9_2')(conv9_1)
 
     # Feed conv4_3 into the L2 normalization layer
     conv4_3_norm = L2Normalization(gamma_init=20, name='conv4_3_norm')(conv4_3)
+    #conv4_3_norm = tf.Print(conv4_3_norm, [conv4_3_norm], summarize=1000000)
 
     # Build the convolutional predictor layers on top of the base network
     # We predict `n_classes` confidence values for each box, hence the confidence predictors have depth `n_boxes * n_classes`
@@ -264,32 +271,18 @@ def ssd300(n_classes: int,
 
     # Generate the anchor (prior) boxes
     # Output shape of anchors: `(batch, height, width, n_boxes, 8)
-    if image_shape is None:
-        conv4_3_norm_mbox_priorbox = AnchorBoxesTensorflow(
-            this_scale=scales[0], next_scale=scales[1], step=steps[0], aspect_ratios=aspect_ratios[0], name='conv4_3_norm_mbox_priorbox')(conv4_3_norm_mbox_loc)
-        fc7_mbox_priorbox = AnchorBoxesTensorflow(
-            this_scale=scales[1], next_scale=scales[2], step=steps[1], aspect_ratios=aspect_ratios[1], name='fc7_mbox_priorbox')(fc7_mbox_loc)
-        conv6_2_mbox_priorbox = AnchorBoxesTensorflow(
-            this_scale=scales[2], next_scale=scales[3], step=steps[2], aspect_ratios=aspect_ratios[2], name='conv6_2_mbox_priorbox')(conv6_2_mbox_loc)
-        conv7_2_mbox_priorbox = AnchorBoxesTensorflow(
-            this_scale=scales[3], next_scale=scales[4], step=steps[3], aspect_ratios=aspect_ratios[3], name='conv7_2_mbox_priorbox')(conv7_2_mbox_loc)
-        conv8_2_mbox_priorbox = AnchorBoxesTensorflow(
-            this_scale=scales[4], next_scale=scales[5], step=steps[4], aspect_ratios=aspect_ratios[4], name='conv8_2_mbox_priorbox')(conv8_2_mbox_loc)
-        conv9_2_mbox_priorbox = AnchorBoxesTensorflow(
-            this_scale=scales[5], next_scale=scales[6], step=steps[5], aspect_ratios=aspect_ratios[5], name='conv9_2_mbox_priorbox')(conv9_2_mbox_loc)
-    else:
-        conv4_3_norm_mbox_priorbox = AnchorBoxes(
-            img_h, img_w, this_scale=scales[0], next_scale=scales[1], aspect_ratios=aspect_ratios[0], this_steps=steps[0], this_offsets=offsets[0])(conv4_3_norm_mbox_loc)
-        fc7_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[1], next_scale=scales[2], aspect_ratios=aspect_ratios[1],
-                                        this_steps=steps[1], this_offsets=offsets[1])(fc7_mbox_loc)
-        conv6_2_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[2], next_scale=scales[3], aspect_ratios=aspect_ratios[2],
-                                            this_steps=steps[2], this_offsets=offsets[2])(conv6_2_mbox_loc)
-        conv7_2_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[3], next_scale=scales[4], aspect_ratios=aspect_ratios[3],
-                                            this_steps=steps[3], this_offsets=offsets[3])(conv7_2_mbox_loc)
-        conv8_2_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[4], next_scale=scales[5], aspect_ratios=aspect_ratios[4],
-                                            this_steps=steps[4], this_offsets=offsets[4])(conv8_2_mbox_loc)
-        conv9_2_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[5], next_scale=scales[6], aspect_ratios=aspect_ratios[5],
-                                            this_steps=steps[5], this_offsets=offsets[5])(conv9_2_mbox_loc)
+    conv4_3_norm_mbox_priorbox = AnchorBoxes(
+        img_h, img_w, this_scale=scales[0], next_scale=scales[1], aspect_ratios=aspect_ratios[0], this_steps=steps[0], this_offsets=offsets[0])(conv4_3_norm_mbox_loc)
+    fc7_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[1], next_scale=scales[2], aspect_ratios=aspect_ratios[1],
+                                    this_steps=steps[1], this_offsets=offsets[1])(fc7_mbox_loc)
+    conv6_2_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[2], next_scale=scales[3], aspect_ratios=aspect_ratios[2],
+                                        this_steps=steps[2], this_offsets=offsets[2])(conv6_2_mbox_loc)
+    conv7_2_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[3], next_scale=scales[4], aspect_ratios=aspect_ratios[3],
+                                        this_steps=steps[3], this_offsets=offsets[3])(conv7_2_mbox_loc)
+    conv8_2_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[4], next_scale=scales[5], aspect_ratios=aspect_ratios[4],
+                                        this_steps=steps[4], this_offsets=offsets[4])(conv8_2_mbox_loc)
+    conv9_2_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[5], next_scale=scales[6], aspect_ratios=aspect_ratios[5],
+                                        this_steps=steps[5], this_offsets=offsets[5])(conv9_2_mbox_loc)
 
     # Reshape
     # Reshape the class predictions, yielding 3D tensors of shape `(batch, height * width * n_boxes, n_classes)`
@@ -382,7 +375,8 @@ def ssd300(n_classes: int,
                                                top_k=top_k,
                                                nms_max_output_size=nms_max_output_size,
                                                name='decoded_predictions',
-                                               dct=dct)([predictions, input_layer])
+                                               img_height=300,
+                                               img_width=300)(predictions)
         model = Model(inputs=input_layer, outputs=decoded_predictions)
     else:
         raise ValueError(

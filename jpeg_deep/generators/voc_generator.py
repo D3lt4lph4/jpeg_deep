@@ -236,7 +236,7 @@ class VOCGeneratorDCT(TemplateGenerator):
 
             temp_y[:y_x, :y_y, :] = dct_y
 
-            X_y.append(temp_y)
+            X_y.append(dct_y)
             X_cbcr.append(np.concatenate([dct_cb, dct_cr], axis=-1))
 
         return [np.array(X_y), np.array(X_cbcr)], batch_y_encoded

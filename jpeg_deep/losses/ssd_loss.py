@@ -1,5 +1,5 @@
 '''
-The tensorflow.keras-compatible loss function for the SSD model. Currently supports TensorFlow only.
+The keras-compatible loss function for the SSD model. Currently supports TensorFlow only.
 
 Copyright (C) 2019 Deguerre Benjamin
 
@@ -104,7 +104,7 @@ class SSDLoss:
                 coordinates, which are needed during inference. Important: Boxes that
                 you want the cost function to ignore need to have a one-hot
                 class vector of all zeros.
-            - y_pred (tensorflow.keras tensor): The model prediction. The shape is identical
+            - y_pred (keras tensor): The model prediction. The shape is identical
                 to that of `y_true`, i.e. `(batch_size, #boxes, #classes + 12)`.
                 The last axis must contain entries in the format
                 `[classes one-hot encoded, 4 predicted box coordinate offsets, 8 arbitrary entries]`.
@@ -138,7 +138,7 @@ class SSDLoss:
         n_positive = tf.reduce_sum(positives)
 
         # Now mask all negative boxes and sum up the losses for the positive boxes PER batch item
-        # (tensorflow.keras loss functions must output one scalar loss value PER batch item, rather than just
+        # (keras loss functions must output one scalar loss value PER batch item, rather than just
         # one scalar for the entire batch, that's why we're not summing across all axes).
         # Tensor of shape (batch_size,)
         pos_class_loss = tf.reduce_sum(
@@ -213,9 +213,9 @@ class SSDLoss:
 
         total_loss = (class_loss + self.alpha * loc_loss) / \
             tf.maximum(1.0, n_positive)  # In case `n_positive == 0`
-        # tensorflow.keras has the annoying habit of dividing the loss by the batch size, which sucks in our case
+        # keras has the annoying habit of dividing the loss by the batch size, which sucks in our case
         # because the relevant criterion to average our loss over is the number of positive boxes in the batch
-        # (by which we're dividing in the line above), not the batch size. So in order to revert tensorflow.keras' averaging
+        # (by which we're dividing in the line above), not the batch size. So in order to revert keras' averaging
         # over the batch size, we'll have to multiply by it.
         total_loss = total_loss * tf.to_float(batch_size)
 

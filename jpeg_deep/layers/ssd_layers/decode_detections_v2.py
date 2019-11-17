@@ -1,6 +1,10 @@
 '''
-A custom Keras layer to decode the raw SSD prediction output. Corresponds to the
-`DetectionOutput` layer type in the original Caffe implementation of SSD.
+A custom keras layer to decode the raw SSD prediction output. This is a modified
+and more efficient version of the `DetectionOutput` layer type in the original Caffe
+implementation of SSD. For a faithful replication of the original layer, please
+refer to the `DecodeDetections` layer.
+
+Copyright (C) 2019 Deguerre Benjamin
 
 Copyright (C) 2018 Pierluigi Ferrari
 
@@ -20,7 +24,7 @@ limitations under the License.
 from __future__ import division
 import numpy as np
 import tensorflow as tf
-import keras.backend as K
+
 from keras.engine.topology import InputSpec
 from keras.engine.topology import Layer
 
@@ -41,10 +45,7 @@ class DecodeDetections(Layer):
                  iou_threshold=0.45,
                  top_k=200,
                  nms_max_output_size=400,
-                 coords='centroids',
-                 normalize_coords=True,
-                 img_height=None,
-                 img_width=None,
+                 dct: bool = False,
                  **kwargs):
         '''
         All default argument values follow the Caffe implementation.
@@ -73,26 +74,12 @@ class DecodeDetections(Layer):
             img_height (int, optional): The height of the input images. Only needed if `normalize_coords` is `True`.
             img_width (int, optional): The width of the input images. Only needed if `normalize_coords` is `True`.
         '''
-        if K.backend() != 'tensorflow':
-            raise TypeError(
-                "This layer only supports TensorFlow at the moment, but you are using the {} backend.".format(K.backend()))
-
-        if normalize_coords and ((img_height is None) or (img_width is None)):
-            raise ValueError("If relative box coordinates are supposed to be converted to absolute coordinates, the decoder needs the image size in order to decode the predictions, but `img_height == {}` and `img_width == {}`".format(img_height, img_width))
-
-        if coords != 'centroids':
-            raise ValueError(
-                "The DetectionOutput layer currently only supports the 'centroids' coordinate format.")
-
         # We need these members for the config.
         self.confidence_thresh = confidence_thresh
         self.iou_threshold = iou_threshold
         self.top_k = top_k
-        self.normalize_coords = normalize_coords
-        self.img_height = img_height
-        self.img_width = img_width
-        self.coords = coords
         self.nms_max_output_size = nms_max_output_size
+        self.dct = dct
 
         # We need these members for TensorFlow.
         self.tf_confidence_thresh = tf.constant(
@@ -100,14 +87,9 @@ class DecodeDetections(Layer):
         self.tf_iou_threshold = tf.constant(
             self.iou_threshold, name='iou_threshold')
         self.tf_top_k = tf.constant(self.top_k, name='top_k')
-        self.tf_normalize_coords = tf.constant(
-            self.normalize_coords, name='normalize_coords')
-        self.tf_img_height = tf.constant(
-            self.img_height, dtype=tf.float32, name='img_height')
-        self.tf_img_width = tf.constant(
-            self.img_width, dtype=tf.float32, name='img_width')
         self.tf_nms_max_output_size = tf.constant(
             self.nms_max_output_size, name='nms_max_output_size')
+        self.tf_normalize_coords = tf.constant(True, name='normalize_coords')
 
         super(DecodeDetections, self).__init__(**kwargs)
 
@@ -115,7 +97,19 @@ class DecodeDetections(Layer):
         self.input_spec = [InputSpec(shape=input_shape)]
         super(DecodeDetections, self).build(input_shape)
 
-    def call(self, y_pred, mask=None):
+    def __call__(self, inputs, mask=None):
+        layers = []
+        node_indices = []
+        tensor_indices = []
+        for x in inputs:
+            layer, node_index, tensor_index = x._keras_history
+            layers.append(layer)
+            node_indices.append(node_index)
+            tensor_indices.append(tensor_index)
+        self.built = True
+        self.add_inbound_node(layers, node_indices, tensor_indices)
+
+    def call(self, array, mask=None):
         '''
         Returns:
             3D tensor of shape `(batch_size, top_k, 6)`. The second axis is zero-padded
@@ -128,8 +122,18 @@ class DecodeDetections(Layer):
         # 1. Convert the box coordinates from predicted anchor box offsets to predicted
         #    absolute coordinates
         #####################################################################################
+        y_pred = array[0]
+        input_layer = array[1]
+        if self.dct:
+            h_size = tf.cast(tf.shape(input_layer[0])[1], tf.float32)
+            w_size = tf.cast(tf.shape(input_layer[0])[2], tf.float32)
+        else:
+            h_size = tf.cast(tf.shape(input_layer)[1], tf.float32)
+            w_size = tf.cast(tf.shape(input_layer)[2], tf.float32)
+
         # Convert anchor box offsets to image offsets.
         # cx = cx_pred * cx_variance * w_anchor + cx_anchor
+        #y_pred = tf.Print(y_pred, [y_pred], summarize=1000000)
         cx = y_pred[..., -12] * y_pred[..., -4] * \
             y_pred[..., -6] + y_pred[..., -8]
         # cy = cy_pred * cy_variance * h_anchor + cy_anchor
@@ -141,32 +145,44 @@ class DecodeDetections(Layer):
         h = tf.exp(y_pred[..., -9] * y_pred[..., -1]) * y_pred[..., -5]
 
         # Convert 'centroids' to 'corners'.
-        xmin = cx - 0.5 * w
-        ymin = cy - 0.5 * h
-        xmax = cx + 0.5 * w
-        ymax = cy + 0.5 * h
-        #xmin = tf.Print(xmin, [xmin], summarize=1000000)
+        if self.dct:
+            xmin = (cx - 0.5 * w)  # * w_size * 8
+            ymin = (cy - 0.5 * h) * 300  # * h_size * 8
+            xmax = (cx + 0.5 * w) * 300  # * w_size * 8
+            ymax = (cy + 0.5 * h) * 300  # * h_size * 8
+            #xmin = tf.Print(xmin, [xmin], summarize=1000000)
+
+            xmin = xmin * 300
+
+        else:
+            xmin = cx - 0.5 * w * w_size
+            ymin = cy - 0.5 * h * h_size
+            xmax = cx + 0.5 * w * w_size
+            ymax = cy + 0.5 * h * h_size
+
+        xmin = tf.expand_dims(xmin, axis=-1)
+        ymin = tf.expand_dims(ymin, axis=-1)
+        xmax = tf.expand_dims(xmax, axis=-1)
+        ymax = tf.expand_dims(ymax, axis=-1)
 
         # If the model predicts box coordinates relative to the image dimensions and they are supposed
         # to be converted back to absolute coordinates, do that.
-
         def normalized_coords():
-            xmin1 = tf.expand_dims(xmin * self.tf_img_width, axis=-1)
-            ymin1 = tf.expand_dims(ymin * self.tf_img_height, axis=-1)
-            xmax1 = tf.expand_dims(xmax * self.tf_img_width, axis=-1)
-            ymax1 = tf.expand_dims(ymax * self.tf_img_height, axis=-1)
+            xmin1 = tf.expand_dims(xmin, axis=-1)
+            ymin1 = tf.expand_dims(ymin, axis=-1)
+            xmax1 = tf.expand_dims(xmax, axis=-1)
+            ymax1 = tf.expand_dims(ymax, axis=-1)
             return xmin1, ymin1, xmax1, ymax1
 
         def non_normalized_coords():
             return tf.expand_dims(xmin, axis=-1), tf.expand_dims(ymin, axis=-1), tf.expand_dims(xmax, axis=-1), tf.expand_dims(ymax, axis=-1)
 
-        xmin, ymin, xmax, ymax = tf.cond(
-            self.tf_normalize_coords, normalized_coords, non_normalized_coords)
-        #xmin = tf.Print(xmin, [xmin], summarize=10000000)
+        #xmin, ymin, xmax, ymax = tf.cond(self.tf_normalize_coords, normalized_coords, non_normalized_coords)
+        # xmin, ymin, xmax, ymax = tf.cond(
+        #    self.tf_normalize_coords, normalized_coords, non_normalized_coords)
         # Concatenate the one-hot class confidences and the converted box coordinates to form the decoded predictions tensor.
         y_pred = tf.concat(
             values=[y_pred[..., :-12], xmin, ymin, xmax, ymax], axis=-1)
-
         #y_pred = tf.Print(y_pred, [y_pred], summarize=1000000)
         #####################################################################################
         # 2. Perform confidence thresholding, per-class non-maximum suppression, and
@@ -292,6 +308,7 @@ class DecodeDetections(Layer):
                                   infer_shape=True,
                                   name='loop_over_batch')
 
+        output_tensor = tf.Print(output_tensor, [output_tensor], summarize=25)
         return output_tensor
 
     def compute_output_shape(self, input_shape):
@@ -304,11 +321,7 @@ class DecodeDetections(Layer):
             'confidence_thresh': self.confidence_thresh,
             'iou_threshold': self.iou_threshold,
             'top_k': self.top_k,
-            'nms_max_output_size': self.nms_max_output_size,
-            'coords': self.coords,
-            'normalize_coords': self.normalize_coords,
-            'img_height': self.img_height,
-            'img_width': self.img_width,
+            'nms_max_output_size': self.nms_max_output_size
         }
         base_config = super(DecodeDetections, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))

@@ -45,6 +45,8 @@ class DisplayerObjects(TemplateDisplayer):
 
             current_axis = plt.gca()
 
+            print(y_pred_thresh[k])
+
             for box in y_pred_thresh[k]:
                 # Transform the predicted bounding boxes for the 300x300 image to the original image dimensions.
                 xmin = box[2]  # * original_images[k].shape[1]
@@ -63,7 +65,6 @@ class DisplayerObjects(TemplateDisplayer):
 
                 if ymax > inputs[k].shape[0]:
                     ymax = inputs[k].shape[0]
-
 
                 color = self.colors[int(box[0])]
                 label = '{}: {:.2f}'.format(self.classes[int(box[0])], box[1])

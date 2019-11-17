@@ -1,3 +1,4 @@
+
 from os.path import join
 
 import argparse
@@ -28,8 +29,8 @@ model.compile(loss=config.loss,
               metrics=config.metrics)
 
 config.prepare_testing_generator()
-config.test_generator.shuffle = True
-config.test_generator.shuffle_batches()
+#config.test_generator.shuffle = True
+#config.test_generator.shuffle_batches()
 
 # Getting the batch to process
 X, y = config.test_generator.__getitem__(0)

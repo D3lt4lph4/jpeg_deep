@@ -1,5 +1,5 @@
 '''
-A custom tensorflow.keras layer to perform L2-normalization.
+A custom keras layer to perform L2-normalization.
 
 Copyright (C) 2019 Deguerre Benjamin
 
@@ -20,10 +20,9 @@ limitations under the License.
 
 from __future__ import division
 import numpy as np
-
-import tensorflow as tf
-from tensorflow.python.keras.layers import InputSpec
-from tensorflow.python.keras.layers import Layer
+import keras.backend as K
+from keras.engine.topology import InputSpec
+from keras.engine.topology import Layer
 
 
 class L2Normalization(Layer):
@@ -49,20 +48,19 @@ class L2Normalization(Layer):
 
     def __init__(self, gamma_init=20, **kwargs):
         self.axis = 3
-
         self.gamma_init = gamma_init
         super(L2Normalization, self).__init__(**kwargs)
 
     def build(self, input_shape):
         self.input_spec = [InputSpec(shape=input_shape)]
         gamma = self.gamma_init * np.ones((input_shape[self.axis],))
-        self.gamma = tf.Variable(
-            gamma, name='{}_gamma'.format(self.name), trainable=True)
+        self.gamma = K.variable(gamma, name='{}_gamma'.format(self.name))
+        self.trainable_weights = [self.gamma]
         super(L2Normalization, self).build(input_shape)
 
     def call(self, x, mask=None):
-        output = tf.math.l2_normalize(x, self.axis)
-        return tf.cast(output, tf.float32) * tf.cast(self.gamma, tf.float32)
+        output = K.l2_normalize(x, self.axis)
+        return output * self.gamma
 
     def get_config(self):
         config = {

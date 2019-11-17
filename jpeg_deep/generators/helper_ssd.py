@@ -975,7 +975,7 @@ class SSDInputEncoder:
             # Now reshape the 5D tensor above into a 3D tensor of shape
             # `(batch, feature_map_height * feature_map_width * n_boxes, 4)`. The resulting
             # order of the tensor content will be identical to the order obtained from the reshaping operation
-            # in our tensorflow.keras model (we're using the Tensorflow backend, and tf.reshape() and np.reshape()
+            # in our keras model (we're using the Tensorflow backend, and tf.reshape() and np.reshape()
             # use the same default index order, which is C-like index ordering)
             boxes = np.reshape(boxes, (batch_size, -1, 4))
             boxes_batch.append(boxes)
