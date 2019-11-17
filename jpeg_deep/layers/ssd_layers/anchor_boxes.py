@@ -267,7 +267,6 @@ class AnchorBoxes(Layer):
         boxes_tensor = np.expand_dims(boxes_tensor, axis=0)
         boxes_tensor = K.tile(K.constant(
             boxes_tensor, dtype='float32'), (K.shape(x)[0], 1, 1, 1, 1))
-        #boxes_tensor = tf.Print(boxes_tensor, [boxes_tensor], summarize=1000000)
         return boxes_tensor
 
     def compute_output_shape(self, input_shape):
