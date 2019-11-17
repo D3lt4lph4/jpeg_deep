@@ -21,8 +21,8 @@ from __future__ import division
 import numpy as np
 import tensorflow as tf
 import keras.backend as K
-from keras.engine.topology import InputSpec
-from keras.engine.topology import Layer
+from tensorflow.python.keras.layers import InputSpec
+from tensorflow.python.keras.layers import Layer
 
 
 class DecodeDetections(Layer):
@@ -41,7 +41,7 @@ class DecodeDetections(Layer):
                  iou_threshold=0.45,
                  top_k=200,
                  nms_max_output_size=400,
-                 dct: bool= False,
+                 dct: bool = False,
                  **kwargs):
         '''
         All default argument values follow the Caffe implementation.
@@ -140,7 +140,7 @@ class DecodeDetections(Layer):
             ymin = cy - 0.5 * h
             xmax = cx + 0.5 * w
             ymax = cy + 0.5 * h
-        
+
         xmin = tf.expand_dims(xmin, axis=-1)
         ymin = tf.expand_dims(ymin, axis=-1)
         xmax = tf.expand_dims(xmax, axis=-1)

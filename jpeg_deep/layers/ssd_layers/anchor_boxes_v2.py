@@ -20,8 +20,8 @@ limitations under the License.
 import numpy as np
 import tensorflow as tf
 
-from keras.engine.topology import InputSpec
-from keras.engine.topology import Layer
+from tensorflow.python.keras.layers import InputSpec
+from tensorflow.python.keras.layers import Layer
 
 
 class AnchorBoxesTensorflow(Layer):

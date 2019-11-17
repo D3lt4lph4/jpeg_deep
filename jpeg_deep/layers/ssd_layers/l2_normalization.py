@@ -23,9 +23,8 @@ import numpy as np
 
 import tensorflow as tf
 
-import keras.backend as K
-from keras.engine.topology import InputSpec
-from keras.engine.topology import Layer
+from tensorflow.python.keras.layers import InputSpec
+from tensorflow.python.keras.layers import Layer
 
 
 class L2Normalization(Layer):

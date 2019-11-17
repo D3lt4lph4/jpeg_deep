@@ -19,11 +19,10 @@ limitations under the License.
 from __future__ import division
 import numpy as np
 import keras.backend as K
-from keras.engine.topology import InputSpec
-from keras.engine.topology import Layer
+from tensorflow.python.keras.layers import InputSpec
+from tensorflow.python.keras.layers import Layer
 import tensorflow as tf
 from jpeg_deep.utils import convert_coordinates
-
 
 
 class AnchorBoxesTensorflow(Layer):
@@ -149,6 +148,7 @@ class AnchorBoxesTensorflow(Layer):
         base_config = super(AnchorBoxesTensorflow, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
 
+
 class AnchorBoxes(Layer):
     '''
     A Keras layer to create an output tensor containing anchor box coordinates
@@ -232,7 +232,7 @@ class AnchorBoxes(Layer):
         self.variances = np.array([0.1, 0.1, 0.2, 0.2])
         self.normalize_coords = normalize_coords
         self.n_boxes = len(self.aspect_ratios) + 1
-        
+
         # Compute the number of boxes per cell
         if (1 in aspect_ratios):
             self.n_boxes = len(aspect_ratios) + 1
@@ -271,7 +271,7 @@ class AnchorBoxes(Layer):
                 # Compute the regular anchor box for aspect ratio 1.
                 box_height = box_width = self.this_scale * size
                 wh_list.append((box_width, box_height))
-                
+
                 box_height = box_width = np.sqrt(
                     self.this_scale * self.next_scale) * size
                 wh_list.append((box_width, box_height))
@@ -335,7 +335,6 @@ class AnchorBoxes(Layer):
         if self.normalize_coords:
             boxes_tensor[:, :, :, [0, 2]] /= 300
             boxes_tensor[:, :, :, [1, 3]] /= 300
-
 
         # Create a tensor to contain the variances and append it to `boxes_tensor`. This tensor has the same shape
         # as `boxes_tensor` and simply contains the same 4 variance values for every position in the last axis.
