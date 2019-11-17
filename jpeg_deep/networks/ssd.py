@@ -375,8 +375,7 @@ def ssd300(n_classes: int,
                                                top_k=top_k,
                                                nms_max_output_size=nms_max_output_size,
                                                name='decoded_predictions',
-                                               img_height=300,
-                                               img_width=300)(predictions)
+                                               dct=dct)(predictions)
         model = Model(inputs=input_layer, outputs=decoded_predictions)
     else:
         raise ValueError(

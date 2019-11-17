@@ -133,7 +133,6 @@ class DecodeDetections(Layer):
 
         # Convert anchor box offsets to image offsets.
         # cx = cx_pred * cx_variance * w_anchor + cx_anchor
-        #y_pred = tf.Print(y_pred, [y_pred], summarize=1000000)
         cx = y_pred[..., -12] * y_pred[..., -4] * \
             y_pred[..., -6] + y_pred[..., -8]
         # cy = cy_pred * cy_variance * h_anchor + cy_anchor
@@ -150,7 +149,6 @@ class DecodeDetections(Layer):
             ymin = (cy - 0.5 * h) * 300  # * h_size * 8
             xmax = (cx + 0.5 * w) * 300  # * w_size * 8
             ymax = (cy + 0.5 * h) * 300  # * h_size * 8
-            #xmin = tf.Print(xmin, [xmin], summarize=1000000)
 
             xmin = xmin * 300
 
@@ -165,25 +163,12 @@ class DecodeDetections(Layer):
         xmax = tf.expand_dims(xmax, axis=-1)
         ymax = tf.expand_dims(ymax, axis=-1)
 
-        # If the model predicts box coordinates relative to the image dimensions and they are supposed
-        # to be converted back to absolute coordinates, do that.
-        def normalized_coords():
-            xmin1 = tf.expand_dims(xmin, axis=-1)
-            ymin1 = tf.expand_dims(ymin, axis=-1)
-            xmax1 = tf.expand_dims(xmax, axis=-1)
-            ymax1 = tf.expand_dims(ymax, axis=-1)
-            return xmin1, ymin1, xmax1, ymax1
-
-        def non_normalized_coords():
-            return tf.expand_dims(xmin, axis=-1), tf.expand_dims(ymin, axis=-1), tf.expand_dims(xmax, axis=-1), tf.expand_dims(ymax, axis=-1)
-
         #xmin, ymin, xmax, ymax = tf.cond(self.tf_normalize_coords, normalized_coords, non_normalized_coords)
         # xmin, ymin, xmax, ymax = tf.cond(
         #    self.tf_normalize_coords, normalized_coords, non_normalized_coords)
         # Concatenate the one-hot class confidences and the converted box coordinates to form the decoded predictions tensor.
         y_pred = tf.concat(
             values=[y_pred[..., :-12], xmin, ymin, xmax, ymax], axis=-1)
-        #y_pred = tf.Print(y_pred, [y_pred], summarize=1000000)
         #####################################################################################
         # 2. Perform confidence thresholding, per-class non-maximum suppression, and
         #    top-k filtering.
@@ -308,7 +293,6 @@ class DecodeDetections(Layer):
                                   infer_shape=True,
                                   name='loop_over_batch')
 
-        output_tensor = tf.Print(output_tensor, [output_tensor], summarize=25)
         return output_tensor
 
     def compute_output_shape(self, input_shape):
