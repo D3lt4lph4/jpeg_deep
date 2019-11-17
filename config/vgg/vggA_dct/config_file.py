@@ -14,6 +14,14 @@ from template_keras.config import TemplateConfiguration
 
 from vgg_jpeg_keras.generators import grayscale, saturation, brightness, contrast, lighting
 
+from albumentations import (
+    HorizontalFlip, IAAPerspective, ShiftScaleRotate, CLAHE, RandomRotate90,
+    Transpose, ShiftScaleRotate, Blur, OpticalDistortion, GridDistortion, HueSaturationValue,
+    IAAAdditiveGaussianNoise, GaussNoise, MotionBlur, MedianBlur, RandomBrightnessContrast, IAAPiecewiseAffine,
+    IAASharpen, IAAEmboss, Flip, OneOf, Compose,
+    CenterCrop
+)
+
 
 def _top_k_accuracy(k):
     def _func(y_true, y_pred):
@@ -57,6 +65,38 @@ class TrainingConfiguration(TemplateConfiguration):
         self.validation_directory = join(
             environ["DATASET_PATH_VAL"], "imagenet/validation")
         self.index_file = "/home/2017018/bdegue01/git/vgg_jpeg/data/imagenet_class_index.json"
+        self.train_transformations = [Compose([
+            RandomRotate90(),
+            Flip(),
+            Transpose(),
+            OneOf([
+                IAAAdditiveGaussianNoise(),
+                GaussNoise(),
+            ], p=0.2),
+            OneOf([
+                MotionBlur(p=.2),
+                MedianBlur(blur_limit=3, p=0.1),
+                Blur(blur_limit=3, p=0.1),
+            ], p=0.2),
+            ShiftScaleRotate(shift_limit=0.0625,
+                             scale_limit=0.2, rotate_limit=45, p=0.2),
+            OneOf([
+                OpticalDistortion(p=0.3),
+                GridDistortion(p=.1),
+                IAAPiecewiseAffine(p=0.3),
+            ], p=0.2),
+            OneOf([
+                CLAHE(clip_limit=2),
+                IAASharpen(),
+                IAAEmboss(),
+                RandomBrightnessContrast(),
+            ], p=0.3),
+            HueSaturationValue(p=0.3),
+
+        ], p=0.5),
+            CenterCrop(224, 224)]
+
+        self.validation_transformations = [CenterCrop(224, 224)]
 
         # Keras stuff
         self.model_checkpoint = None
@@ -149,10 +189,10 @@ class TrainingConfiguration(TemplateConfiguration):
         pass
 
     def prepare_training_generators(self):
-        self._train_generator = DCTGeneratorJPEG2DCT(self.train_directory, self.index_file, self._batch_size, scale=True, transformations=[
-                                                     lighting, contrast, brightness, saturation])
+        self._train_generator = DCTGeneratorJPEG2DCT(
+            self.train_directory, self.index_file, self._batch_size, albumentations_compose=self.train_transformations)
         self._validation_generator = DCTGeneratorJPEG2DCT(
-            self.validation_directory, self.index_file, self._batch_size, scale=False)
+            self.validation_directory, self.index_file, self._batch_size, self.validation_transformations)
 
     @property
     def train_generator(self):

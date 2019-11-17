@@ -46,10 +46,7 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
                  index_file,
                  batch_size=32,
                  shuffle=True,
-                 scale=True,
-                 target_length=224,
-                 flip=True,
-                 transformations=None):
+                 albumentation_compose=None):
         # Process the index dictionary to get the matching name/class_id
         self.association, self.classes, self.images_path = prepare_imagenet(
             index_file, data_directory)
@@ -60,10 +57,7 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
         self._number_of_data_samples = len(self.images_path)
 
         # Internal data
-        self.scale = scale
-        self.target_length = target_length
-        self.flip = flip
-        self.transformations = transformations
+        self.albumentation_compose = albumentation_compose
         self.number_of_classes = len(self.classes)
         self.batches_per_epoch = len(self.images_path) // self._batch_size
         self.indexes = np.arange(len(self.images_path))
@@ -135,50 +129,15 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
             second_last_slash = self.images_path[k][:last_slash].rfind("/")
             index_class = self.images_path[k][second_last_slash + 1:last_slash]
 
-            # Load the image in RGB,
-            with Image.open(self.images_path[k]) as im:
+            # Load the image in RGB
+            img = cv2.imread(self.images_path[k])
 
-                # Scale data-augmentation
-                im = im.convert("RGB")
-                if self.scale:
-                    min_side = min(im.size)
-                    scaling_ratio = self.target_length / min_side
+            for transform in self.albumentation_compose:
+                img = transform(image=img)['image']
 
-                    width, height = im.size
-                    im = im.resize((int(round(width * scaling_ratio)),
-                                    int(round(height * scaling_ratio))))
-                    offset = random.randint(0,
-                                            max(im.size) - self.target_length)
+            _, buffer = cv2.imencode(img)
 
-                    if im.size[0] > im.size[1]:
-                        im = im.crop((offset, 0, self.target_length + offset,
-                                      self.target_length))
-                    else:
-                        im = im.crop((0, offset, self.target_length,
-                                      self.target_length + offset))
-                else:
-                    im = im.resize(
-                        (int(self.target_length), int(self.target_length)))
-                    
-                # If the flip is required
-                if self.flip and (random.uniform(0, 1) > 0.5):
-                    im = im.transpose(PIL.Image.FLIP_LEFT_RIGHT)
-
-                # If some image transformations are available
-                if self.transformations is not None:
-                    im = np.array(im)
-                    random.shuffle(self.transformations)
-                    for transformation in self.transformations:
-                        if random.uniform(0, 1) > 0.5:
-                            im = transformation(im)
-                    im = Image.fromarray(im)
-                    im = im.convert("RGB")
-
-                # Saving the file to ram and reloading it from there to avoid writing to disk
-                fake_file = BytesIO()
-                im.save(fake_file, format="jpeg")
-
-            dct_y, dct_cb, dct_cr = loads(fake_file.getvalue())
+            dct_y, dct_cb, dct_cr = loads(buffer)
 
             try:
                 X_y[i] = dct_y
@@ -202,15 +161,15 @@ class DCTGeneratorImageNet(TemplateGenerator):
                  image_shape=(224, 224, 3),
                  shuffle=True,
                  target_length=224):
-        
+
         self.association, self.classes, self.images_path = prepare_imagenet(
             index_file, data_directory)
-        
+
         # External variables
         self._batch_size = batch_size
         self._shuffle = shuffle
         self._number_of_data_samples = len(self.images_path)
-        
+
         # Internal variables
         self.image_shape = image_shape
         self.decoder = jpegdecoder.decoder.JPEGDecoder()
