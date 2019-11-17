@@ -92,9 +92,6 @@ def feature_map_dct(image_shape: Tuple[int, int], l2_regularization: float = 0.0
         input_shape_y = (img_h, img_w, 64)
         input_shape_cbcr = (img_h / 2, img_w / 2, 128)
 
-    input_shape_y = (38, 38, 64)
-    input_shape_cbcr = (19, 19, 128)
-
     input_y = Input(input_shape_y)
     input_cbcr = Input(input_shape_cbcr)
 
