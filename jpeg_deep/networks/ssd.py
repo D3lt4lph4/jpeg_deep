@@ -233,7 +233,6 @@ def ssd300(n_classes: int,
 
     # Feed conv4_3 into the L2 normalization layer
     conv4_3_norm = L2Normalization(gamma_init=20, name='conv4_3_norm')(conv4_3)
-    #conv4_3_norm = tf.Print(conv4_3_norm, [conv4_3_norm], summarize=1000000)
 
     # Build the convolutional predictor layers on top of the base network
     # We predict `n_classes` confidence values for each box, hence the confidence predictors have depth `n_boxes * n_classes`
@@ -386,7 +385,7 @@ def ssd300(n_classes: int,
                                                top_k=top_k,
                                                nms_max_output_size=nms_max_output_size,
                                                name='decoded_predictions',
-                                               dct=dct)(predictions)
+                                               dct=dct)([predictions, input_layer])
         model = Model(inputs=input_layer, outputs=decoded_predictions)
     else:
         raise ValueError(

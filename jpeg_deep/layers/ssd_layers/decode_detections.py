@@ -107,8 +107,8 @@ class DecodeDetections(Layer):
         # 1. Convert the box coordinates from predicted anchor box offsets to predicted
         #    absolute coordinates
         #####################################################################################
-        y_pred = array
-        # input_layer = array[1]
+        y_pred = array[0]
+        input_layer = array[1]
         # if self.dct:
         #     h_size = tf.cast(tf.shape(input_layer[0])[1], tf.float32)
         #     w_size = tf.cast(tf.shape(input_layer[0])[2], tf.float32)
