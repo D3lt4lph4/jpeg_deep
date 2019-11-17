@@ -39,7 +39,7 @@ class TrainingConfiguration(object):
 
         # Network variables
         self.n_classes = 20
-        self.image_shape = (38, 38)
+        self.image_shape = (None, None)
         self._weights = None
         self.network_params = {"n_classes": self.n_classes,
                                "image_shape": self.image_shape, "dct": True}

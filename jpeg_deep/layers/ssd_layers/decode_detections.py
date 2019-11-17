@@ -116,24 +116,29 @@ class DecodeDetections(Layer):
         #     h_size = tf.cast(tf.shape(input_layer)[1], tf.float32)
         #     w_size = tf.cast(tf.shape(input_layer)[2], tf.float32)
 
+        h_size = tf.cast(tf.shape(input_layer[0])[1], tf.float32) * 8
+        w_size = tf.cast(tf.shape(input_layer[0])[2], tf.float32) * 8
+
         # Convert anchor box offsets to image offsets.
         # cx = cx_pred * cx_variance * w_anchor + cx_anchor
-        cx = y_pred[..., -12] * y_pred[..., -4] * \
+        cx = y_pred[..., -12] * y_pred[..., -4] * w_size * \
             y_pred[..., -6] + y_pred[..., -8]
         # cy = cy_pred * cy_variance * h_anchor + cy_anchor
-        cy = y_pred[..., -11] * y_pred[..., -3] * \
+        cy = y_pred[..., -11] * y_pred[..., -3] * h_size * \
             y_pred[..., -5] + y_pred[..., -7]
         # w = exp(w_pred * variance_w) * w_anchor
-        w = tf.exp(y_pred[..., -10] * y_pred[..., -2]) * y_pred[..., -6]
+        w = tf.exp(y_pred[..., -10] * y_pred[..., -2]) * \
+            y_pred[..., -6] * w_size
         # h = exp(h_pred * variance_h) * h_anchor
-        h = tf.exp(y_pred[..., -9] * y_pred[..., -1]) * y_pred[..., -5]
+        h = tf.exp(y_pred[..., -9] * y_pred[..., -1]) * \
+            y_pred[..., -5] * h_size
 
         # Convert 'centroids' to 'corners'.
         if self.dct:
-            xmin = (cx - 0.5 * w) * 300
-            ymin = (cy - 0.5 * h) * 300
-            xmax = (cx + 0.5 * w) * 300
-            ymax = (cy + 0.5 * h) * 300
+            xmin = cx - 0.5 * w
+            ymin = cy - 0.5 * h
+            xmax = cx + 0.5 * w
+            ymax = cy + 0.5 * h
 
         else:
             xmin = cx - 0.5 * w
@@ -260,7 +265,7 @@ class DecodeDetections(Layer):
                                  axis=0)
 
             top_k_boxes = tf.cond(tf.greater_equal(tf.shape(filtered_predictions)[
-                                  0], self.tf_top_k), top_k, pad_and_top_k)
+                0], self.tf_top_k), top_k, pad_and_top_k)
 
             return top_k_boxes
 
