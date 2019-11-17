@@ -124,17 +124,17 @@ class DecodeDetections(Layer):
 
         # Convert anchor box offsets to image offsets.
         # cx = cx_pred * cx_variance * w_anchor + cx_anchor
-        cx = y_pred[..., -12] * y_pred[..., -4] * w_size * \
+        cx = y_pred[..., -12] * y_pred[..., -4] * 300 * \
             y_pred[..., -6] + y_pred[..., -8]
         # cy = cy_pred * cy_variance * h_anchor + cy_anchor
-        cy = y_pred[..., -11] * y_pred[..., -3] * h_size * \
+        cy = y_pred[..., -11] * y_pred[..., -3] * 300 * \
             y_pred[..., -5] + y_pred[..., -7]
         # w = exp(w_pred * variance_w) * w_anchor
         w = tf.exp(y_pred[..., -10] * y_pred[..., -2]) * \
-            y_pred[..., -6] * w_size
+            y_pred[..., -6] * 300
         # h = exp(h_pred * variance_h) * h_anchor
         h = tf.exp(y_pred[..., -9] * y_pred[..., -1]) * \
-            y_pred[..., -5] * h_size
+            y_pred[..., -5] * 300
 
         # Convert 'centroids' to 'corners'.
         if self.dct:
