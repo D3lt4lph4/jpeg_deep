@@ -30,21 +30,19 @@ from tensorflow.python.keras.layers import Layer
 class L2Normalization(Layer):
     '''
     Performs L2 normalization on the input tensor with a learnable scaling parameter
-    as described in the paper "Parsenet: Looking Wider to See Better" (see references)
-    and as used in the original SSD model.
-    Arguments:
-        gamma_init (int): The initial scaling parameter. Defaults to 20 following the
-            SSD paper.
-    Input shape:
-        4D tensor of shape `(batch, channels, height, width)` if `dim_ordering = 'th'`
-        or `(batch, height, width, channels)` if `dim_ordering = 'tf'`.
-    Returns:
+    as described in the paper "Parsenet: Looking Wider to See Better" and as used in the 
+    original SSD model.
+    # Arguments:
+        - gamma_init: The initial scaling parameter. Defaults to 20 following the SSD paper.
+
+    # Returns:
         The scaled tensor. Same shape as the input tensor.
-    References:
+
+    # References:
         http://cs.unc.edu/~wliu/papers/parsenet.pdf
     '''
 
-    def __init__(self, gamma_init=20, **kwargs):
+    def __init__(self, gamma_init: int = 20, **kwargs):
         self.axis = 3
 
         self.gamma_init = gamma_init
