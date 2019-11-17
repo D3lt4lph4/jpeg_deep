@@ -271,18 +271,32 @@ def ssd300(n_classes: int,
 
     # Generate the anchor (prior) boxes
     # Output shape of anchors: `(batch, height, width, n_boxes, 8)
-    conv4_3_norm_mbox_priorbox = AnchorBoxes(
-        img_h, img_w, this_scale=scales[0], next_scale=scales[1], aspect_ratios=aspect_ratios[0], this_steps=steps[0], this_offsets=offsets[0])(conv4_3_norm_mbox_loc)
-    fc7_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[1], next_scale=scales[2], aspect_ratios=aspect_ratios[1],
-                                    this_steps=steps[1], this_offsets=offsets[1])(fc7_mbox_loc)
-    conv6_2_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[2], next_scale=scales[3], aspect_ratios=aspect_ratios[2],
-                                        this_steps=steps[2], this_offsets=offsets[2])(conv6_2_mbox_loc)
-    conv7_2_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[3], next_scale=scales[4], aspect_ratios=aspect_ratios[3],
-                                        this_steps=steps[3], this_offsets=offsets[3])(conv7_2_mbox_loc)
-    conv8_2_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[4], next_scale=scales[5], aspect_ratios=aspect_ratios[4],
-                                        this_steps=steps[4], this_offsets=offsets[4])(conv8_2_mbox_loc)
-    conv9_2_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[5], next_scale=scales[6], aspect_ratios=aspect_ratios[5],
-                                        this_steps=steps[5], this_offsets=offsets[5])(conv9_2_mbox_loc)
+    if image_shape is None:
+        conv4_3_norm_mbox_priorbox = AnchorBoxesTensorflow(
+            this_scale=scales[0], next_scale=scales[1], step=size_steps[0], aspect_ratios=aspect_ratios[0], name='conv4_3_norm_mbox_priorbox')(conv4_3_norm_mbox_loc)
+        fc7_mbox_priorbox = AnchorBoxesTensorflow(
+            this_scale=scales[1], next_scale=scales[2], step=size_steps[1], aspect_ratios=aspect_ratios[1], name='fc7_mbox_priorbox')(fc7_mbox_loc)
+        conv6_2_mbox_priorbox = AnchorBoxesTensorflow(
+            this_scale=scales[2], next_scale=scales[3], step=size_steps[2], aspect_ratios=aspect_ratios[2], name='conv6_2_mbox_priorbox')(conv6_2_mbox_loc)
+        conv7_2_mbox_priorbox = AnchorBoxesTensorflow(
+            this_scale=scales[3], next_scale=scales[4], step=size_steps[3], aspect_ratios=aspect_ratios[3], name='conv7_2_mbox_priorbox')(conv7_2_mbox_loc)
+        conv8_2_mbox_priorbox = AnchorBoxesTensorflow(
+            this_scale=scales[4], next_scale=scales[5], step=size_steps[4], aspect_ratios=aspect_ratios[4], name='conv8_2_mbox_priorbox')(conv8_2_mbox_loc)
+        conv9_2_mbox_priorbox = AnchorBoxesTensorflow(
+            this_scale=scales[5], next_scale=scales[6], step=size_steps[5], aspect_ratios=aspect_ratios[5], name='conv9_2_mbox_priorbox')(conv9_2_mbox_loc)
+    else:
+        conv4_3_norm_mbox_priorbox = AnchorBoxes(
+            img_h, img_w, this_scale=scales[0], next_scale=scales[1], aspect_ratios=aspect_ratios[0], this_steps=steps[0], this_offsets=offsets[0])(conv4_3_norm_mbox_loc)
+        fc7_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[1], next_scale=scales[2], aspect_ratios=aspect_ratios[1],
+                                        this_steps=steps[1], this_offsets=offsets[1])(fc7_mbox_loc)
+        conv6_2_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[2], next_scale=scales[3], aspect_ratios=aspect_ratios[2],
+                                            this_steps=steps[2], this_offsets=offsets[2])(conv6_2_mbox_loc)
+        conv7_2_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[3], next_scale=scales[4], aspect_ratios=aspect_ratios[3],
+                                            this_steps=steps[3], this_offsets=offsets[3])(conv7_2_mbox_loc)
+        conv8_2_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[4], next_scale=scales[5], aspect_ratios=aspect_ratios[4],
+                                            this_steps=steps[4], this_offsets=offsets[4])(conv8_2_mbox_loc)
+        conv9_2_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[5], next_scale=scales[6], aspect_ratios=aspect_ratios[5],
+                                            this_steps=steps[5], this_offsets=offsets[5])(conv9_2_mbox_loc)
 
     # Reshape
     # Reshape the class predictions, yielding 3D tensors of shape `(batch, height * width * n_boxes, n_classes)`
