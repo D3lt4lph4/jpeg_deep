@@ -12,8 +12,6 @@ from vgg_jpeg_keras.generators import DCTGeneratorJPEG2DCT
 
 from template_keras.config import TemplateConfiguration
 
-from vgg_jpeg_keras.generators import grayscale, saturation, brightness, contrast, lighting
-
 from albumentations import (
     HorizontalFlip, IAAPerspective, ShiftScaleRotate, CLAHE, RandomRotate90,
     Transpose, ShiftScaleRotate, Blur, OpticalDistortion, GridDistortion, HueSaturationValue,
