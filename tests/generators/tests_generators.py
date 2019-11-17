@@ -1,4 +1,4 @@
-from vgg_jpeg_keras.generators import DCTGeneratorJPEG2DCT, prepare_imagenet
+from jpeg_deep.generators import DCTGeneratorJPEG2DCT, prepare_imagenet
 import numpy as np
 import tensorflow as tf
 import os

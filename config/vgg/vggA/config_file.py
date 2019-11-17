@@ -11,8 +11,8 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras.applications.vgg16 import preprocess_input
 from keras.metrics import top_k_categorical_accuracy
 
-from vgg_jpeg_keras.networks import vgga
-from vgg_jpeg_keras.evaluation import Evaluator
+from jpeg_deep.networks import vgga
+from jpeg_deep.evaluation import Evaluator
 
 from template_keras.config import TemplateConfiguration
 

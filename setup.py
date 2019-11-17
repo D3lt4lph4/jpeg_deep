@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='vgg_jpeg_keras',
+    name='jpeg_deep',
     version='1.0',
     url='',
     author='Deguerre Benjmain',
