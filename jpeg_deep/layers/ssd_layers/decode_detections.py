@@ -115,9 +115,12 @@ class DecodeDetections(Layer):
         # else:
         #     h_size = tf.cast(tf.shape(input_layer)[1], tf.float32)
         #     w_size = tf.cast(tf.shape(input_layer)[2], tf.float32)
-
-        h_size = tf.cast(tf.shape(input_layer[0])[1], tf.float32) * 8
-        w_size = tf.cast(tf.shape(input_layer[0])[2], tf.float32) * 8
+        if self.dct:
+            h_size = tf.cast(tf.shape(input_layer[0])[1], tf.float32) * 8
+            w_size = tf.cast(tf.shape(input_layer[0])[2], tf.float32) * 8
+        else:
+            h_size = tf.cast(tf.shape(input_layer)[1], tf.float32)
+            w_size = tf.cast(tf.shape(input_layer)[2], tf.float32)
 
         # Convert anchor box offsets to image offsets.
         # cx = cx_pred * cx_variance * w_anchor + cx_anchor
