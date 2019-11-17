@@ -39,7 +39,7 @@ class TrainingConfiguration(object):
 
         # Network variables
         self.n_classes = 20
-        self.image_shape = (300, 300)
+        self.image_shape = (38, 38)
         self._weights = None
         self.network_params = {"n_classes": self.n_classes,
                                "image_shape": self.image_shape, "dct": True}
@@ -71,8 +71,8 @@ class TrainingConfiguration(object):
         self.steps = [8, 16, 32, 64, 100, 300]
         self.offsets = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
         self.label_encoder_params = {
-            "img_height": self.image_shape[0],
-            "img_width": self.image_shape[1],
+            "img_height": 300,
+            "img_width": 300,
             "n_classes": self.n_classes,
             "predictor_sizes": self.predictor_sizes,
             "scales": self.scales,
@@ -89,7 +89,7 @@ class TrainingConfiguration(object):
                                                          background=[0, 0, 0])
         self.convert_to_3_channels = ConvertTo3Channels()
         self.resize = Resize(
-            height=self.image_shape[0], width=self.image_shape[1])
+            height=300, width=300)
 
         self.train_directory = environ["DATASET_PATH_TRAIN"]
         self.validation_directory = environ["DATASET_PATH_VAL"]
@@ -210,7 +210,6 @@ class TrainingConfiguration(object):
 
     def prepare_for_inference(self):
         self.network_params["mode"] = "inference"
-        self.network_params["image_shape"] = (38, 38)
         self._network = ssd300(**self.network_params)
 
     def prepare_evaluator(self):

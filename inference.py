@@ -38,6 +38,7 @@ X, y = config.test_generator.__getitem__(0)
 # If the input is not a displayable stuff, get the displayable
 X_true, _ = config.test_generator.get_raw_input_label(0)
 
+model.summary()
 y_pred = model.predict(X)
 y_pred_thresh = [y_pred[k][y_pred[k, :, 1] > 0.5]
                  for k in range(y_pred.shape[0])]

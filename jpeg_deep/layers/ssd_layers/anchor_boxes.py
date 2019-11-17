@@ -59,15 +59,15 @@ class AnchorBoxesTensorflow(Layer):
         for ar in self.aspect_ratios:
             if (ar == 1):
                 # Compute the regular anchor box for aspect ratio 1.
-                box_height = box_width = self.this_scale
+                box_height = box_width = self.this_scale * 300
                 wh_list.append([box_width, box_height])
                 # Compute one slightly larger version using the geometric mean of this scale value and the next.
                 box_height = box_width = np.sqrt(
-                    self.this_scale * self.next_scale)
+                    self.this_scale * self.next_scale) * 300
                 wh_list.append([box_width, box_height])
             else:
-                box_height = self.this_scale / np.sqrt(ar)
-                box_width = self.this_scale * np.sqrt(ar)
+                box_height = self.this_scale * 300 / np.sqrt(ar)
+                box_width = self.this_scale * 300 * np.sqrt(ar)
                 wh_list.append([box_width, box_height])
 
         self.wh_list = wh_list
@@ -105,18 +105,18 @@ class AnchorBoxesTensorflow(Layer):
         cy_grid = tf.expand_dims(cy_grid, -1)
 
         cx_grid_b = tf.expand_dims(
-            tf.tile(cx_grid, (1, 1, self.tf_n_boxes)), -1) / 300
+            tf.tile(cx_grid, (1, 1, self.tf_n_boxes)), -1) / 300.0
         cy_grid_b = tf.expand_dims(
-            tf.tile(cy_grid, (1, 1, self.tf_n_boxes)), -1) / 300
+            tf.tile(cy_grid, (1, 1, self.tf_n_boxes)), -1) / 300.0
 
         wh_list_w = tf.expand_dims(tf.expand_dims(
             tf.expand_dims(self.tf_wh_list[:, 0], 0), 0), -1)
         wh_list_w = tf.tile(
-            wh_list_w, (feature_map_height, feature_map_width, 1, 1)) / 300
+            wh_list_w, (feature_map_height, feature_map_width, 1, 1)) / 300.0
         wh_list_h = tf.expand_dims(tf.expand_dims(
             tf.expand_dims(self.tf_wh_list[:, 1], 0), 0), -1)
         wh_list_h = tf.tile(
-            wh_list_h, (feature_map_height, feature_map_width, 1, 1)) / 300
+            wh_list_h, (feature_map_height, feature_map_width, 1, 1)) / 300.0
 
         boxes_tensor = tf.concat(
             [cx_grid_b, cy_grid_b, wh_list_w, wh_list_h], axis=-1)
