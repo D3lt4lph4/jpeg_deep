@@ -30,14 +30,14 @@ def vgga_dct(classes=1000):
             name='block1_conv1_dct_256')(x)
 
     # Block 4
-    x = Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv1')(x)
+    x = Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv1_dct')(x)
     x = Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv2')(x)
     x = MaxPooling2D((2, 2), strides=(2, 2), name='block4_pool')(x)
 
 
     concat = Concatenate(axis=-1)([x, norm_cbcr])
     # Block 5
-    x = Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv1')(concat)
+    x = Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv1_dct')(concat)
     x = Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv2')(x)
     x = MaxPooling2D((2, 2), strides=(2, 2), name='block5_pool')(x)
 
@@ -80,7 +80,7 @@ def vggd_dct(classes=1000):
     x = Conv2D(512, (3, 3),
                activation='relu',
                padding='same',
-               name='block4_conv1')(x)
+               name='block4_conv1_dct')(x)
     x = Conv2D(512, (3, 3),
                activation='relu',
                padding='same',
@@ -97,7 +97,7 @@ def vggd_dct(classes=1000):
     x = Conv2D(512, (3, 3),
                activation='relu',
                padding='same',
-               name='block5_conv1')(concat)
+               name='block5_conv1_dct')(concat)
     x = Conv2D(512, (3, 3),
                activation='relu',
                padding='same',
@@ -148,7 +148,7 @@ def vgga_dct_8x8(classes=1000):
         Conv2D(512, (3, 3),
                activation='relu',
                padding='same',
-               name='block4_conv1'))
+               name='block4_conv1_dct'))
     model.add(
         Conv2D(512, (3, 3),
                activation='relu',
@@ -210,7 +210,7 @@ def vggd_dct_8x8(classes=1000):
         Conv2D(512, (3, 3),
                activation='relu',
                padding='same',
-               name='block4_conv1'))
+               name='block4_conv1_dct'))
     model.add(
         Conv2D(512, (3, 3),
                activation='relu',

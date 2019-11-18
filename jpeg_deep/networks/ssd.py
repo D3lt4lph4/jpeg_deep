@@ -111,7 +111,7 @@ def feature_map_dct(image_shape: Tuple[int, int], l2_regularization: float = 0.0
     block4_conv1 = Conv2D(512, (3, 3),
                      activation='relu',
                      padding='same',
-                     name='block4_conv1')(block1_conv1)
+                     name='block4_conv1_dct')(block1_conv1)
     block4_conv2 = Conv2D(512, (3, 3),
                      activation='relu',
                      padding='same',
@@ -193,8 +193,12 @@ def ssd300(n_classes: int,
             image_shape, l2_regularization=l2_regularization, kernel_initializer=kernel_initializer)
 
     # Create the network.
+    if args.dct:
+        name = 'block5_conv1_dct'
+    else:
+        name = 'block5_conv1'
     block5_conv1 = Conv2D(512, (3, 3), activation='relu', padding='same',
-                     kernel_initializer=kernel_initializer, name='block5_conv1')(block4_pool)
+                     kernel_initializer=kernel_initializer, name=name)(block4_pool)
     block5_conv2 = Conv2D(512, (3, 3), activation='relu', padding='same',
                      kernel_initializer=kernel_initializer, name='block5_conv2')(block5_conv1)
     block5_conv3 = Conv2D(512, (3, 3), activation='relu', padding='same',
