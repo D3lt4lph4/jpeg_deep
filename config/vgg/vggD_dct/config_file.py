@@ -13,6 +13,32 @@ from jpeg_deep.generators import DCTGeneratorJPEG2DCT
 from template_keras.config import TemplateConfiguration
 
 
+from albumentations import (
+    Blur,
+    HorizontalFlip,
+    RandomCrop,
+    RandomGamma,
+    Rotate,
+    OpticalDistortion,
+    GridDistortion,
+    ElasticTransform,
+    HueSaturationValue,
+    RandomBrightness,
+    RandomContrast,
+    MotionBlur,
+    MedianBlur,
+    GaussianBlur,
+    ChannelShuffle,
+    SmallestMaxSize,
+    RandomBrightnessContrast
+)
+
+from albumentations import (
+    OneOf,
+    Compose
+)
+
+
 def _top_k_accuracy(k):
     def _func(y_true, y_pred):
         return top_k_categorical_accuracy(y_true, y_pred, k)
@@ -22,9 +48,7 @@ def _top_k_accuracy(k):
 class TrainingConfiguration(TemplateConfiguration):
     def __init__(self):
         # Variables to hold the description of the experiment
-        self.config_description = "This is the configuration file to train the VGG16 from scratch on the imagenet dataset. This config file is for training of the first network VGG16_A "
-        self.experiment_description = "Training the VGG16_A network for the 224x224 imagenet dataset. Testing with multiple workers."
-        self.experiment_name = "VGG16_A 224x224"
+        self.description = "Training configuration file for the DCT version of the  VGGA network."
 
         # System dependent variable
         self._workers = 5
@@ -32,8 +56,8 @@ class TrainingConfiguration(TemplateConfiguration):
         self._gpus = 1
 
         # Variables for comet.ml
-        self._project_name = "vgg-dct"
-        self._workspace = "d3lt4lph4"
+        self._project_name = "jpeg_deep"
+        self._workspace = "classification_dct"
 
         # Network variables
         self.num_classes = 1000
@@ -58,15 +82,35 @@ class TrainingConfiguration(TemplateConfiguration):
             environ["DATASET_PATH_VAL"], "imagenet/validation")
         self.index_file = "/home/2017018/bdegue01/git/vgg_jpeg/data/imagenet_class_index.json"
 
+        # Defining the transformations that will be applied to the inputs.
+        self.train_transformations = [
+            OneOf([
+                OneOf([Blur(), MotionBlur(), MedianBlur(),
+                       GaussianBlur()], p=0.5),
+                OneOf([HueSaturationValue(),
+                       RandomBrightness(), RandomContrast(), RandomGamma()]),
+
+            ], p=0.5),
+            OneOf([HorizontalFlip(), Rotate(limit=25), OneOf(
+                [OpticalDistortion(), GridDistortion(), ElasticTransform()], p=0.5)], p=0.5),
+            SmallestMaxSize(256),
+            RandomCrop(224, 224)
+        ]
+
+        self.validation_transformations = [
+            SmallestMaxSize(256), CenterCrop(224, 224)]
+
         # Keras stuff
         self.model_checkpoint = None
         self.csv_logger = None
+        self.reduce_lr_on_plateau = ReduceLROnPlateau(patience=5, verbose=1)
         self.terminate_on_nan = TerminateOnNaN()
         self.early_stopping = EarlyStopping(monitor='val_loss',
                                             min_delta=0,
                                             patience=10)
 
-        self._callbacks = [self.terminate_on_nan, self.early_stopping]
+        self._callbacks = [self.reduce_lr_on_plateau,
+                           self.terminate_on_nan, self.early_stopping]
 
         # Creating the training and validation generator
         self._train_generator = None
@@ -124,7 +168,7 @@ class TrainingConfiguration(TemplateConfiguration):
                 warmup_epochs=5, verbose=1),
 
             # Reduce the learning rate if training plateaues.
-            ReduceLROnPlateau(patience=5, verbose=1),
+            self.reduce_lr_on_plateau,
 
             self.terminate_on_nan,
 

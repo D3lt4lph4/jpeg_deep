@@ -13,11 +13,28 @@ from jpeg_deep.generators import DCTGeneratorJPEG2DCT
 from template_keras.config import TemplateConfiguration
 
 from albumentations import (
-    HorizontalFlip, IAAPerspective, ShiftScaleRotate, CLAHE, RandomRotate90,
-    Transpose, ShiftScaleRotate, Blur, OpticalDistortion, GridDistortion, HueSaturationValue,
-    IAAAdditiveGaussianNoise, GaussNoise, MotionBlur, MedianBlur, RandomBrightnessContrast, IAAPiecewiseAffine,
-    IAASharpen, IAAEmboss, Flip, OneOf, Compose,
-    SmallestMaxSize, CenterCrop
+    Blur,
+    HorizontalFlip,
+    RandomCrop,
+    RandomGamma,
+    Rotate,
+    OpticalDistortion,
+    GridDistortion,
+    ElasticTransform,
+    HueSaturationValue,
+    RandomBrightness,
+    RandomContrast,
+    MotionBlur,
+    MedianBlur,
+    GaussianBlur,
+    ChannelShuffle,
+    SmallestMaxSize,
+    RandomBrightnessContrast
+)
+
+from albumentations import (
+    OneOf,
+    Compose
 )
 
 
@@ -30,7 +47,7 @@ def _top_k_accuracy(k):
 class TrainingConfiguration(TemplateConfiguration):
     def __init__(self):
         # Variables to hold the description of the experiment
-        self.description = ""
+        self.description = "Training configuration file for the DCT version of the  VGGA network."
 
         # System dependent variable
         self._workers = 10
@@ -38,8 +55,8 @@ class TrainingConfiguration(TemplateConfiguration):
         self._gpus = 1
 
         # Variables for comet.ml
-        self._project_name = "vgg-dct"
-        self._workspace = "d3lt4lph4"
+        self._project_name = "jpeg_deep"
+        self._workspace = "classification_dct"
 
         # Network variables
         self.num_classes = 1000
@@ -63,49 +80,36 @@ class TrainingConfiguration(TemplateConfiguration):
         self.validation_directory = join(
             environ["DATASET_PATH_VAL"], "imagenet/validation")
         self.index_file = "/home/2017018/bdegue01/git/vgg_jpeg/data/imagenet_class_index.json"
-        self.train_transformations = [Compose([
-            RandomRotate90(),
-            Flip(),
-            Transpose(),
-            OneOf([
-                IAAAdditiveGaussianNoise(),
-                GaussNoise(),
-            ], p=0.2),
-            OneOf([
-                MotionBlur(p=.2),
-                MedianBlur(blur_limit=3, p=0.1),
-                Blur(blur_limit=3, p=0.1),
-            ], p=0.2),
-            ShiftScaleRotate(shift_limit=0.0625,
-                             scale_limit=0.2, rotate_limit=45, p=0.2),
-            OneOf([
-                OpticalDistortion(p=0.3),
-                GridDistortion(p=.1),
-                IAAPiecewiseAffine(p=0.3),
-            ], p=0.2),
-            OneOf([
-                CLAHE(clip_limit=2),
-                IAASharpen(),
-                IAAEmboss(),
-                RandomBrightnessContrast(),
-            ], p=0.3),
-            HueSaturationValue(p=0.3),
 
-        ], p=0.5),
+        # Defining the transformations that will be applied to the inputs.
+        self.train_transformations = [
+            OneOf([
+                OneOf([Blur(), MotionBlur(), MedianBlur(),
+                       GaussianBlur()], p=0.5),
+                OneOf([HueSaturationValue(),
+                       RandomBrightness(), RandomContrast(), RandomGamma()]),
+
+            ], p=0.5),
+            OneOf([HorizontalFlip(), Rotate(limit=25), OneOf(
+                [OpticalDistortion(), GridDistortion(), ElasticTransform()], p=0.5)], p=0.5),
             SmallestMaxSize(256),
-            CenterCrop(224, 224)]
+            RandomCrop(224, 224)
+        ]
 
-        self.validation_transformations = [SmallestMaxSize(256), CenterCrop(224, 224)]
+        self.validation_transformations = [
+            SmallestMaxSize(256), CenterCrop(224, 224)]
 
         # Keras stuff
         self.model_checkpoint = None
         self.csv_logger = None
+        self.reduce_lr_on_plateau = ReduceLROnPlateau(patience=5, verbose=1)
         self.terminate_on_nan = TerminateOnNaN()
         self.early_stopping = EarlyStopping(monitor='val_loss',
                                             min_delta=0,
                                             patience=10)
 
-        self._callbacks = [self.terminate_on_nan, self.early_stopping]
+        self._callbacks = [self.reduce_lr_on_plateau,
+                           self.terminate_on_nan, self.early_stopping]
 
         # Creating the training and validation generator
         self._train_generator = None
@@ -163,7 +167,7 @@ class TrainingConfiguration(TemplateConfiguration):
                 warmup_epochs=5, verbose=1),
 
             # Reduce the learning rate if training plateaues.
-            ReduceLROnPlateau(patience=5, verbose=1),
+            self.reduce_lr_on_plateau,
 
             self.terminate_on_nan,
 
