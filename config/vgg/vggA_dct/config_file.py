@@ -16,10 +16,10 @@ from albumentations import (
     Blur,
     HorizontalFlip,
     RandomCrop,
+    CenterCrop,
     RandomGamma,
     Rotate,
     OpticalDistortion,
-    GridDistortion,
     ElasticTransform,
     HueSaturationValue,
     RandomBrightness,
@@ -50,7 +50,7 @@ class TrainingConfiguration(TemplateConfiguration):
         self.description = "Training configuration file for the DCT version of the  VGGA network."
 
         # System dependent variable
-        self._workers = 10
+        self._workers = 5
         self._multiprocessing = True
         self._gpus = 1
 
@@ -61,17 +61,17 @@ class TrainingConfiguration(TemplateConfiguration):
         # Network variables
         self.num_classes = 1000
         self.img_size = (224, 224)
-        self._weights = None
+        self._weights = "/dlocal/home/2017018/bdegue01/weights/vgg_keras_rgb/vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5"
         self._network = vgga_dct(self.num_classes)
 
         # Training variables
         self._epochs = 120
-        self._batch_size = 256
-        self.batch_size_divider = 2
+        self._batch_size = 1024
+        self.batch_size_divider = 1
         self._steps_per_epoch = 5000
         self._validation_steps = 50000 // self._batch_size
         self.optimizer_parameters = {
-            "lr": 0.01, "momentum": 0.9, "decay": 0, "nesterov": True}
+            "lr": 0.04, "momentum": 0.9, "decay": 0, "nesterov": True}
         self._optimizer = SGD(**self.optimizer_parameters)
         self._loss = categorical_crossentropy
         self._metrics = [_top_k_accuracy(1), _top_k_accuracy(5)]
@@ -91,7 +91,7 @@ class TrainingConfiguration(TemplateConfiguration):
 
             ], p=0.5),
             OneOf([HorizontalFlip(), Rotate(limit=25), OneOf(
-                [OpticalDistortion(), GridDistortion(), ElasticTransform()], p=0.5)], p=0.5),
+                [OpticalDistortion(), ElasticTransform()], p=0.5)], p=0.5),
             SmallestMaxSize(256),
             RandomCrop(224, 224)
         ]
