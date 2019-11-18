@@ -43,13 +43,20 @@ cd ..
 # Installation of the module
 cd deep_template/template_keras/template_keras
 
-python setup.py install
+python setup.py sdist
+cd dist/
+pip install template_keras-1.0.tar.gz
 
 # Back to main directory
-cd ../../..
+cd ../../../..
 
-# Installing all the dependencies ()
-pip install -r requirements.txt --user
+# Installing all the dependencies (the code was tested with the specified version numbers)
+pip install keras
+pip install tensorflow-gpu==1.14.0
+pip install pillow
+pip install opencv-python
+pip install jpeg2dct
+pip install albumentations
 ```
 
 ## Training
