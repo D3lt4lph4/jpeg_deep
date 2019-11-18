@@ -28,7 +28,7 @@ def feature_map_rgb(image_shape: Tuple[int, int], l2_regularization: float = 0.0
         - kernel_initializer: The type of initializer for the convolution kernels.
 
     # Returns:
-        Three layers: input_layer, pool4, conv4_3. These layers are used to intantiate the network.
+        Three layers: input_layer, block4_pool, block4_conv3. These layers are used to intantiate the network.
     """
     img_h, img_w = image_shape
     input_layer = Input(shape=(img_h, img_w, 3))
@@ -39,38 +39,38 @@ def feature_map_rgb(image_shape: Tuple[int, int], l2_regularization: float = 0.0
     input_mean_normalization_layer = Lambda(input_mean_normalization, output_shape=(
         img_h, img_w, 3), name='input_mean_normalization')(lambda_layer)
 
-    conv1_1 = Conv2D(64, (3, 3), activation='relu', padding='same',
-                     kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='conv1_1')(input_mean_normalization_layer)
-    conv1_2 = Conv2D(64, (3, 3), activation='relu', padding='same',
-                     kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='conv1_2')(conv1_1)
-    pool1 = MaxPooling2D(pool_size=(2, 2), strides=(
-        2, 2), padding='same', name='pool1')(conv1_2)
+    block1_conv1 = Conv2D(64, (3, 3), activation='relu', padding='same',
+                     kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='block1_conv1')(input_mean_normalization_layer)
+    block1_conv2 = Conv2D(64, (3, 3), activation='relu', padding='same',
+                     kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='block1_conv2')(block1_conv1)
+    block1_pool = MaxPooling2D(pool_size=(2, 2), strides=(
+        2, 2), padding='same', name='block1_pool')(block1_conv2)
 
-    conv2_1 = Conv2D(128, (3, 3), activation='relu', padding='same',
-                     kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='conv2_1')(pool1)
-    conv2_2 = Conv2D(128, (3, 3), activation='relu', padding='same',
-                     kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='conv2_2')(conv2_1)
-    pool2 = MaxPooling2D(pool_size=(2, 2), strides=(
-        2, 2), padding='same', name='pool2')(conv2_2)
+    block2_conv1 = Conv2D(128, (3, 3), activation='relu', padding='same',
+                     kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='block2_conv1')(block1_pool)
+    block2_conv2 = Conv2D(128, (3, 3), activation='relu', padding='same',
+                     kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='block2_conv2')(block2_conv1)
+    block2_pool = MaxPooling2D(pool_size=(2, 2), strides=(
+        2, 2), padding='same', name='block2_pool')(block2_conv2)
 
-    conv3_1 = Conv2D(256, (3, 3), activation='relu', padding='same',
-                     kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='conv3_1')(pool2)
-    conv3_2 = Conv2D(256, (3, 3), activation='relu', padding='same',
-                     kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='conv3_2')(conv3_1)
-    conv3_3 = Conv2D(256, (3, 3), activation='relu', padding='same',
-                     kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='conv3_3')(conv3_2)
-    pool3 = MaxPooling2D(pool_size=(2, 2), strides=(
-        2, 2), padding='same', name='pool3')(conv3_3)
+    block3_conv1 = Conv2D(256, (3, 3), activation='relu', padding='same',
+                     kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='block3_conv1')(block2_pool)
+    block3_conv2 = Conv2D(256, (3, 3), activation='relu', padding='same',
+                     kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='block3_conv2')(block3_conv1)
+    block3_conv3 = Conv2D(256, (3, 3), activation='relu', padding='same',
+                     kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='block3_conv3')(block3_conv2)
+    block3_pool = MaxPooling2D(pool_size=(2, 2), strides=(
+        2, 2), padding='same', name='block3_pool')(block3_conv3)
 
-    conv4_1 = Conv2D(512, (3, 3), activation='relu', padding='same', kernel_initializer=kernel_initializer,
-                     kernel_regularizer=l2(l2_regularization), name='conv4_1')(pool3)
-    conv4_2 = Conv2D(512, (3, 3), activation='relu', padding='same',
-                     kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='conv4_2')(conv4_1)
-    conv4_3 = Conv2D(512, (3, 3), activation='relu', padding='same',
-                     kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='conv4_3')(conv4_2)
-    pool4 = MaxPooling2D(pool_size=(2, 2), strides=(
-        2, 2), padding='same', name='pool4')(conv4_3)
-    return input_layer, pool4, conv4_3
+    block4_conv1 = Conv2D(512, (3, 3), activation='relu', padding='same', kernel_initializer=kernel_initializer,
+                     kernel_regularizer=l2(l2_regularization), name='block4_conv1')(block3_pool)
+    block4_conv2 = Conv2D(512, (3, 3), activation='relu', padding='same',
+                     kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='block4_conv2')(block4_conv1)
+    block4_conv3 = Conv2D(512, (3, 3), activation='relu', padding='same',
+                     kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='block4_conv3')(block4_conv2)
+    block4_pool = MaxPooling2D(pool_size=(2, 2), strides=(
+        2, 2), padding='same', name='block4_pool')(block4_conv3)
+    return input_layer, block4_pool, block4_conv3
 
 
 def feature_map_dct(image_shape: Tuple[int, int], l2_regularization: float = 0.0005, kernel_initializer: str = 'he_normal'):
@@ -82,7 +82,7 @@ def feature_map_dct(image_shape: Tuple[int, int], l2_regularization: float = 0.0
         - kernel_initializer: The type of initializer for the convolution kernels.
 
     # Returns:
-        Three layers: input_layer, pool4, conv4_3. These layers are used to intantiate the network.
+        Three layers: input_layer, block4_pool, block4_conv3. These layers are used to intantiate the network.
     """
     if image_shape[0] is None:
         input_shape_y = (None, None, 64)
@@ -102,29 +102,29 @@ def feature_map_dct(image_shape: Tuple[int, int], l2_regularization: float = 0.0
     norm_y = BatchNormalization(
         name="b_norm_y", input_shape=input_shape_y)(input_y)
 
-    conv1_1 = Conv2D(256, (3, 3),
+    block1_conv1 = Conv2D(256, (3, 3),
                      activation='relu',
                      padding='same',
-                     name='conv1_1_dct_256')(norm_y)
+                     name='block1_conv1_dct_256')(norm_y)
 
     # Block 4
-    conv4_1 = Conv2D(512, (3, 3),
+    block4_conv1 = Conv2D(512, (3, 3),
                      activation='relu',
                      padding='same',
-                     name='conv4_1')(conv1_1)
-    conv4_2 = Conv2D(512, (3, 3),
+                     name='block4_conv1')(block1_conv1)
+    block4_conv2 = Conv2D(512, (3, 3),
                      activation='relu',
                      padding='same',
-                     name='conv4_2')(conv4_1)
-    conv4_3 = Conv2D(512, (3, 3),
+                     name='block4_conv2')(block4_conv1)
+    block4_conv3 = Conv2D(512, (3, 3),
                      activation='relu',
                      padding='same',
-                     name='conv4_3')(conv4_2)
-    pool4 = MaxPooling2D((2, 2), strides=(2, 2), name='pool4')(conv4_3)
+                     name='block4_conv3')(block4_conv2)
+    block4_pool = MaxPooling2D((2, 2), strides=(2, 2), name='block4_pool')(block4_conv3)
 
-    concat = Concatenate(axis=-1, name="concat_dct")([pool4, norm_cbcr])
+    concat = Concatenate(axis=-1, name="concat_dct")([block4_pool, norm_cbcr])
 
-    return [input_y, input_cbcr], concat, conv4_3
+    return [input_y, input_cbcr], concat, block4_conv3
 
 
 def ssd300(n_classes: int,
@@ -186,23 +186,23 @@ def ssd300(n_classes: int,
 
     # Prepare the feature extractor.
     if not dct:
-        input_layer, pool4, conv4_3 = feature_map_rgb(
+        input_layer, block4_pool, block4_conv3 = feature_map_rgb(
             image_shape, l2_regularization=l2_regularization, kernel_initializer=kernel_initializer)
     else:
-        input_layer, pool4, conv4_3 = feature_map_dct(
+        input_layer, block4_pool, block4_conv3 = feature_map_dct(
             image_shape, l2_regularization=l2_regularization, kernel_initializer=kernel_initializer)
 
     # Create the network.
-    conv5_1 = Conv2D(512, (3, 3), activation='relu', padding='same',
-                     kernel_initializer=kernel_initializer, name='conv5_1')(pool4)
-    conv5_2 = Conv2D(512, (3, 3), activation='relu', padding='same',
-                     kernel_initializer=kernel_initializer, name='conv5_2')(conv5_1)
-    conv5_3 = Conv2D(512, (3, 3), activation='relu', padding='same',
-                     kernel_initializer=kernel_initializer, name='conv5_3')(conv5_2)
-    pool5 = MaxPooling2D(pool_size=(3, 3), strides=(
-        1, 1), padding='same', name='pool5')(conv5_3)
+    block5_conv1 = Conv2D(512, (3, 3), activation='relu', padding='same',
+                     kernel_initializer=kernel_initializer, name='block5_conv1')(block4_pool)
+    block5_conv2 = Conv2D(512, (3, 3), activation='relu', padding='same',
+                     kernel_initializer=kernel_initializer, name='block5_conv2')(block5_conv1)
+    block5_conv3 = Conv2D(512, (3, 3), activation='relu', padding='same',
+                     kernel_initializer=kernel_initializer, name='block5_conv3')(block5_conv2)
+    block5_pool = MaxPooling2D(pool_size=(3, 3), strides=(
+        1, 1), padding='same', name='block5_pool')(block5_conv3)
     fc6 = Conv2D(1024, (3, 3), dilation_rate=(6, 6), activation='relu', padding='same',
-                 kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='fc6')(pool5)
+                 kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='fc6')(block5_pool)
 
     fc7 = Conv2D(1024, (1, 1), activation='relu', padding='same',
                  kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='fc7')(fc6)
@@ -231,14 +231,14 @@ def ssd300(n_classes: int,
     conv9_2 = Conv2D(256, (3, 3), strides=(1, 1), activation='relu', padding='valid',
                      kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='conv9_2')(conv9_1)
 
-    # Feed conv4_3 into the L2 normalization layer
-    conv4_3_norm = L2Normalization(gamma_init=20, name='conv4_3_norm')(conv4_3)
+    # Feed block4_conv3 into the L2 normalization layer
+    block4_conv3_norm = L2Normalization(gamma_init=20, name='block4_conv3_norm')(block4_conv3)
 
     # Build the convolutional predictor layers on top of the base network
     # We predict `n_classes` confidence values for each box, hence the confidence predictors have depth `n_boxes * n_classes`
     # Output shape of the confidence layers: `(batch, height, width, n_boxes * n_classes)`
-    conv4_3_norm_mbox_conf = Conv2D(n_boxes[0] * n_classes, (3, 3), padding='same', kernel_initializer=kernel_initializer,
-                                    kernel_regularizer=l2(l2_regularization), name='conv4_3_norm_mbox_conf')(conv4_3_norm)
+    block4_conv3_norm_mbox_conf = Conv2D(n_boxes[0] * n_classes, (3, 3), padding='same', kernel_initializer=kernel_initializer,
+                                    kernel_regularizer=l2(l2_regularization), name='block4_conv3_norm_mbox_conf')(block4_conv3_norm)
     fc7_mbox_conf = Conv2D(n_boxes[1] * n_classes, (3, 3), padding='same',
                            kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='fc7_mbox_conf')(fc7)
     conv6_2_mbox_conf = Conv2D(n_boxes[2] * n_classes, (3, 3), padding='same',
@@ -252,8 +252,8 @@ def ssd300(n_classes: int,
 
     # We predict 4 box coordinates for each box, hence the localization predictors have depth `n_boxes * 4`
     # Output shape of the localization layers: `(batch, height, width, n_boxes * 4)`
-    conv4_3_norm_mbox_loc = Conv2D(n_boxes[0] * 4, (3, 3), padding='same', kernel_initializer=kernel_initializer,
-                                   kernel_regularizer=l2(l2_regularization), name='conv4_3_norm_mbox_loc')(conv4_3_norm)
+    block4_conv3_norm_mbox_loc = Conv2D(n_boxes[0] * 4, (3, 3), padding='same', kernel_initializer=kernel_initializer,
+                                   kernel_regularizer=l2(l2_regularization), name='block4_conv3_norm_mbox_loc')(block4_conv3_norm)
     fc7_mbox_loc = Conv2D(n_boxes[1] * 4, (3, 3), padding='same', kernel_initializer=kernel_initializer,
                           kernel_regularizer=l2(l2_regularization), name='fc7_mbox_loc')(fc7)
     conv6_2_mbox_loc = Conv2D(n_boxes[2] * 4, (3, 3), padding='same', kernel_initializer=kernel_initializer,
@@ -268,8 +268,8 @@ def ssd300(n_classes: int,
     # Generate the anchor (prior) boxes
     # Output shape of anchors: `(batch, height, width, n_boxes, 8)
     if image_shape[0] is None:
-        conv4_3_norm_mbox_priorbox = AnchorBoxesTensorflow(
-            this_scale=scales[0], next_scale=scales[1], step=steps[0], aspect_ratios=aspect_ratios[0], name='conv4_3_norm_mbox_priorbox')(conv4_3_norm_mbox_loc)
+        block4_conv3_norm_mbox_priorbox = AnchorBoxesTensorflow(
+            this_scale=scales[0], next_scale=scales[1], step=steps[0], aspect_ratios=aspect_ratios[0], name='block4_conv3_norm_mbox_priorbox')(block4_conv3_norm_mbox_loc)
         fc7_mbox_priorbox = AnchorBoxesTensorflow(
             this_scale=scales[1], next_scale=scales[2], step=steps[1], aspect_ratios=aspect_ratios[1], name='fc7_mbox_priorbox')(fc7_mbox_loc)
         conv6_2_mbox_priorbox = AnchorBoxesTensorflow(
@@ -281,8 +281,8 @@ def ssd300(n_classes: int,
         conv9_2_mbox_priorbox = AnchorBoxesTensorflow(
             this_scale=scales[5], next_scale=scales[6], step=steps[5], aspect_ratios=aspect_ratios[5], name='conv9_2_mbox_priorbox')(conv9_2_mbox_loc)
     else:
-        conv4_3_norm_mbox_priorbox = AnchorBoxes(
-            img_h, img_w, this_scale=scales[0], next_scale=scales[1], aspect_ratios=aspect_ratios[0], this_steps=steps[0], this_offsets=offsets[0])(conv4_3_norm_mbox_loc)
+        block4_conv3_norm_mbox_priorbox = AnchorBoxes(
+            img_h, img_w, this_scale=scales[0], next_scale=scales[1], aspect_ratios=aspect_ratios[0], this_steps=steps[0], this_offsets=offsets[0])(block4_conv3_norm_mbox_loc)
         fc7_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[1], next_scale=scales[2], aspect_ratios=aspect_ratios[1],
                                         this_steps=steps[1], this_offsets=offsets[1])(fc7_mbox_loc)
         conv6_2_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[2], next_scale=scales[3], aspect_ratios=aspect_ratios[2],
@@ -297,8 +297,8 @@ def ssd300(n_classes: int,
     # Reshape
     # Reshape the class predictions, yielding 3D tensors of shape `(batch, height * width * n_boxes, n_classes)`
     # We want the classes isolated in the last axis to perform softmax on them
-    conv4_3_norm_mbox_conf_reshape = Reshape(
-        (-1, n_classes), name='conv4_3_norm_mbox_conf_reshape')(conv4_3_norm_mbox_conf)
+    block4_conv3_norm_mbox_conf_reshape = Reshape(
+        (-1, n_classes), name='block4_conv3_norm_mbox_conf_reshape')(block4_conv3_norm_mbox_conf)
     fc7_mbox_conf_reshape = Reshape(
         (-1, n_classes), name='fc7_mbox_conf_reshape')(fc7_mbox_conf)
     conv6_2_mbox_conf_reshape = Reshape(
@@ -312,8 +312,8 @@ def ssd300(n_classes: int,
 
     # Reshape the box predictions, yielding 3D tensors of shape `(batch, height * width * n_boxes, 4)`
     # We want the four box coordinates isolated in the last axis to compute the smooth L1 loss
-    conv4_3_norm_mbox_loc_reshape = Reshape(
-        (-1, 4), name='conv4_3_norm_mbox_loc_reshape')(conv4_3_norm_mbox_loc)
+    block4_conv3_norm_mbox_loc_reshape = Reshape(
+        (-1, 4), name='block4_conv3_norm_mbox_loc_reshape')(block4_conv3_norm_mbox_loc)
     fc7_mbox_loc_reshape = Reshape(
         (-1, 4), name='fc7_mbox_loc_reshape')(fc7_mbox_loc)
     conv6_2_mbox_loc_reshape = Reshape(
@@ -326,8 +326,8 @@ def ssd300(n_classes: int,
         (-1, 4), name='conv9_2_mbox_loc_reshape')(conv9_2_mbox_loc)
 
     # Reshape the anchor box tensors, yielding 3D tensors of shape `(batch, height * width * n_boxes, 8)`
-    conv4_3_norm_mbox_priorbox_reshape = Reshape(
-        (-1, 8), name='conv4_3_norm_mbox_priorbox_reshape')(conv4_3_norm_mbox_priorbox)
+    block4_conv3_norm_mbox_priorbox_reshape = Reshape(
+        (-1, 8), name='block4_conv3_norm_mbox_priorbox_reshape')(block4_conv3_norm_mbox_priorbox)
     fc7_mbox_priorbox_reshape = Reshape(
         (-1, 8), name='fc7_mbox_priorbox_reshape')(fc7_mbox_priorbox)
     conv6_2_mbox_priorbox_reshape = Reshape(
@@ -344,7 +344,7 @@ def ssd300(n_classes: int,
     # Axis 0 (batch) and axis 2 (n_classes or 4, respectively) are identical for all layer predictions,
     # so we want to concatenate along axis 1, the number of boxes per layer
     # Output shape of `mbox_conf`: (batch, n_boxes_total, n_classes)
-    mbox_conf = Concatenate(axis=1, name='mbox_conf')([conv4_3_norm_mbox_conf_reshape,
+    mbox_conf = Concatenate(axis=1, name='mbox_conf')([block4_conv3_norm_mbox_conf_reshape,
                                                        fc7_mbox_conf_reshape,
                                                        conv6_2_mbox_conf_reshape,
                                                        conv7_2_mbox_conf_reshape,
@@ -352,7 +352,7 @@ def ssd300(n_classes: int,
                                                        conv9_2_mbox_conf_reshape])
 
     # Output shape of `mbox_loc`: (batch, n_boxes_total, 4)
-    mbox_loc = Concatenate(axis=1, name='mbox_loc')([conv4_3_norm_mbox_loc_reshape,
+    mbox_loc = Concatenate(axis=1, name='mbox_loc')([block4_conv3_norm_mbox_loc_reshape,
                                                      fc7_mbox_loc_reshape,
                                                      conv6_2_mbox_loc_reshape,
                                                      conv7_2_mbox_loc_reshape,
@@ -360,7 +360,7 @@ def ssd300(n_classes: int,
                                                      conv9_2_mbox_loc_reshape])
 
     # Output shape of `mbox_priorbox`: (batch, n_boxes_total, 8)
-    mbox_priorbox = Concatenate(axis=1, name='mbox_priorbox')([conv4_3_norm_mbox_priorbox_reshape,
+    mbox_priorbox = Concatenate(axis=1, name='mbox_priorbox')([block4_conv3_norm_mbox_priorbox_reshape,
                                                                fc7_mbox_priorbox_reshape,
                                                                conv6_2_mbox_priorbox_reshape,
                                                                conv7_2_mbox_priorbox_reshape,
