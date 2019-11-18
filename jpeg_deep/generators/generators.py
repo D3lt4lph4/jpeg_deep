@@ -135,9 +135,10 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
             for transform in self.albumentation_compose:
                 img = transform(image=img)['image']
 
-            _, buffer = cv2.imencode(img)
+            _, buffer = cv2.imencode(".jpg", img)
+            io_buf = BytesIO(buffer)
 
-            dct_y, dct_cb, dct_cr = loads(buffer)
+            dct_y, dct_cb, dct_cr = loads(io_buf.getvalue())
 
             try:
                 X_y[i] = dct_y

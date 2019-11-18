@@ -17,7 +17,7 @@ from albumentations import (
     Transpose, ShiftScaleRotate, Blur, OpticalDistortion, GridDistortion, HueSaturationValue,
     IAAAdditiveGaussianNoise, GaussNoise, MotionBlur, MedianBlur, RandomBrightnessContrast, IAAPiecewiseAffine,
     IAASharpen, IAAEmboss, Flip, OneOf, Compose,
-    CenterCrop
+    SmallestMaxSize, CenterCrop
 )
 
 
@@ -53,9 +53,9 @@ class TrainingConfiguration(TemplateConfiguration):
         self.batch_size_divider = 2
         self._steps_per_epoch = 5000
         self._validation_steps = 50000 // self._batch_size
-        self._optimizer_parameters = {
+        self.optimizer_parameters = {
             "lr": 0.01, "momentum": 0.9, "decay": 0, "nesterov": True}
-        self._optimizer = SGD(**self._optimizer_parameters)
+        self._optimizer = SGD(**self.optimizer_parameters)
         self._loss = categorical_crossentropy
         self._metrics = [_top_k_accuracy(1), _top_k_accuracy(5)]
         self.train_directory = join(
@@ -92,9 +92,10 @@ class TrainingConfiguration(TemplateConfiguration):
             HueSaturationValue(p=0.3),
 
         ], p=0.5),
+            SmallestMaxSize(256),
             CenterCrop(224, 224)]
 
-        self.validation_transformations = [CenterCrop(224, 224)]
+        self.validation_transformations = [SmallestMaxSize(256), CenterCrop(224, 224)]
 
         # Keras stuff
         self.model_checkpoint = None
@@ -102,7 +103,7 @@ class TrainingConfiguration(TemplateConfiguration):
         self.terminate_on_nan = TerminateOnNaN()
         self.early_stopping = EarlyStopping(monitor='val_loss',
                                             min_delta=0,
-                                            patience=10),
+                                            patience=10)
 
         self._callbacks = [self.terminate_on_nan, self.early_stopping]
 
@@ -188,9 +189,9 @@ class TrainingConfiguration(TemplateConfiguration):
 
     def prepare_training_generators(self):
         self._train_generator = DCTGeneratorJPEG2DCT(
-            self.train_directory, self.index_file, self._batch_size, albumentations_compose=self.train_transformations)
+            self.train_directory, self.index_file, self._batch_size, albumentation_compose=self.train_transformations)
         self._validation_generator = DCTGeneratorJPEG2DCT(
-            self.validation_directory, self.index_file, self._batch_size, self.validation_transformations)
+            self.validation_directory, self.index_file, self._batch_size, albumentation_compose=self.validation_transformations)
 
     @property
     def train_generator(self):
