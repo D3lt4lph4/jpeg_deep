@@ -20,7 +20,10 @@ from operator import itemgetter
 import keras.backend as K
 
 import tensorflow as tf
-import horovod.keras as hvd
+try:
+    import horovod.keras as hvd
+except ImportError:
+    print("Failed to import Horovod, skipping the module.")
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
