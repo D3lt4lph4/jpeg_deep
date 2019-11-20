@@ -9,12 +9,24 @@ import numpy as np
 
 from keras.preprocessing.image import ImageDataGenerator
 
+from jpeg_deep.generators import RGBGenerator
+from keras.metrics import top_k_categorical_accuracy
+
+
+def _top_k_accuracy(k):
+    def _func(y_true, y_pred):
+        return top_k_categorical_accuracy(y_true, y_pred, k)
+    return _func
+
+
 model = VGG16(weights='imagenet', include_top=True)
 
-model.compile(optimizer=SGD(), loss=categorical_crossentropy, metrics=["accuracy"])
+model.compile(optimizer=SGD(), loss=categorical_crossentropy,
+              metrics=[_top_k_accuracy(1), _top_k_accuracy(5)])
 
 dir = "/data/thesis/datasets/imagenet/image_files/validation/"
 
-generator = ImageDataGenerator(preprocessing_function=preprocess_input).flow_from_directory(dir, target_size=(224,224), batch_size=2)
+generator = RGBGenerator(
+    "/d2/thesis/datasets/imagenet/validation", "./data/imagenet_class_index.json", batch_size=1)
 
-print(model.evaluate(generator))
+print(model.evaluate_generator(generator, verbose=1))
