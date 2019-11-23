@@ -322,7 +322,7 @@ class RGBGenerator(TemplateGenerator):
                  index_file,
                  batch_size=32,
                  shuffle=False,
-                 albumentation_compose=None):
+                 transforms=None):
         # Process the index dictionary to get the matching name/class_id
         self.association, self.classes, self.images_path = prepare_imagenet(
             index_file, data_directory)
@@ -333,7 +333,7 @@ class RGBGenerator(TemplateGenerator):
         self._number_of_data_samples = len(self.images_path)
 
         # Internal data
-        self.albumentation_compose = albumentation_compose
+        self.transforms = transforms
         self.number_of_classes = len(self.classes)
         self.batches_per_epoch = len(self.images_path) // self._batch_size
         self.indexes = np.arange(len(self.images_path))
@@ -405,10 +405,16 @@ class RGBGenerator(TemplateGenerator):
             index_class = self.images_path[k][second_last_slash + 1:last_slash]
 
             # Load the image in RGB
+            
             img = Image.open(self.images_path[k])
             img = img.convert("RGB")
-            img = img.resize((224, 224))
             img = np.asarray(img)
+            if self.transforms:
+                for transform in self.transforms:
+                    img = transform(image=img)['image']
+            
+
+            
             # img = cv2.imread(self.images_path[k])
             # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             # img = cv2.resize(img, (224, 224))
