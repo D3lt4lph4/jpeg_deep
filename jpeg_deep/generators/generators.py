@@ -16,7 +16,7 @@ from jpeg2dct.numpy import load, loads
 
 from keras.applications.vgg16 import preprocess_input
 
-from tensorflow.keras.utils import Sequence
+from keras.utils import Sequence
 
 from template_keras.generators import TemplateGenerator
 

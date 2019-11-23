@@ -2,11 +2,11 @@ from os import environ
 from os.path import join
 
 
-from tensorflow.keras.optimizers import Adadelta, SGD
-from tensorflow.keras.losses import categorical_crossentropy
-from tensorflow.keras.callbacks import ModelCheckpoint, TerminateOnNaN, CSVLogger, EarlyStopping, ReduceLROnPlateau
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.applications.vgg16 import preprocess_input
+from keras.optimizers import Adadelta, SGD
+from keras.losses import categorical_crossentropy
+from keras.callbacks import ModelCheckpoint, TerminateOnNaN, CSVLogger, EarlyStopping, ReduceLROnPlateau
+from keras.preprocessing.image import ImageDataGenerator
+from keras.applications.vgg16 import preprocess_input
 
 from jpeg_deep.networks import ssd300
 from jpeg_deep.generators import VOCGeneratorDCT

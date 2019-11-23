@@ -3,9 +3,9 @@ from typing import Tuple
 import numpy as np
 
 import tensorflow as tf
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Lambda, Activation, Conv2D, MaxPooling2D, Reshape, Concatenate, BatchNormalization, ZeroPadding2D
-from tensorflow.keras.regularizers import l2
+from keras.models import Model
+from keras.layers import Input, Lambda, Activation, Conv2D, MaxPooling2D, Reshape, Concatenate, BatchNormalization, ZeroPadding2D
+from keras.regularizers import l2
 
 from jpeg_deep.layers.ssd_layers import AnchorBoxes, AnchorBoxesTensorflow, L2Normalization, DecodeDetections
 
@@ -40,34 +40,34 @@ def feature_map_rgb(image_shape: Tuple[int, int], l2_regularization: float = 0.0
         img_h, img_w, 3), name='input_mean_normalization')(lambda_layer)
 
     block1_conv1 = Conv2D(64, (3, 3), activation='relu', padding='same',
-                     kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='block1_conv1')(input_mean_normalization_layer)
+                          kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='block1_conv1')(input_mean_normalization_layer)
     block1_conv2 = Conv2D(64, (3, 3), activation='relu', padding='same',
-                     kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='block1_conv2')(block1_conv1)
+                          kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='block1_conv2')(block1_conv1)
     block1_pool = MaxPooling2D(pool_size=(2, 2), strides=(
         2, 2), padding='same', name='block1_pool')(block1_conv2)
 
     block2_conv1 = Conv2D(128, (3, 3), activation='relu', padding='same',
-                     kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='block2_conv1')(block1_pool)
+                          kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='block2_conv1')(block1_pool)
     block2_conv2 = Conv2D(128, (3, 3), activation='relu', padding='same',
-                     kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='block2_conv2')(block2_conv1)
+                          kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='block2_conv2')(block2_conv1)
     block2_pool = MaxPooling2D(pool_size=(2, 2), strides=(
         2, 2), padding='same', name='block2_pool')(block2_conv2)
 
     block3_conv1 = Conv2D(256, (3, 3), activation='relu', padding='same',
-                     kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='block3_conv1')(block2_pool)
+                          kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='block3_conv1')(block2_pool)
     block3_conv2 = Conv2D(256, (3, 3), activation='relu', padding='same',
-                     kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='block3_conv2')(block3_conv1)
+                          kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='block3_conv2')(block3_conv1)
     block3_conv3 = Conv2D(256, (3, 3), activation='relu', padding='same',
-                     kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='block3_conv3')(block3_conv2)
+                          kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='block3_conv3')(block3_conv2)
     block3_pool = MaxPooling2D(pool_size=(2, 2), strides=(
         2, 2), padding='same', name='block3_pool')(block3_conv3)
 
     block4_conv1 = Conv2D(512, (3, 3), activation='relu', padding='same', kernel_initializer=kernel_initializer,
-                     kernel_regularizer=l2(l2_regularization), name='block4_conv1')(block3_pool)
+                          kernel_regularizer=l2(l2_regularization), name='block4_conv1')(block3_pool)
     block4_conv2 = Conv2D(512, (3, 3), activation='relu', padding='same',
-                     kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='block4_conv2')(block4_conv1)
+                          kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='block4_conv2')(block4_conv1)
     block4_conv3 = Conv2D(512, (3, 3), activation='relu', padding='same',
-                     kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='block4_conv3')(block4_conv2)
+                          kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='block4_conv3')(block4_conv2)
     block4_pool = MaxPooling2D(pool_size=(2, 2), strides=(
         2, 2), padding='same', name='block4_pool')(block4_conv3)
     return input_layer, block4_pool, block4_conv3
@@ -103,24 +103,25 @@ def feature_map_dct(image_shape: Tuple[int, int], l2_regularization: float = 0.0
         name="b_norm_y", input_shape=input_shape_y)(input_y)
 
     block1_conv1 = Conv2D(256, (3, 3),
-                     activation='relu',
-                     padding='same',
-                     name='block1_conv1_dct_256')(norm_y)
+                          activation='relu',
+                          padding='same',
+                          name='block1_conv1_dct_256')(norm_y)
 
     # Block 4
     block4_conv1 = Conv2D(512, (3, 3),
-                     activation='relu',
-                     padding='same',
-                     name='block4_conv1_dct')(block1_conv1)
+                          activation='relu',
+                          padding='same',
+                          name='block4_conv1_dct')(block1_conv1)
     block4_conv2 = Conv2D(512, (3, 3),
-                     activation='relu',
-                     padding='same',
-                     name='block4_conv2')(block4_conv1)
+                          activation='relu',
+                          padding='same',
+                          name='block4_conv2')(block4_conv1)
     block4_conv3 = Conv2D(512, (3, 3),
-                     activation='relu',
-                     padding='same',
-                     name='block4_conv3')(block4_conv2)
-    block4_pool = MaxPooling2D((2, 2), strides=(2, 2), name='block4_pool')(block4_conv3)
+                          activation='relu',
+                          padding='same',
+                          name='block4_conv3')(block4_conv2)
+    block4_pool = MaxPooling2D((2, 2), strides=(
+        2, 2), name='block4_pool')(block4_conv3)
 
     concat = Concatenate(axis=-1, name="concat_dct")([block4_pool, norm_cbcr])
 
@@ -198,11 +199,11 @@ def ssd300(n_classes: int,
     else:
         name = 'block5_conv1'
     block5_conv1 = Conv2D(512, (3, 3), activation='relu', padding='same',
-                     kernel_initializer=kernel_initializer, name=name)(block4_pool)
+                          kernel_initializer=kernel_initializer, name=name)(block4_pool)
     block5_conv2 = Conv2D(512, (3, 3), activation='relu', padding='same',
-                     kernel_initializer=kernel_initializer, name='block5_conv2')(block5_conv1)
+                          kernel_initializer=kernel_initializer, name='block5_conv2')(block5_conv1)
     block5_conv3 = Conv2D(512, (3, 3), activation='relu', padding='same',
-                     kernel_initializer=kernel_initializer, name='block5_conv3')(block5_conv2)
+                          kernel_initializer=kernel_initializer, name='block5_conv3')(block5_conv2)
     block5_pool = MaxPooling2D(pool_size=(3, 3), strides=(
         1, 1), padding='same', name='block5_pool')(block5_conv3)
     fc6 = Conv2D(1024, (3, 3), dilation_rate=(6, 6), activation='relu', padding='same',
@@ -236,13 +237,14 @@ def ssd300(n_classes: int,
                      kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='conv9_2')(conv9_1)
 
     # Feed block4_conv3 into the L2 normalization layer
-    block4_conv3_norm = L2Normalization(gamma_init=20, name='block4_conv3_norm')(block4_conv3)
+    block4_conv3_norm = L2Normalization(
+        gamma_init=20, name='block4_conv3_norm')(block4_conv3)
 
     # Build the convolutional predictor layers on top of the base network
     # We predict `n_classes` confidence values for each box, hence the confidence predictors have depth `n_boxes * n_classes`
     # Output shape of the confidence layers: `(batch, height, width, n_boxes * n_classes)`
     block4_conv3_norm_mbox_conf = Conv2D(n_boxes[0] * n_classes, (3, 3), padding='same', kernel_initializer=kernel_initializer,
-                                    kernel_regularizer=l2(l2_regularization), name='block4_conv3_norm_mbox_conf')(block4_conv3_norm)
+                                         kernel_regularizer=l2(l2_regularization), name='block4_conv3_norm_mbox_conf')(block4_conv3_norm)
     fc7_mbox_conf = Conv2D(n_boxes[1] * n_classes, (3, 3), padding='same',
                            kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='fc7_mbox_conf')(fc7)
     conv6_2_mbox_conf = Conv2D(n_boxes[2] * n_classes, (3, 3), padding='same',
@@ -257,7 +259,7 @@ def ssd300(n_classes: int,
     # We predict 4 box coordinates for each box, hence the localization predictors have depth `n_boxes * 4`
     # Output shape of the localization layers: `(batch, height, width, n_boxes * 4)`
     block4_conv3_norm_mbox_loc = Conv2D(n_boxes[0] * 4, (3, 3), padding='same', kernel_initializer=kernel_initializer,
-                                   kernel_regularizer=l2(l2_regularization), name='block4_conv3_norm_mbox_loc')(block4_conv3_norm)
+                                        kernel_regularizer=l2(l2_regularization), name='block4_conv3_norm_mbox_loc')(block4_conv3_norm)
     fc7_mbox_loc = Conv2D(n_boxes[1] * 4, (3, 3), padding='same', kernel_initializer=kernel_initializer,
                           kernel_regularizer=l2(l2_regularization), name='fc7_mbox_loc')(fc7)
     conv6_2_mbox_loc = Conv2D(n_boxes[2] * 4, (3, 3), padding='same', kernel_initializer=kernel_initializer,
