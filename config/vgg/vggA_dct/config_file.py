@@ -47,7 +47,7 @@ def _top_k_accuracy(k):
 class TrainingConfiguration(TemplateConfiguration):
     def __init__(self):
         # Variables to hold the description of the experiment
-        self.description = "Training configuration file for the DCT version of the  VGGA network."
+        self.description = "Training configuration file for the DCT version of the VGGA network."
 
         # System dependent variable
         self._workers = 5
