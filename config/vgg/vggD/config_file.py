@@ -6,8 +6,37 @@ from keras.losses import categorical_crossentropy
 from keras.callbacks import ModelCheckpoint, TerminateOnNaN, CSVLogger, EarlyStopping, ReduceLROnPlateau
 from keras.preprocessing.image import ImageDataGenerator
 from keras.applications.vgg16 import preprocess_input
+from keras.metrics import top_k_categorical_accuracy
+
+from jpeg_deep.generators import RGBGenerator
 
 from jpeg_deep.networks import vggd
+from jpeg_deep.evaluation import Evaluator
+
+from albumentations import (
+    Blur,
+    HorizontalFlip,
+    RandomCrop,
+    CenterCrop,
+    RandomGamma,
+    Rotate,
+    OpticalDistortion,
+    ElasticTransform,
+    HueSaturationValue,
+    RandomBrightness,
+    RandomContrast,
+    MotionBlur,
+    MedianBlur,
+    GaussianBlur,
+    ChannelShuffle,
+    SmallestMaxSize,
+    RandomBrightnessContrast
+)
+
+from albumentations import (
+    OneOf,
+    Compose
+)
 
 
 def _top_k_accuracy(k):
@@ -19,7 +48,7 @@ def _top_k_accuracy(k):
 class TrainingConfiguration(object):
     def __init__(self):
         # Variables to hold the description of the experiment
-        self.config_description = ""
+        self.description = "Training configuration file for the RGB version of the VGGA network."
 
         # System dependent variable
         self._workers = 10
@@ -27,13 +56,13 @@ class TrainingConfiguration(object):
         self._gpus = 1
 
         # Variables for comet.ml
-        self._project_name = "vgg-dct"
-        self._workspace = "d3lt4lph4"
+        self._project_name = "jpeg_deep"
+        self._workspace = "classification_rgb"
 
         # Network variables
         self.num_classes = 1000
         self.img_size = (224, 224)
-        self._weights = "/dlocal/home/2017018/bdegue01/experiments/d3lt4lph4_vgg-dct_7pJhOZMuNP429GGiuriKDUdIjdiVryQq/checkpoints/epoch-34_loss-1.7316_val_loss-2.0638.h5"
+        self._weights = ""
         self._network = vggd(self.num_classes)
 
         # Training variables
@@ -46,21 +75,42 @@ class TrainingConfiguration(object):
             "lr": 0.01, "momentum": 0.9, "decay": 0, "nesterov": True}
         self._optimizer = SGD(**self.optimizer_parameters)
         self._loss = categorical_crossentropy
-        self._metrics = ['accuracy']
+        self._metrics = [_top_k_accuracy(1), _top_k_accuracy(5)]
         self.train_directory = join(
             environ["DATASET_PATH_TRAIN"], "imagenet/train")
         self.validation_directory = join(
             environ["DATASET_PATH_VAL"], "imagenet/validation")
+        self.index_file = "/home/2017018/bdegue01/git/vgg_jpeg/data/imagenet_class_index.json"
+
+        # Defining the transformations that will be applied to the inputs.
+        self.train_transformations = [
+            OneOf([
+                OneOf([Blur(), MotionBlur(), MedianBlur(),
+                       GaussianBlur()], p=0.5),
+                OneOf([HueSaturationValue(),
+                       RandomBrightness(), RandomContrast(), RandomGamma()]),
+
+            ], p=0.5),
+            OneOf([HorizontalFlip(), Rotate(limit=25), OneOf(
+                [OpticalDistortion(), ElasticTransform()], p=0.5)], p=0.5),
+            SmallestMaxSize(256),
+            RandomCrop(224, 224)
+        ]
+
+        self.validation_transformations = [
+            SmallestMaxSize(256), CenterCrop(224, 224)]
 
         # Keras stuff
         self.model_checkpoint = None
         self.csv_logger = None
+        self.reduce_lr_on_plateau = ReduceLROnPlateau(patience=5, verbose=1)
         self.terminate_on_nan = TerminateOnNaN()
         self.early_stopping = EarlyStopping(monitor='val_loss',
                                             min_delta=0,
-                                            patience=7)
+                                            patience=10)
 
-        self._callbacks = [self.terminate_on_nan, self.early_stopping]
+        self._callbacks = [self.reduce_lr_on_plateau,
+                           self.terminate_on_nan, self.early_stopping]
 
         # Creating the training and validation generator
         self._train_generator = None
@@ -118,7 +168,7 @@ class TrainingConfiguration(object):
                 warmup_epochs=5, verbose=1),
 
             # Reduce the learning rate if training plateaues.
-            ReduceLROnPlateau(patience=10, verbose=1),
+            self.reduce_lr_on_plateau,
 
             self.terminate_on_nan,
 
@@ -143,21 +193,10 @@ class TrainingConfiguration(object):
         pass
 
     def prepare_training_generators(self):
-        self._train_generator = ImageDataGenerator(featurewise_center=True,
-                                                   rotation_range=0.2,
-                                                   shear_range=0.2,
-                                                   zoom_range=0.2,
-                                                   vertical_flip=True,
-                                                   validation_split=0,
-                                                   preprocessing_function=preprocess_input).flow_from_directory(
-            self.train_directory,
-            target_size=self.img_size,
-            batch_size=self.batch_size)
-        self._validation_generator = ImageDataGenerator(
-            preprocessing_function=preprocess_input).flow_from_directory(
-                self.validation_directory,
-                target_size=self.img_size,
-                batch_size=self.batch_size)
+        self._train_generator = RGBGenerator(
+            self.train_directory, self.index_file, self.batch_size, shuffle=True, transforms=self.train_transformations)
+        self._validation_generator = RGBGenerator(
+            self.validation_directory, self.index_file, self.batch_size, shuffle=False, transforms=self.validation_transformations)
 
     @property
     def train_generator(self):
