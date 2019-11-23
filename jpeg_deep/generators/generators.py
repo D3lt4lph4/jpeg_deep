@@ -327,6 +327,8 @@ class RGBGenerator(TemplateGenerator):
         self.association, self.classes, self.images_path = prepare_imagenet(
             index_file, data_directory)
 
+        #self.classes = self.classes[:1000]
+        #self.images_path = self.images_path[:1000]
         # External data
         self._batch_size = batch_size
         self._shuffle = shuffle
@@ -405,16 +407,14 @@ class RGBGenerator(TemplateGenerator):
             index_class = self.images_path[k][second_last_slash + 1:last_slash]
 
             # Load the image in RGB
-            
+
             img = Image.open(self.images_path[k])
             img = img.convert("RGB")
             img = np.asarray(img)
             if self.transforms:
                 for transform in self.transforms:
                     img = transform(image=img)['image']
-            
 
-            
             # img = cv2.imread(self.images_path[k])
             # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             # img = cv2.resize(img, (224, 224))
