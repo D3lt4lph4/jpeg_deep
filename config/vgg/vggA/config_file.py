@@ -1,9 +1,6 @@
 from os.path import join
 from os import environ
 
-import cv2
-from random import randint
-
 from keras.optimizers import SGD
 from keras.losses import categorical_crossentropy
 from keras.callbacks import ModelCheckpoint, TerminateOnNaN, CSVLogger, EarlyStopping, ReduceLROnPlateau
@@ -11,10 +8,37 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras.applications.vgg16 import preprocess_input
 from keras.metrics import top_k_categorical_accuracy
 
+from jpeg_deep.generators import RGBGenerator
+
 from jpeg_deep.networks import vgga
 from jpeg_deep.evaluation import Evaluator
 
 from template_keras.config import TemplateConfiguration
+
+from albumentations import (
+    Blur,
+    HorizontalFlip,
+    RandomCrop,
+    CenterCrop,
+    RandomGamma,
+    Rotate,
+    OpticalDistortion,
+    ElasticTransform,
+    HueSaturationValue,
+    RandomBrightness,
+    RandomContrast,
+    MotionBlur,
+    MedianBlur,
+    GaussianBlur,
+    ChannelShuffle,
+    SmallestMaxSize,
+    RandomBrightnessContrast
+)
+
+from albumentations import (
+    OneOf,
+    Compose
+)
 
 
 def _top_k_accuracy(k):
@@ -23,37 +47,10 @@ def _top_k_accuracy(k):
     return _func
 
 
-def vgg_processing_function(image):
-
-    x_size, y_size, _ = image.shape
-
-    smallest = "x" if x_size < y_size else "y"
-
-    if smallest == "x":
-        ratio = 224 / x_size
-    else:
-        ratio = 224 / y_size
-
-    x_size, y_size = int(x_size * ratio), int(y_size * ratio)
-
-    # resize the image size to random value
-    image = cv2.resize(image, dsize=(x_size, y_size),
-                       interpolation=cv2.INTER_LINEAR)
-
-    if smallest == "x":
-        position = randint(0, y_size - 224)
-        image = image[:, position:position+224, :]
-    else:
-        position = randint(0, x_size - 224)
-        image = image[position:position+224, :, :]
-
-    return preprocess_input(image)
-
-
 class TrainingConfiguration(TemplateConfiguration):
     def __init__(self):
         # Variables to hold the description of the experiment
-        self.description = ""
+        self.description = "Training configuration file for the RGB version of the VGGA network."
 
         # System dependent variable
         self._workers = 5
@@ -61,8 +58,8 @@ class TrainingConfiguration(TemplateConfiguration):
         self._gpus = 1
 
         # Variables for comet.ml
-        self._project_name = "vgg-dct"
-        self._workspace = "d3lt4lph4"
+        self._project_name = "jpeg-deep"
+        self._workspace = "classification_rgb"
 
         # Network variables
         self.num_classes = 1000
@@ -85,16 +82,37 @@ class TrainingConfiguration(TemplateConfiguration):
             environ["DATASET_PATH_TRAIN"], "imagenet/train")
         self.validation_directory = join(
             environ["DATASET_PATH_VAL"], "imagenet/validation")
+        self.index_file = "/home/2017018/bdegue01/git/vgg_jpeg/data/imagenet_class_index.json"
+
+        # Defining the transformations that will be applied to the inputs.
+        self.train_transformations = [
+            OneOf([
+                OneOf([Blur(), MotionBlur(), MedianBlur(),
+                       GaussianBlur()], p=0.5),
+                OneOf([HueSaturationValue(),
+                       RandomBrightness(), RandomContrast(), RandomGamma()]),
+
+            ], p=0.5),
+            OneOf([HorizontalFlip(), Rotate(limit=25), OneOf(
+                [OpticalDistortion(), ElasticTransform()], p=0.5)], p=0.5),
+            SmallestMaxSize(256),
+            RandomCrop(224, 224)
+        ]
+
+        self.validation_transformations = [
+            SmallestMaxSize(256), CenterCrop(224, 224)]
 
         # Keras stuff
         self.model_checkpoint = None
         self.csv_logger = None
+        self.reduce_lr_on_plateau = ReduceLROnPlateau(patience=5, verbose=1)
         self.terminate_on_nan = TerminateOnNaN()
         self.early_stopping = EarlyStopping(monitor='val_loss',
                                             min_delta=0,
                                             patience=10)
 
-        self._callbacks = [self.terminate_on_nan, self.early_stopping]
+        self._callbacks = [self.reduce_lr_on_plateau,
+                           self.terminate_on_nan, self.early_stopping]
 
         # Creating the training and validation generator
         self._train_generator = None
@@ -177,21 +195,10 @@ class TrainingConfiguration(TemplateConfiguration):
         pass
 
     def prepare_training_generators(self):
-        self._train_generator = ImageDataGenerator(featurewise_center=True,
-                                                   rotation_range=0.2,
-                                                   shear_range=0.2,
-                                                   zoom_range=0.2,
-                                                   vertical_flip=True,
-                                                   validation_split=0,
-                                                   preprocessing_function=preprocess_input).flow_from_directory(
-            self.train_directory,
-            target_size=self.img_size,
-            batch_size=self.batch_size)
-        self._validation_generator = ImageDataGenerator(
-            preprocessing_function=preprocess_input).flow_from_directory(
-                self.validation_directory,
-                target_size=self.img_size,
-                batch_size=self.batch_size)
+        self._train_generator = RGBGenerator(
+            self.train_directory, self.index_file, self.batch_size, shuffle=True, transforms=self.train_transformations)
+        self._validation_generator = RGBGenerator(
+            self.validation_directory, self.index_file, self.batch_size, shuffle=False, transforms=self.validation_transformations)
 
     @property
     def train_generator(self):
