@@ -50,7 +50,7 @@ class TrainingConfiguration(TemplateConfiguration):
         self.description = "Training configuration file for the DCT version of the  VGGA network."
 
         # System dependent variable
-        self._workers = 5
+        self._workers = 28
         self._multiprocessing = True
         self._gpus = 1
 
@@ -61,12 +61,12 @@ class TrainingConfiguration(TemplateConfiguration):
         # Network variables
         self.num_classes = 1000
         self.img_size = (224, 224)
-        self._weights = "/dlocal/home/2017018/bdegue01/weights/vgg_keras_rgb/vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5"
+        self._weights = None
         self._network = vgga_dct(self.num_classes)
 
         # Training variables
         self._epochs = 120
-        self._batch_size = 1024
+        self._batch_size = 512
         self.batch_size_divider = 1
         self._steps_per_epoch = 5000
         self._validation_steps = 50000 // self._batch_size
