@@ -70,7 +70,7 @@ class TrainingConfiguration(TemplateConfiguration):
         # Training variables
         self._epochs = 120
         self._batch_size = 256
-        self.batch_size_divider = 2
+        self.batch_size_divider = 4
         self._steps_per_epoch = 5000
         self._validation_steps = 50000 // self._batch_size
         self.optimizer_parameters = {

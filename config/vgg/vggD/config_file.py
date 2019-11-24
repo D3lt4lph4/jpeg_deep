@@ -62,7 +62,7 @@ class TrainingConfiguration(object):
         # Network variables
         self.num_classes = 1000
         self.img_size = (224, 224)
-        self._weights = ""
+        self._weights = "/dlocal/home/2017018/bdegue01/weights/vgg_keras_rgb/vgg16_weights_tf_dim_ordering_tf_kernels.h5"
         self._network = vggd(self.num_classes)
 
         # Training variables
