@@ -158,125 +158,6 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
         return [X_y, X_cbcr], y
 
 
-class DCTGeneratorImageNet(TemplateGenerator):
-    'Generates data in the DCT space for Keras. This generator makes usage of the [following](https://github.com/D3lt4lph4/jpeg_decoder) repository to read the jpeg images in the correct format.'
-
-    def __init__(self,
-                 data_directory,
-                 index_file,
-                 batch_size=32,
-                 image_shape=(224, 224, 3),
-                 shuffle=True,
-                 target_length=224):
-
-        self.association, self.classes, self.images_path = prepare_imagenet(
-            index_file, data_directory)
-
-        # External variables
-        self._batch_size = batch_size
-        self._shuffle = shuffle
-        self._number_of_data_samples = len(self.images_path)
-
-        # Internal variables
-        self.image_shape = image_shape
-        self.decoder = jpegdecoder.decoder.JPEGDecoder()
-        self.target_length = target_length
-        self.number_of_classes = len(self.classes)
-        self.batches_per_epoch = len(self.images_path) // self.batch_size
-        self.indexes = np.arange(len(self.images_path))
-
-        # Initialization of the network
-        self.on_epoch_end()
-
-    def __len__(self):
-        'Denotes the number of batches per epoch'
-        return self.batches_per_epoch
-
-    def __getitem__(self, index):
-        'Generate one batch of data'
-        # Generate indexes of the batch
-        # We have to use modulo to avoid overflowing the index size if we have too many batches per epoch
-        index = index % self.batches_per_epoch
-        indexes = self.indexes[index * self.batch_size:(index + 1) *
-                               self.batch_size]
-        batch_images_path = []
-        # Find list of IDs
-        for k in indexes:
-            last_slash = self.images_path[k].rfind("/")
-            second_last_slash = self.images_path[k][:last_slash].rfind("/")
-            index_class = self.images_path[k][second_last_slash + 1:last_slash]
-            batch_images_path.append(
-                (self.images_path[k], self.association[index_class]))
-
-        # Generate data
-        X, y = self.__data_generation(batch_images_path)
-
-        return X, y
-
-    def on_epoch_end(self):
-        'Updates indexes after each epoch'
-        if self.shuffle == True:
-            np.random.shuffle(self.indexes)
-
-    def __data_generation(self, batch_images_path):
-        # X : (n_samples, *dim, n_channels)
-        'Generates data containing batch_size samples'
-        # Initialization
-
-        X = np.empty((self.batch_size, *self.image_shape))
-        y = np.zeros((self.batch_size, self.number_of_classes))
-
-        # We load into memory the corresponding images
-        for i, image_path in enumerate(batch_images_path):
-            # Store sample
-            img = self.decoder.decode_file(image_path[0], 2)
-            rows, cols = img.get_component_shape(0)[0:2]
-            if img.get_number_of_component() == 1:
-                X[i, :, :, 0] = np.reshape(
-                    img.get_data(0),
-                    (rows, cols))[:self.image_shape[0], :self.image_shape[1]]
-                X[i, :, :, 1] = X[i, :, :, 0]
-                X[i, :, :, 2] = X[i, :, :, 0]
-            else:
-                X[i, :, :, 0] = np.reshape(
-                    img.get_data(0),
-                    (rows, cols))[:self.image_shape[0], :self.image_shape[1]]
-                X[i, :, :, 1] = np.reshape(
-                    img.get_data(1),
-                    (rows, cols))[:self.image_shape[0], :self.image_shape[1]]
-                X[i, :, :, 2] = np.reshape(
-                    img.get_data(2),
-                    (rows, cols))[:self.image_shape[0], :self.image_shape[1]]
-
-            y[i, int(image_path[1])] = 1
-
-        return X, y
-
-    @property
-    def batch_size(self):
-        return self._batch_size
-
-    @batch_size.setter
-    def batch_size(self, value):
-        self._batch_size = value
-
-    @property
-    def number_of_data_samples(self):
-        return self._number_of_data_samples
-
-    @number_of_data_samples.setter
-    def number_of_data_samples(self, value):
-        self._number_of_data_samples = value
-
-    @property
-    def shuffle(self):
-        return self._shuffle
-
-    @shuffle.setter
-    def shuffle(self, value):
-        self._shuffle = value
-
-
 class DummyGenerator(TemplateGenerator):
     'Generates data in the DCT space for Keras.'
 
@@ -315,13 +196,20 @@ class DummyGenerator(TemplateGenerator):
 
 
 class RGBGenerator(TemplateGenerator):
-    'Generates data in the DCT space for Keras. This generator makes usage of the [following](https://github.com/uber-research/jpeg2dct) repository to read the jpeg images in the correct format.'
+    """ Generator for RGB images for the Imagenet dataset. The generator needs a folder with all the classes as well as the index file to generate the data.
+
+    # Arguments
+        - data_directory: The folder containing all the classes' folders. One folder per class.
+    
+    """
 
     def __init__(self,
                  data_directory,
                  index_file,
                  batch_size=32,
                  shuffle=False,
+                 seed=333,
+                 validation_split=0.0
                  transforms=None):
         # Process the index dictionary to get the matching name/class_id
         self.association, self.classes, self.images_path = prepare_imagenet(
