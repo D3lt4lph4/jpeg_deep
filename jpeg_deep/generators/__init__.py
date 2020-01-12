@@ -1,5 +1,4 @@
 from .generators import DCTGeneratorJPEG2DCT
-from .generators import DCTGeneratorImageNet
 from .generators import RGBGenerator
 from .generators import DummyGenerator
 from .generators import prepare_imagenet
