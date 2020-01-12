@@ -40,7 +40,7 @@ from albumentations import (
     Compose
 )
 
-gen = [SmallestMaxSize(256), CenterCrop(224, 224)]
+gen = [SmallestMaxSize(256)]
 
 def _top_k_accuracy(k):
     def _func(y_true, y_pred):
@@ -51,12 +51,12 @@ def _top_k_accuracy(k):
 model = vggd_conv(1000)
 # model.load_weights(
 #     "/home/benjamin/.keras/models/vgg16_weights_tf_dim_ordering_tf_kernels.h5")
-model.load_weights("vgg_conv.h5", by_name=True)
+model.load_weights("/dlocal/home/2017018/bdegue01/weights/jpeg_deep/reproduce/vgg_conv.h5", by_name=True)
 model.compile(optimizer=SGD(), loss=categorical_crossentropy,
               metrics=[_top_k_accuracy(1), _top_k_accuracy(5)])
 
-dir = "/data/thesis/datasets/imagenet/image_files/validation/"
+dir = "/save/2017018/PARTAGE/imagenet/validation/"
 
 generator = RGBGenerator(
-    "/d2/thesis/datasets/imagenet//validation", "./data/imagenet_class_index.json", batch_size=1, transforms=None)
+    "/save/2017018/PARTAGE/imagenet/validation/", "/home/2017018/bdegue01/git/jpeg_deep/data/imagenet_class_index.json",input_size=(None), batch_size=1, transforms=gen)
 print(model.evaluate_generator(generator, verbose=1))
