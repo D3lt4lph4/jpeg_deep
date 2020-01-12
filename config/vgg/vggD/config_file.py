@@ -48,7 +48,7 @@ def _top_k_accuracy(k):
 class TrainingConfiguration(object):
     def __init__(self):
         # Variables to hold the description of the experiment
-        self.description = "Training configuration file for the RGB version of the VGGA network."
+        self.description = "Training configuration file for the RGB version of the VGGD network."
 
         # System dependent variable
         self._workers = 10
@@ -79,7 +79,10 @@ class TrainingConfiguration(object):
         self.train_directory = join(
             environ["DATASET_PATH_TRAIN"], "imagenet/train")
         self.validation_directory = join(
+            environ["DATASET_PATH_TRAIN"], "imagenet/train")
+        self.test_directory = join(
             environ["DATASET_PATH_VAL"], "imagenet/validation")
+        self.validation_split = 0.9
         self.index_file = "/home/2017018/bdegue01/git/vgg_jpeg/data/imagenet_class_index.json"
 
         # Defining the transformations that will be applied to the inputs.
@@ -115,6 +118,7 @@ class TrainingConfiguration(object):
         # Creating the training and validation generator
         self._train_generator = None
         self._validation_generator = None
+        self._test_generator = None
 
         self._horovod = None
 
@@ -190,13 +194,13 @@ class TrainingConfiguration(object):
         self._evaluator = Evaluator()
 
     def prepare_testing_generator(self):
-        pass
+        self._test_generator = RGBGenerator(self.test_directory, self.index_file, None, 1)
 
     def prepare_training_generators(self):
         self._train_generator = RGBGenerator(
-            self.train_directory, self.index_file, self.batch_size, shuffle=True, transforms=self.train_transformations)
+            self.train_directory, self.index_file, self.batch_size, shuffle=True, validation_split=self.validation_split, transforms=self.train_transformations)
         self._validation_generator = RGBGenerator(
-            self.validation_directory, self.index_file, self.batch_size, shuffle=False, transforms=self.validation_transformations)
+            self.validation_directory, self.index_file, self.batch_size, shuffle=False, validation_split=self.validation_split, validation_split=True, transforms=self.validation_transformations)
 
     @property
     def train_generator(self):
