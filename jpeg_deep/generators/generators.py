@@ -213,7 +213,7 @@ class RGBGenerator(TemplateGenerator):
     def __init__(self,
                  data_directory,
                  index_file,
-                 input_size=(224, 224)
+                 input_size=(224, 224),
                  batch_size=32,
                  shuffle=False,
                  seed=333,
@@ -221,7 +221,7 @@ class RGBGenerator(TemplateGenerator):
                  validation=False,
                  transforms=None):
         
-        if input_size is None and batch_size is not 32:
+        if input_size is None and batch_size is not 1:
             raise RuntimeError("The when input_size is None, the batch size should be one.")
         # Process the index dictionary to get the matching name/class_id
         self.association, self.classes, self.images_path = prepare_imagenet(
@@ -340,6 +340,7 @@ class RGBGenerator(TemplateGenerator):
                 X = np.empty((self._batch_size, *img.shape), dtype=np.int32)
 
             X[i] = preprocess_input(img)
+            print(X.shape)
 
             # Setting the target class to 1
             y[i, int(self.association[index_class])] = 1
