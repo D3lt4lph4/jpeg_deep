@@ -7,11 +7,6 @@ Adapted from code contributed by BigMoyan.
 import os
 import warnings
 
-from . import get_submodules_from_kwargs
-from .imagenet_utils import decode_predictions
-from .imagenet_utils import _obtain_input_shape
-
-
 backend = None
 layers = None
 models = None
@@ -226,7 +221,7 @@ def ResNet50_fcn(classes=1000):
     x = identity_block(x, 3, [512, 512, 2048], stage=5, block='c')
 
     x = layers.GlobalAveragePooling2D(name='avg_pool')(x)
-    x = layers.Conv2D(classes, (1, 1) activation='softmax', name='fc1000')(x)
+    x = layers.Conv2D(classes, (1, 1), activation='softmax', name='fc1000')(x)
     x = layers.GlobalAveragePooling2D(name='predictions')(x)
 
     inputs = img_input
