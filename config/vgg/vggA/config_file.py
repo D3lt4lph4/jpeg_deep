@@ -53,7 +53,7 @@ class TrainingConfiguration(TemplateConfiguration):
         self.description = "Training configuration file for the RGB version of the VGGA network."
 
         # System dependent variable
-        self._workers = 5
+        self._workers = 10
         self._multiprocessing = True
         self._gpus = 1
 
@@ -70,33 +70,29 @@ class TrainingConfiguration(TemplateConfiguration):
         # Training variables
         self._epochs = 120
         self._batch_size = 256
-        self.batch_size_divider = 4
+        self.batch_size_divider = 1
         self._steps_per_epoch = 5000
         self._validation_steps = 50000 // self._batch_size
         self.optimizer_parameters = {
-            "lr": 0.01, "momentum": 0.9, "decay": 0.0005, "nesterov": False}
+            "lr": 0.01, "momentum": 0.9, "decay": 0.0005}
         self._optimizer = SGD(**self.optimizer_parameters)
         self._loss = categorical_crossentropy
         self._metrics = [_top_k_accuracy(1), _top_k_accuracy(5)]
+
         self.train_directory = join(
             environ["DATASET_PATH_TRAIN"], "imagenet/train")
         self.validation_directory = join(
+            environ["DATASET_PATH_TRAIN"], "imagenet/train")
+        self.test_directory = join(
             environ["DATASET_PATH_VAL"], "imagenet/validation")
-        self.index_file = "/home/2017018/bdegue01/git/vgg_jpeg/data/imagenet_class_index.json"
+        self.validation_split = 0.95
+        self.index_file = "/home/2017018/bdegue01/git/jpeg_deep/data/imagenet_class_index.json"
 
         # Defining the transformations that will be applied to the inputs.
         self.train_transformations = [
-            OneOf([
-                OneOf([Blur(), MotionBlur(), MedianBlur(),
-                       GaussianBlur()], p=0.5),
-                OneOf([HueSaturationValue(),
-                       RandomBrightness(), RandomContrast(), RandomGamma()]),
-
-            ], p=0.5),
-            OneOf([HorizontalFlip(), Rotate(limit=25), OneOf(
-                [OpticalDistortion(), ElasticTransform()], p=0.5)], p=0.5),
             SmallestMaxSize(256),
-            RandomCrop(224, 224)
+            RandomCrop(224, 224),
+            HorizontalFlip()
         ]
 
         self.validation_transformations = [
@@ -109,7 +105,7 @@ class TrainingConfiguration(TemplateConfiguration):
         self.terminate_on_nan = TerminateOnNaN()
         self.early_stopping = EarlyStopping(monitor='val_loss',
                                             min_delta=0,
-                                            patience=10)
+                                            patience=11)
 
         self._callbacks = [self.reduce_lr_on_plateau,
                            self.terminate_on_nan, self.early_stopping]
@@ -117,6 +113,7 @@ class TrainingConfiguration(TemplateConfiguration):
         # Creating the training and validation generator
         self._train_generator = None
         self._validation_generator = None
+        self._test_generator = None
 
         self._horovod = None
 
@@ -177,12 +174,10 @@ class TrainingConfiguration(TemplateConfiguration):
             self.early_stopping
         ]
 
-        self.optimizer_parameters["lr"] = self.optimizer_parameters["lr"] * \
-            hvd.size() / self.batch_size_divider
+        self.optimizer_parameters["lr"] = self.optimizer_parameters["lr"] * hvd.size()
         self._optimizer = hvd.DistributedOptimizer(self._optimizer)
-        self._batch_size = self._batch_size // self.batch_size_divider
-        self._steps_per_epoch = self._steps_per_epoch // (
-            hvd.size() // self.batch_size_divider)
+        self._batch_size = self._batch_size
+        self._steps_per_epoch = self._steps_per_epoch // hvd.size()
         self._validation_steps = 3 * self._validation_steps // hvd.size()
 
     def prepare_for_inference(self):
@@ -198,7 +193,7 @@ class TrainingConfiguration(TemplateConfiguration):
         self._train_generator = RGBGenerator(
             self.train_directory, self.index_file, self.batch_size, shuffle=True, transforms=self.train_transformations)
         self._validation_generator = RGBGenerator(
-            self.validation_directory, self.index_file, self.batch_size, shuffle=False, transforms=self.validation_transformations)
+            self.validation_directory, self.index_file, self.batch_size, shuffle=True, transforms=self.validation_transformations)
 
     @property
     def train_generator(self):
