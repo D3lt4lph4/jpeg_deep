@@ -74,7 +74,7 @@ class TrainingConfiguration(TemplateConfiguration):
         self._steps_per_epoch = 5000
         self._validation_steps = 50000 // self._batch_size
         self.optimizer_parameters = {
-            "lr": 0.01, "momentum": 0.9, "decay": 0, "nesterov": True}
+            "lr": 0.01, "momentum": 0.9, "decay": 0.0005, "nesterov": False}
         self._optimizer = SGD(**self.optimizer_parameters)
         self._loss = categorical_crossentropy
         self._metrics = [_top_k_accuracy(1), _top_k_accuracy(5)]

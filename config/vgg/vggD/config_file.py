@@ -62,13 +62,13 @@ class TrainingConfiguration(object):
         # Network variables
         self.num_classes = 1000
         self.img_size = (224, 224)
-        self._weights = "/dlocal/home/2017018/bdegue01/weights/vgg_keras_rgb/vgg16_weights_tf_dim_ordering_tf_kernels.h5"
+        self._weights = None
         self._network = vggd(self.num_classes)
 
         # Training variables
         self._epochs = 120
         self._batch_size = 256
-        self.batch_size_divider = 4
+        self.batch_size_divider = 2
         self._steps_per_epoch = 5000
         self._validation_steps = 50000 // self._batch_size
         self.optimizer_parameters = {
@@ -82,8 +82,8 @@ class TrainingConfiguration(object):
             environ["DATASET_PATH_TRAIN"], "imagenet/train")
         self.test_directory = join(
             environ["DATASET_PATH_VAL"], "imagenet/validation")
-        self.validation_split = 0.9
-        self.index_file = "/home/2017018/bdegue01/git/vgg_jpeg/data/imagenet_class_index.json"
+        self.validation_split = 0.95
+        self.index_file = "/home/2017018/bdegue01/git/jpeg_deep/data/imagenet_class_index.json"
 
         # Defining the transformations that will be applied to the inputs.
         self.train_transformations = [
@@ -200,7 +200,7 @@ class TrainingConfiguration(object):
         self._train_generator = RGBGenerator(
             self.train_directory, self.index_file, self.batch_size, shuffle=True, validation_split=self.validation_split, transforms=self.train_transformations)
         self._validation_generator = RGBGenerator(
-            self.validation_directory, self.index_file, self.batch_size, shuffle=False, validation_split=self.validation_split, validation_split=True, transforms=self.validation_transformations)
+            self.validation_directory, self.index_file, self.batch_size, shuffle=False, validation_split=self.validation_split, validation=True, transforms=self.validation_transformations)
 
     @property
     def train_generator(self):

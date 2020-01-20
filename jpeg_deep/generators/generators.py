@@ -340,7 +340,6 @@ class RGBGenerator(TemplateGenerator):
                 X = np.empty((self._batch_size, *img.shape), dtype=np.int32)
 
             X[i] = preprocess_input(img)
-            print(X.shape)
 
             # Setting the target class to 1
             y[i, int(self.association[index_class])] = 1

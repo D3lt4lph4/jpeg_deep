@@ -51,7 +51,7 @@ def _top_k_accuracy(k):
 model = vggd_conv(1000)
 # model.load_weights(
 #     "/home/benjamin/.keras/models/vgg16_weights_tf_dim_ordering_tf_kernels.h5")
-model.load_weights("/dlocal/home/2017018/bdegue01/weights/jpeg_deep/reproduce/vgg_conv.h5", by_name=True)
+model.load_weights("/dlocal/home/2017018/bdegue01/weights/jpeg_deep/reproduce/exp1.h5", by_name=True)
 model.compile(optimizer=SGD(), loss=categorical_crossentropy,
               metrics=[_top_k_accuracy(1), _top_k_accuracy(5)])
 
