@@ -1,9 +1,13 @@
+""" Credit to https://stackoverflow.com/questions/41161021/how-to-convert-a-dense-layer-to-an-equivalent-convolutional-layer-in-keras """
+from argparse import ArgumentParser
+
 from keras.models import Sequential
 from keras.layers.convolutional import Convolution2D
 from keras.engine import InputLayer
 import keras
 
-from jpeg_deep.networks import vggd
+from jpeg_deep.networks import vgga, vggd
+
 
 def to_fully_conv(model):
 
@@ -54,8 +58,18 @@ def to_fully_conv(model):
 
     return new_model
 
-model = vggd(1000)
-model.load_weights("/data/thesis/experiments/jpeg_deep/reproduce/vgg/from_weights/classification_rgb_jpeg_deep_P93WwoQAV3ntHx59pBn1pVO0l0KfbqHr/checkpoints/epoch-32_loss-1.1252_val_loss-0.9478.h5")
+parser = ArgumentParser()
+parser.add_argument("mt", help="The type of the model to convert, for now one of vgga/vggd.", type=str)
+parser.add_argument("wp", help="The weights to be converted", type=str)
+args = parser.parse_args()
+
+if args.mt == vgga:
+    model = vgga(1000)
+else:
+    model = vggd(1000)
+
+model.load_weights(args.wp)
+
 new_model = to_fully_conv(model)
 
 new_model.save("converted.h5")
