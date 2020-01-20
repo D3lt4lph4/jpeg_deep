@@ -46,7 +46,7 @@ def _top_k_accuracy(k):
 
 
 class TrainingConfiguration(object):
-    
+
     def __init__(self):
         # Variables to hold the description of the experiment
         self.description = "Training configuration file for the RGB version of the VGGA network."
@@ -186,13 +186,14 @@ class TrainingConfiguration(object):
         self._evaluator = Evaluator()
 
     def prepare_testing_generator(self):
-        pass
+        self._test_generator = RGBGenerator(
+            self.test_directory, self.index_file, None, 1)
 
     def prepare_training_generators(self):
         self._train_generator = RGBGenerator(
-            self.train_directory, self.index_file, self.batch_size, shuffle=True, transforms=self.train_transformations)
+            self.train_directory, self.index_file, self.batch_size, shuffle=True, validation_split=self.validation_split, transforms=self.train_transformations)
         self._validation_generator = RGBGenerator(
-            self.validation_directory, self.index_file, self.batch_size, shuffle=True, transforms=self.validation_transformations)
+            self.validation_directory, self.index_file, self.batch_size, shuffle=True, validation_split=self.validation_split, validation=True, transforms=self.validation_transformations)
 
     @property
     def train_generator(self):
