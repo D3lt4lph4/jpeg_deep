@@ -13,8 +13,6 @@ from jpeg_deep.generators import RGBGenerator
 from jpeg_deep.networks import vgga
 from jpeg_deep.evaluation import Evaluator
 
-from template_keras.config import TemplateConfiguration
-
 from albumentations import (
     Blur,
     HorizontalFlip,
@@ -47,7 +45,8 @@ def _top_k_accuracy(k):
     return _func
 
 
-class TrainingConfiguration(TemplateConfiguration):
+class TrainingConfiguration(object):
+    
     def __init__(self):
         # Variables to hold the description of the experiment
         self.description = "Training configuration file for the RGB version of the VGGA network."
