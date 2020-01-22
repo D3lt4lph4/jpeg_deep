@@ -174,6 +174,7 @@ class TrainingConfiguration(object):
         ]
 
         self.optimizer_parameters["lr"] = self.optimizer_parameters["lr"] * hvd.size()
+        self._optimizer = SGD(**self.optimizer_parameters)
         self._optimizer = hvd.DistributedOptimizer(self._optimizer)
         self._batch_size = self._batch_size
         self._steps_per_epoch = self._steps_per_epoch // hvd.size()
