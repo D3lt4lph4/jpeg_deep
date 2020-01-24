@@ -42,6 +42,7 @@ from albumentations import (
 def _top_k_accuracy(k):
     def _func(y_true, y_pred):
         return top_k_categorical_accuracy(y_true, y_pred, k)
+    _func.__name__ = "_func_{}".format(k)
     return _func
 
 
@@ -67,7 +68,7 @@ class TrainingConfiguration(object):
         self._network = vgga(self.num_classes)
 
         # Training variables
-        self._epochs = 120
+        self._epochs = 1200
         self._batch_size = 256
         self.batch_size_divider = 1
         self._steps_per_epoch = 5000
@@ -104,7 +105,7 @@ class TrainingConfiguration(object):
         self.terminate_on_nan = TerminateOnNaN()
         self.early_stopping = EarlyStopping(monitor='val_loss',
                                             min_delta=0,
-                                            patience=11)
+                                            patience=14)
 
         self._callbacks = [self.reduce_lr_on_plateau,
                            self.terminate_on_nan, self.early_stopping]
@@ -152,6 +153,13 @@ class TrainingConfiguration(object):
 
     def prepare_horovod(self, hvd):
         self._horovod = hvd
+        self.optimizer_parameters["lr"] = self.optimizer_parameters["lr"] * hvd.size()
+        self._optimizer = SGD(**self.optimizer_parameters)
+        self._optimizer = hvd.DistributedOptimizer(self._optimizer)
+        self._batch_size = self._batch_size
+        self._steps_per_epoch = self._steps_per_epoch // hvd.size()
+        self._validation_steps = 3 * self._validation_steps // hvd.size()
+
         self._callbacks = [
             hvd.callbacks.BroadcastGlobalVariablesCallback(0),
 
@@ -166,19 +174,12 @@ class TrainingConfiguration(object):
                 warmup_epochs=5, verbose=1),
 
             # Reduce the learning rate if training plateaues.
-            ReduceLROnPlateau(patience=10, verbose=1),
+            ReduceLROnPlateau(patience=7, verbose=1),
 
             self.terminate_on_nan,
 
             self.early_stopping
         ]
-
-        self.optimizer_parameters["lr"] = self.optimizer_parameters["lr"] * hvd.size()
-        self._optimizer = SGD(**self.optimizer_parameters)
-        self._optimizer = hvd.DistributedOptimizer(self._optimizer)
-        self._batch_size = self._batch_size
-        self._steps_per_epoch = self._steps_per_epoch // hvd.size()
-        self._validation_steps = 3 * self._validation_steps // hvd.size()
 
     def prepare_for_inference(self):
         pass
