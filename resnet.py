@@ -52,8 +52,26 @@ parser.add_argument('--wd', type=float, default=0.00005,
 
 args = parser.parse_args()
 
+
 # Horovod: initialize Horovod.
 hvd.init()
+
+if hvd.rank() == 0:
+    output_dir = join(environ["EXPERIMENTS_OUTPUT_DIRECTORY"])
+
+    checkpoints_output_dir = join(output_dir, "checkpoints")
+    config_output_dir = join(output_dir, "config")
+    results_output_dir = join(output_dir, "results")
+
+    # We create all the output directories
+    makedirs(output_dir, exist_ok=True)
+    makedirs(checkpoints_output_dir, exist_ok=True)
+    makedirs(config_output_dir, exist_ok=True)
+    makedirs(results_output_dir, exist_ok=True)
+    makedirs(environ["LOG_DIRECTORY"], exist_ok=True)
+
+    args.checkpoint_format = join(output_dir, "checkpoint-{epoch}.h5")
+    args.log_dir = join(environ["LOG_DIRECTORY"], "logs")
 
 # Horovod: pin GPU to be used to process local rank (one GPU per process)
 config = tf.ConfigProto()
