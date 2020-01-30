@@ -47,6 +47,7 @@ if args.horovod:
     config_tf.gpu_options.allow_growth = True
     config_tf.gpu_options.visible_device_list = str(hvd.local_rank())
     K.set_session(tf.Session(config=config_tf))
+    verbose = 1 if hvd.rank() == 0 else 0
 
 # Keras variable if restart
 restart_epoch = None
@@ -156,6 +157,7 @@ if restart_epoch is not None:
                         steps_per_epoch=config.steps_per_epoch,
                         callbacks=config.callbacks,
                         workers=config.workers,
+                        verbose=verbose
                         use_multiprocessing=config.multiprocessing,
                         validation_steps=config.validation_steps,
                         initial_epoch=restart_epoch)
