@@ -26,6 +26,7 @@ def vgga(classes=1000):
     model.add(Conv2D(64, (3, 3),
                      activation='relu',
                      padding='same',
+                     kernel_regularizer=l2(0.0005),
                      name='block1_conv1', input_shape=input_shape))
     model.add(MaxPooling2D((2, 2), strides=(2, 2), name='block1_pool'))
 
@@ -33,6 +34,7 @@ def vgga(classes=1000):
     model.add(Conv2D(128, (3, 3),
                      activation='relu',
                      padding='same',
+                     kernel_regularizer=l2(0.0005),
                      name='block2_conv1'))
     model.add(MaxPooling2D((2, 2), strides=(2, 2), name='block2_pool'))
 
@@ -40,10 +42,12 @@ def vgga(classes=1000):
     model.add(Conv2D(256, (3, 3),
                      activation='relu',
                      padding='same',
+                     kernel_regularizer=l2(0.0005),
                      name='block3_conv1'))
     model.add(Conv2D(256, (3, 3),
                      activation='relu',
                      padding='same',
+                     kernel_regularizer=l2(0.0005),
                      name='block3_conv2'))
     model.add(MaxPooling2D((2, 2), strides=(2, 2), name='block3_pool'))
 
@@ -51,10 +55,12 @@ def vgga(classes=1000):
     model.add(Conv2D(512, (3, 3),
                      activation='relu',
                      padding='same',
+                     kernel_regularizer=l2(0.0005),
                      name='block4_conv1_a'))
     model.add(Conv2D(512, (3, 3),
                      activation='relu',
                      padding='same',
+                     kernel_regularizer=l2(0.0005),
                      name='block4_conv2_a'))
     model.add(MaxPooling2D((2, 2), strides=(2, 2), name='block4_pool'))
 
@@ -62,10 +68,12 @@ def vgga(classes=1000):
     model.add(Conv2D(512, (3, 3),
                      activation='relu',
                      padding='same',
+                     kernel_regularizer=l2(0.0005),
                      name='block5_conv1_a'))
     model.add(Conv2D(512, (3, 3),
                      activation='relu',
                      padding='same',
+                     kernel_regularizer=l2(0.0005),
                      name='block5_conv2_a'))
     model.add(MaxPooling2D((2, 2), strides=(2, 2), name='block5_pool'))
 
