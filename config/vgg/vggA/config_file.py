@@ -3,47 +3,25 @@ from os import environ
 
 from keras.optimizers import SGD
 from keras.losses import categorical_crossentropy
-from keras.callbacks import ModelCheckpoint, TerminateOnNaN, CSVLogger, EarlyStopping, ReduceLROnPlateau
+from keras.callbacks import ModelCheckpoint, TerminateOnNaN, EarlyStopping, ReduceLROnPlateau, TensorBoard
 from keras.preprocessing.image import ImageDataGenerator
 from keras.applications.vgg16 import preprocess_input
-from keras.metrics import top_k_categorical_accuracy
 
 from jpeg_deep.generators import RGBGenerator
-
 from jpeg_deep.networks import vgga
 from jpeg_deep.evaluation import Evaluator
 
 from albumentations import (
-    Blur,
     HorizontalFlip,
     RandomCrop,
     CenterCrop,
-    RandomGamma,
-    Rotate,
-    OpticalDistortion,
-    ElasticTransform,
-    HueSaturationValue,
-    RandomBrightness,
-    RandomContrast,
-    MotionBlur,
-    MedianBlur,
-    GaussianBlur,
-    ChannelShuffle,
     SmallestMaxSize,
-    RandomBrightnessContrast
 )
 
 from albumentations import (
     OneOf,
     Compose
 )
-
-
-def _top_k_accuracy(k):
-    def _func(y_true, y_pred):
-        return top_k_categorical_accuracy(y_true, y_pred, k)
-    _func.__name__ = "_func_{}".format(k)
-    return _func
 
 
 class TrainingConfiguration(object):
@@ -55,34 +33,30 @@ class TrainingConfiguration(object):
         # System dependent variable
         self._workers = 10
         self._multiprocessing = True
-        self._gpus = 1
 
         # Variables for comet.ml
         self._project_name = "jpeg-deep"
         self._workspace = "classification_rgb"
 
         # Network variables
-        self.num_classes = 1000
-        self.img_size = (224, 224)
         self._weights = None
-        self._network = vgga(self.num_classes)
+        self._network = vgga()
 
         # Training variables
         self._epochs = 1200
         self._batch_size = 256
-        self.batch_size_divider = 1
         self._steps_per_epoch = 5000
         self._validation_steps = 50000 // self._batch_size
         self.optimizer_parameters = {
-            "lr": 0.01, "momentum": 0.9, "decay": 0.0005}
+            "lr": 0.01, "momentum": 0.9}
         self._optimizer = SGD(**self.optimizer_parameters)
         self._loss = categorical_crossentropy
-        self._metrics = [_top_k_accuracy(1), _top_k_accuracy(5)]
+        self._metrics = ['accuracy', 'top_k_categorical_accuracy']
 
         self.train_directory = join(
             environ["DATASET_PATH_TRAIN"], "imagenet/train")
         self.validation_directory = join(
-            environ["DATASET_PATH_TRAIN"], "imagenet/train")
+            environ["DATASET_PATH_TRAIN"], "imagenet/validation")
         self.test_directory = join(
             environ["DATASET_PATH_VAL"], "imagenet/validation")
         self.validation_split = 0.95
@@ -100,15 +74,13 @@ class TrainingConfiguration(object):
 
         # Keras stuff
         self.model_checkpoint = None
-        self.csv_logger = None
-        self.reduce_lr_on_plateau = ReduceLROnPlateau(patience=5, verbose=1)
+        self.reduce_lr_on_plateau = ReduceLROnPlateau(patience=7, verbose=1)
         self.terminate_on_nan = TerminateOnNaN()
         self.early_stopping = EarlyStopping(monitor='val_loss',
                                             min_delta=0,
-                                            patience=14)
+                                            patience=15)
 
-        self._callbacks = [self.reduce_lr_on_plateau,
-                           self.terminate_on_nan, self.early_stopping]
+        self._callbacks = [self.terminate_on_nan, self.early_stopping]
 
         # Creating the training and validation generator
         self._train_generator = None
@@ -122,17 +94,7 @@ class TrainingConfiguration(object):
                        filename="results.csv",
                        separator=',',
                        append=True):
-        if self.horovod is not None:
-            if self.horovod.rank() == 0:
-                self.csv_logger = CSVLogger(filename=join(output_path, filename),
-                                            separator=separator,
-                                            append=append)
-                self._callbacks.append(self.csv_logger)
-        else:
-            self.csv_logger = CSVLogger(filename=join(output_path, filename),
-                                        separator=separator,
-                                        append=append)
-            self._callbacks.append(self.csv_logger)
+        pass
 
     def add_model_checkpoint(self, output_path, verbose=1,
                              save_best_only=True):
@@ -143,6 +105,8 @@ class TrainingConfiguration(object):
                     "epoch-{epoch:02d}_loss-{loss:.4f}_val_loss-{val_loss:.4f}.h5"),
                     verbose=verbose,
                     save_best_only=save_best_only))
+                self._callbacks.append(
+                    TensorBoard(output_path))
         else:
             self.model_checkpoint = ModelCheckpoint(filepath=join(
                 output_path,
@@ -150,13 +114,14 @@ class TrainingConfiguration(object):
                 verbose=verbose,
                 save_best_only=save_best_only)
             self._callbacks.append(self.model_checkpoint)
+            self._callbacks.append(
+                TensorBoard(output_path))
 
     def prepare_horovod(self, hvd):
         self._horovod = hvd
         self.optimizer_parameters["lr"] = self.optimizer_parameters["lr"] * hvd.size()
         self._optimizer = SGD(**self.optimizer_parameters)
         self._optimizer = hvd.DistributedOptimizer(self._optimizer)
-        self._batch_size = self._batch_size
         self._steps_per_epoch = self._steps_per_epoch // hvd.size()
         self._validation_steps = 3 * self._validation_steps // hvd.size()
 
@@ -174,7 +139,7 @@ class TrainingConfiguration(object):
                 warmup_epochs=5, verbose=1),
 
             # Reduce the learning rate if training plateaues.
-            ReduceLROnPlateau(patience=7, verbose=1),
+            self.reduce_lr_on_plateau,
 
             self.terminate_on_nan,
 
@@ -193,9 +158,9 @@ class TrainingConfiguration(object):
 
     def prepare_training_generators(self):
         self._train_generator = RGBGenerator(
-            self.train_directory, self.index_file, self.batch_size, shuffle=True, validation_split=self.validation_split, transforms=self.train_transformations)
+            self.train_directory, self.index_file, self.batch_size, shuffle=True, transforms=self.train_transformations)
         self._validation_generator = RGBGenerator(
-            self.validation_directory, self.index_file, self.batch_size, shuffle=True, validation_split=self.validation_split, validation=True, transforms=self.validation_transformations)
+            self.validation_directory, self.index_file, self.batch_size, shuffle=True, transforms=self.validation_transformations)
 
     @property
     def train_generator(self):
