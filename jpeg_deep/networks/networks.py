@@ -252,9 +252,7 @@ def vgga_conv(classes=1000):
 
     # Classification block
     model.add(Conv2D(4096, (7, 7), activation='relu', name='conv2d_1'))
-    model.add(Dropout(0.5))
     model.add(Conv2D(4096, (1, 1), activation='relu', name='conv2d_2'))
-    model.add(Dropout(0.5))
     model.add(Conv2D(classes, (1, 1), activation='softmax', name='conv2d_3'))
     model.add(GlobalAveragePooling2D())
 
@@ -344,9 +342,7 @@ def vggd_conv(classes=1000, input_shape=(None, None)):
 
     # Classification block
     model.add(Conv2D(4096, (7, 7), activation='relu', name='conv2d_1'))
-    model.add(Dropout(0.5))
     model.add(Conv2D(4096, (1, 1), activation='relu', name='conv2d_2'))
-    model.add(Dropout(0.5))
     model.add(Conv2D(classes, (1, 1), activation='softmax', name='conv2d_3'))
     model.add(GlobalAveragePooling2D())
 
