@@ -21,6 +21,9 @@ import tensorflow as tf
 import horovod.keras as hvd
 import os
 
+from os import mkdir, listdir, environ, makedirs
+from os.path import join, dirname, isfile, expanduser
+
 parser = argparse.ArgumentParser(description='Keras ImageNet Example',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--train-dir', default=os.path.expanduser('~/imagenet/train'),

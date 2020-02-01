@@ -8,10 +8,10 @@ import os
 import warnings
 
 from keras.regularizers import l2
+from keras import layers
+from keras import backend
+from keras import models
 
-backend = None
-layers = None
-models = None
 keras_utils = None
 
 

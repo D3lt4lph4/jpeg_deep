@@ -56,20 +56,20 @@ class TrainingConfiguration(object):
         # Training generator
         train_gen = ImageDataGenerator(width_shift_range=0.33, height_shift_range=0.33,
                                              zoom_range=0.5, horizontal_flip=True, preprocessing_function=preprocess_input)
-        self._training_generator = train_gen.flow_from_directory(self.train_directory,
+        self._train_generator = train_gen.flow_from_directory(self.train_directory,
                                                    batch_size=self.batch_size,
                                                    target_size=(224, 224))
         val_gen = ImageDataGenerator(zoom_range=(
-            0.875, 0.875), preprocessing_function=reprocess_input)
+            0.875, 0.875), preprocessing_function=preprocess_input)
         self._validation_generator = val_gen.flow_from_directory(
             self.validation_directory, batch_size=self.batch_size, target_size=(224, 224))
 
         # Testing generator
-        test_gen = ImageDataGenerator(zoom_range=(0.875, 0.875, preprocessing_function=preprocess_input)
+        test_gen = ImageDataGenerator(zoom_range=(0.875, 0.875), preprocessing_function=preprocess_input)
         self._test_generator=test_gen.flow_from_directory(
             self.validation_directory, batch_size=self.batch_size, target_size=(224, 224))
 
-        self._steps_per_epoch = len(self._training_generator)
+        self._steps_per_epoch = len(self._train_generator)
         self._validation_steps = len(self._validation_generator)
 
         self._horovod=None
@@ -91,7 +91,7 @@ class TrainingConfiguration(object):
                     verbose=verbose,
                     save_best_only=save_best_only))
                 self._callbacks.append(
-                    keras.callbacks.TensorBoard(output_path))
+                    TensorBoard(output_path))
         else:
             self.model_checkpoint=ModelCheckpoint(filepath=join(
                 output_path,
@@ -100,7 +100,7 @@ class TrainingConfiguration(object):
                 save_best_only=save_best_only)
             self._callbacks.append(self.model_checkpoint)
             self._callbacks.append(
-                keras.callbacks.TensorBoard(output_path))
+                TensorBoard(output_path))
 
     def prepare_horovod(self, hvd):
         self._horovod=hvd
@@ -125,7 +125,7 @@ class TrainingConfiguration(object):
 
             # Reduce the learning rate if training plateaues.
             hvd.callbacks.LearningRateScheduleCallback(
-                start_epoch=args.warmup_epochs, end_epoch=30, multiplier=1.),
+                start_epoch=5, end_epoch=30, multiplier=1.),
             hvd.callbacks.LearningRateScheduleCallback(
                 start_epoch=30, end_epoch=60, multiplier=1e-1),
             hvd.callbacks.LearningRateScheduleCallback(

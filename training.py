@@ -157,7 +157,7 @@ if restart_epoch is not None:
                         steps_per_epoch=config.steps_per_epoch,
                         callbacks=config.callbacks,
                         workers=config.workers,
-                        verbose=verbose
+                        verbose=verbose,
                         use_multiprocessing=config.multiprocessing,
                         validation_steps=config.validation_steps,
                         initial_epoch=restart_epoch)
@@ -169,5 +169,6 @@ else:
                         steps_per_epoch=config.steps_per_epoch,
                         callbacks=config.callbacks,
                         workers=config.workers,
+                        verbose=verbose,
                         validation_steps=config.validation_steps,
                         use_multiprocessing=config.multiprocessing)
