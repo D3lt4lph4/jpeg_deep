@@ -61,20 +61,28 @@ if (args.horovod and hvd.rank() == 0) or (not args.horovod):
 
     checkpoints_output_dir = join(output_dir, "checkpoints")
     config_output_dir = join(output_dir, "config")
-    results_output_dir = join(output_dir, "results")
+    logs_output_dir = join(output_dir, "logs")
 
     # We create all the output directories
     makedirs(output_dir, exist_ok=True)
     makedirs(checkpoints_output_dir, exist_ok=True)
     makedirs(config_output_dir, exist_ok=True)
-    makedirs(results_output_dir, exist_ok=True)
-    makedirs(environ["LOG_DIRECTORY"], exist_ok=True)
+    makedirs(logs_output_dir, exist_ok=True)
+
+directories_dict = {"output": output_dir, "checkpoints_dir": checkpoints_output_dir,
+                    "config_dir": config_output_dir, "log_dir": logs_output_dir}
+
+# Prepare the generators
+config.prepare_training_generators()
+
+# Loading the model
+model = config.network
 
 if args.horovod:
     config.prepare_horovod(hvd)
 
 if (args.horovod and hvd.rank() == 0) or (not args.horovod):
-    config.add_model_checkpoint(checkpoints_output_dir)
+    config.prepare_runtime_checkpoints(directories_dict)
 
     # Saving the config file.
     copyfile(join(args.restart, "config/saved_config.py"),
@@ -82,15 +90,9 @@ if (args.horovod and hvd.rank() == 0) or (not args.horovod):
     copyfile(join(args.restart, "config/saved_config.py"),
              join(config_output_dir, "temp_config.py"))
 
-# Loading the model
-model = config.network
-
 if config.weights is not None and args.horovod and hvd.rank() == 0 or config.weights is not None and not args.horovod:
     print("Loading weights (by name): {}".format(config.weights))
     model.load_weights(config.weights, by_name=True)
-
-# Prepare the generators
-config.prepare_training_generators()
 
 # Compiling the model
 model.compile(loss=config.loss,
