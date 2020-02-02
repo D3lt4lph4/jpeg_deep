@@ -4,11 +4,8 @@ from os import environ
 from keras.optimizers import SGD
 from keras.losses import categorical_crossentropy
 from keras.callbacks import ModelCheckpoint, TerminateOnNaN, EarlyStopping, ReduceLROnPlateau, TensorBoard
-from keras.preprocessing.image import ImageDataGenerator
-from keras.applications.vgg16 import preprocess_input
 
 from jpeg_deep.generators import RGBGenerator
-
 from jpeg_deep.networks import vggd
 from jpeg_deep.evaluation import Evaluator
 
@@ -33,7 +30,6 @@ class TrainingConfiguration(object):
         # System dependent variable
         self._workers = 10
         self._multiprocessing = True
-        self._gpus = 1
 
         # Variables for comet.ml
         self._project_name = "jpeg_deep"
@@ -81,7 +77,8 @@ class TrainingConfiguration(object):
                                             min_delta=0,
                                             patience=15)
 
-        self._callbacks = [self.terminate_on_nan, self.early_stopping]
+        self._callbacks = [self.reduce_lr_on_plateau,
+                           self.terminate_on_nan, self.early_stopping]
 
         # Creating the training and validation generator
         self._train_generator = None
@@ -90,33 +87,16 @@ class TrainingConfiguration(object):
 
         self._horovod = None
 
-    def add_csv_logger(self,
-                       output_path,
-                       filename="results.csv",
-                       separator=',',
-                       append=True):
-        pass
+    def prepare_runtime_checkpoints(self, directories_dir):
+        log_dir = directories_dir["log_dir"]
+        checkpoints_dir = directories_dir["checkpoints_dir"]
 
-    def add_model_checkpoint(self, output_path, verbose=1,
-                             save_best_only=True):
-        if self.horovod is not None:
-            if self.horovod.rank() == 0:
-                self._callbacks.append(ModelCheckpoint(filepath=join(
-                    output_path,
-                    "epoch-{epoch:02d}_loss-{loss:.4f}_val_loss-{val_loss:.4f}.h5"),
-                    verbose=verbose,
-                    save_best_only=save_best_only))
-                self._callbacks.append(
-                    TensorBoard(output_path))
-        else:
-            self.model_checkpoint = ModelCheckpoint(filepath=join(
-                output_path,
-                "epoch-{epoch:02d}_loss-{loss:.4f}_val_loss-{val_loss:.4f}.h5"),
-                verbose=verbose,
-                save_best_only=save_best_only)
-            self._callbacks.append(self.model_checkpoint)
-            self._callbacks.append(
-                TensorBoard(output_path))
+        self._callbacks.append(ModelCheckpoint(filepath=join(
+            checkpoints_dir,
+            "epoch-{epoch:02d}_loss-{loss:.4f}_val_loss-{val_loss:.4f}.h5"),
+            save_best_only=True))
+        self._callbacks.append(
+            TensorBoard(log_dir))
 
     def prepare_horovod(self, hvd):
         self._horovod = hvd
@@ -125,6 +105,7 @@ class TrainingConfiguration(object):
         self._optimizer = hvd.DistributedOptimizer(self._optimizer)
         self._steps_per_epoch = self._steps_per_epoch // hvd.size()
         self._validation_steps = 3 * self._validation_steps // hvd.size()
+
         self._callbacks = [
             hvd.callbacks.BroadcastGlobalVariablesCallback(0),
 
