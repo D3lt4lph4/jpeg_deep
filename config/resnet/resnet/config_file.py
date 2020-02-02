@@ -45,7 +45,7 @@ class TrainingConfiguration(object):
         # Training variables
         self._epochs = 90
         self._batch_size = 32
-        self._steps_per_epoch = 5000
+        self._steps_per_epoch = 1281167 // self.batch_size
         self._validation_steps = 50000 // self._batch_size
         self.optimizer_parameters = {
             "lr": 0.0125, "momentum": 0.9}
