@@ -4,22 +4,11 @@ from os import environ
 from keras.optimizers import SGD
 from keras.losses import categorical_crossentropy
 from keras.callbacks import ModelCheckpoint, TensorBoard
+from keras.preprocessing.image import ImageDataGenerator
+from keras.applications.resnet50 import preprocess_input
 
-from jpeg_deep.generators import RGBGenerator
 from jpeg_deep.networks import ResNet50
 from jpeg_deep.evaluation import Evaluator
-
-from albumentations import (
-    HorizontalFlip,
-    RandomCrop,
-    CenterCrop,
-    SmallestMaxSize,
-)
-
-from albumentations import (
-    OneOf,
-    Compose
-)
 
 
 class TrainingConfiguration(object):
@@ -42,6 +31,8 @@ class TrainingConfiguration(object):
 
         # Training variables
         self._epochs = 90
+        self._steps_per_epoch = None
+        self._validation_steps = None
         self._batch_size = 32
         self._steps_per_epoch = 1281167 // self.batch_size
         self._validation_steps = 50000 // self._batch_size
@@ -57,18 +48,6 @@ class TrainingConfiguration(object):
             environ["DATASET_PATH_TRAIN"], "imagenet/validation")
         self.test_directory = join(
             environ["DATASET_PATH_VAL"], "imagenet/validation")
-        self.validation_split = 0.95
-        self.index_file = "/home/2017018/bdegue01/git/jpeg_deep/data/imagenet_class_index.json"
-
-        # Defining the transformations that will be applied to the inputs.
-        self.train_transformations = [
-            SmallestMaxSize(256),
-            RandomCrop(224, 224),
-            HorizontalFlip()
-        ]
-
-        self.validation_transformations = [
-            SmallestMaxSize(256), CenterCrop(224, 224)]
 
         self._callbacks = []
 
@@ -128,14 +107,24 @@ class TrainingConfiguration(object):
         self._evaluator = Evaluator()
 
     def prepare_testing_generator(self):
-        self._test_generator = RGBGenerator(
-            self.test_directory, self.index_file, None, 1)
+        test_gen = ImageDataGenerator(zoom_range=(
+            0.875, 0.875), preprocessing_function=preprocess_input)
+        self._test_generator = test_gen.flow_from_directory(
+            self.validation_directory, batch_size=self.batch_size, target_size=(224, 224))
 
     def prepare_training_generators(self):
-        self._train_generator = RGBGenerator(
-            self.train_directory, self.index_file, self.batch_size, shuffle=True, transforms=self.train_transformations)
-        self._validation_generator = RGBGenerator(
-            self.validation_directory, self.index_file, self.batch_size, shuffle=True, transforms=self.validation_transformations)
+        train_gen = ImageDataGenerator(width_shift_range=0.33, height_shift_range=0.33,
+                                       zoom_range=0.5, horizontal_flip=True, preprocessing_function=preprocess_input)
+        self._train_generator = train_gen.flow_from_directory(self.train_directory,
+                                                              batch_size=self.batch_size,
+                                                              target_size=(224, 224))
+        val_gen = ImageDataGenerator(zoom_range=(
+            0.875, 0.875), preprocessing_function=preprocess_input)
+        self._validation_generator = val_gen.flow_from_directory(
+            self.validation_directory, batch_size=self.batch_size, target_size=(224, 224))
+
+        self._steps_per_epoch = len(self._train_generator)
+        self._validation_steps = len(self._validation_generator)
 
     @property
     def train_generator(self):
