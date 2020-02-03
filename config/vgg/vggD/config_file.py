@@ -31,7 +31,7 @@ class TrainingConfiguration(object):
         self.description = "Training configuration file for the RGB version of the VGGD network."
 
         # System dependent variable
-        self._workers = 10
+        self._workers = 5
         self._multiprocessing = True
         self._gpus = 1
 
