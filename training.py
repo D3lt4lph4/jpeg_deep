@@ -6,7 +6,6 @@ The script can:
     - create a csv file with the val_loss and train_loss locally
     - save the checkpoints locally
 """
-from config_file import TrainingConfiguration
 import sys
 from os import mkdir, listdir, environ, makedirs
 from os.path import join, dirname, isfile, expanduser
@@ -48,6 +47,7 @@ if args.horovod:
     verbose = 1 if hvd.rank() == 0 else 0
 
 sys.path.append(args.configuration)
+from config_file import TrainingConfiguration
 config = TrainingConfiguration()
 
 key = ''.join(random.choice(string.ascii_uppercase +
