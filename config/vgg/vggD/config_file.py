@@ -139,9 +139,9 @@ class TrainingConfiguration(object):
 
     def prepare_training_generators(self):
         self._train_generator = RGBGenerator(
-            self.train_directory, self.index_file, self.batch_size, shuffle=True,  transforms=self.train_transformations)
+            self.train_directory, self.index_file, batch_size=self.batch_size, shuffle=True,  transforms=self.train_transformations)
         self._validation_generator = RGBGenerator(
-            self.validation_directory, self.index_file, self.batch_size, shuffle=True, transforms=self.validation_transformations)
+            self.validation_directory, self.index_file, batch_size=self.batch_size, shuffle=True, transforms=self.validation_transformations)
 
     @property
     def train_generator(self):
