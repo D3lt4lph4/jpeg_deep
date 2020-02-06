@@ -50,12 +50,23 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
     def __init__(self,
                  data_directory,
                  index_file,
+                 input_size=(224, 224),
                  batch_size=32,
                  shuffle=True,
-                 albumentation_compose=None):
+                 seed=333,
+                 validation_split=0.0,
+                 validation=False,
+                 transforms=None):
+
+        if input_size is None and batch_size is not 1:
+            raise RuntimeError(
+                "The when input_size is None, the batch size should be one.")
         # Process the index dictionary to get the matching name/class_id
         self.association, self.classes, self.images_path = prepare_imagenet(
             index_file, data_directory)
+
+        # self.classes = self.classes[:1000]
+        # self.images_path = self.images_path[:1000]
 
         # External data
         self._batch_size = batch_size
@@ -63,10 +74,28 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
         self._number_of_data_samples = len(self.images_path)
 
         # Internal data
-        self.albumentation_compose = albumentation_compose
+        self.input_size = input_size
+
+        # If no validation split, all in test
+        if validation_split == 0 or validation_split == 1:
+            self.indexes = np.arange(len(self.images_path))
+        else:
+            np.random.seed(seed)
+            full_indexes = np.arange(len(self.images_path))
+            np.random.shuffle(full_indexes)
+            split_index = int(validation_split * len(self.images_path))
+            if validation:
+                self.indexes = full_indexes[split_index:]
+            else:
+                self.indexes = full_indexes[:split_index]
+
+            # Re-set the seed to random
+            np.random.seed(None)
+
+        self.transforms = transforms
         self.number_of_classes = len(self.classes)
-        self.batches_per_epoch = len(self.images_path) // self._batch_size
-        self.indexes = np.arange(len(self.images_path))
+        # An epoch sees all the images
+        self.batches_per_epoch = len(self.indexes) // self._batch_size
 
         # Initialization of the first batch
         self.on_epoch_end()
@@ -137,9 +166,10 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
 
             # Load the image in RGB
             img = cv2.imread(self.images_path[k])
-
-            for transform in self.albumentation_compose:
-                img = transform(image=img)['image']
+            
+            if self.transforms:
+                for transform in self.albumentation_compose:
+                    img = transform(image=img)['image']
 
             _, buffer = cv2.imencode(".jpg", img)
             io_buf = BytesIO(buffer)
@@ -220,9 +250,10 @@ class RGBGenerator(TemplateGenerator):
                  validation_split=0.0,
                  validation=False,
                  transforms=None):
-        
+
         if input_size is None and batch_size is not 1:
-            raise RuntimeError("The when input_size is None, the batch size should be one.")
+            raise RuntimeError(
+                "The when input_size is None, the batch size should be one.")
         # Process the index dictionary to get the matching name/class_id
         self.association, self.classes, self.images_path = prepare_imagenet(
             index_file, data_directory)
@@ -334,7 +365,7 @@ class RGBGenerator(TemplateGenerator):
             if self.transforms:
                 for transform in self.transforms:
                     img = transform(image=img)['image']
-            
+
             # If no input size is provided, we keep the size of the image.
             if self.input_size is None:
                 X = np.empty((self._batch_size, *img.shape), dtype=np.int32)
