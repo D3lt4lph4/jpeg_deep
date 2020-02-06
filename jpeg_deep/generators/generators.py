@@ -166,7 +166,7 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
 
             # Load the image in RGB
             img = cv2.imread(self.images_path[k])
-            
+
             if self.transforms:
                 for transform in self.albumentation_compose:
                     img = transform(image=img)['image']
@@ -245,7 +245,7 @@ class RGBGenerator(TemplateGenerator):
                  index_file,
                  input_size=(224, 224),
                  batch_size=32,
-                 shuffle=False,
+                 shuffle=True,
                  seed=333,
                  validation_split=0.0,
                  validation=False,
