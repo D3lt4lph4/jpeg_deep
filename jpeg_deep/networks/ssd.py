@@ -128,7 +128,7 @@ def feature_map_dct(image_shape: Tuple[int, int], l2_regularization: float = 0.0
     return [input_y, input_cbcr], concat, block4_conv3
 
 
-def ssd300(n_classes: int,
+def SSD300(n_classes: int,
            mode: str = 'training',
            kernel_initializer: str = 'he_normal',
            l2_regularization: float = 0.0005,

@@ -52,7 +52,7 @@ class DatasetError(Exception):
     pass
 
 
-class VOCGeneratorDCT(TemplateGenerator):
+class VOCGenerator(TemplateGenerator):
 
     def __init__(self,
                  batch_size: int = 32,
