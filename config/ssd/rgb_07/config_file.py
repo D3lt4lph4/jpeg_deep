@@ -41,9 +41,14 @@ class TrainingConfiguration(object):
         self._optimizer = SGD(**self.optimizer_params)
         self._loss = categorical_crossentropy
         self._metrics = ['accuracy']
-        self.train_sets = []
-        self.validation_sets = []
-        self.test_sets = []
+        dataset_path = environ(["DATASET_PATH"])
+        images_2007_path = join(dataset_path, "VOC2007/JPEGImages")
+        self.train_sets = [(images_2007_path, join(dataset_path, "VOC2007/ImageSets/Main/train.txt"))
+                           ]
+        self.validation_sets = [(images_2007_path, join(
+            dataset_path, "VOC2007/ImageSets/Main/val.txt"))]
+        self.test_sets = [(images_2007_path, join(
+            dataset_path, "VOC2007/ImageSets/Main/test.txt"))]
 
         # Keras stuff
         self.model_checkpoint = None
@@ -96,9 +101,9 @@ class TrainingConfiguration(object):
                                              pos_iou_threshold=0.5,
                                              neg_iou_limit=0.5,
                                              normalize_coords=normalize_coords)
-        
-        mean_color = [123, 117, 104] # The per-channel mean of the images in the dataset. Do not change this value if you're using any of the pre-trained weights.
-        
+
+        # The per-channel mean of the images in the dataset. Do not change this value if you're using any of the pre-trained weights.
+        mean_color = [123, 117, 104]
 
         self.train_tranformations = [SSDDataAugmentation(img_height=img_height,
                                                          img_width=img_width,
