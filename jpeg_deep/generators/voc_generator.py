@@ -28,7 +28,6 @@ import h5py
 
 from bs4 import BeautifulSoup
 
-from .helper_ssd import SSDInputEncoder
 from .helper_ssd import BoxFilter
 
 from .helper import parse_xml_voc
