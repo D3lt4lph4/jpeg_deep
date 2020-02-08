@@ -1,3 +1,4 @@
+from os import environ
 from os.path import join
 
 from keras.optimizers import Adadelta, SGD
@@ -7,9 +8,8 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras.applications.vgg16 import preprocess_input
 
 from jpeg_deep.networks import SSD300
-from jpeg_deep.generators import VOCGeneratorDCT
+from jpeg_deep.generators import VOCGenerator
 from jpeg_deep.evaluation import Evaluator
-from jpeg_deep.displayer import Displayer
 
 #from template.config import TemplateConfiguration
 
@@ -41,7 +41,7 @@ class TrainingConfiguration(object):
         self._optimizer = SGD(**self.optimizer_params)
         self._loss = categorical_crossentropy
         self._metrics = ['accuracy']
-        dataset_path = environ(["DATASET_PATH"])
+        dataset_path = environ["DATASET_PATH"]
         images_2007_path = join(dataset_path, "VOC2007/JPEGImages")
         self.train_sets = [(images_2007_path, join(dataset_path, "VOC2007/ImageSets/Main/train.txt"))
                            ]

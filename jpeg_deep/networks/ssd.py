@@ -128,7 +128,7 @@ def feature_map_dct(image_shape: Tuple[int, int], l2_regularization: float = 0.0
     return [input_y, input_cbcr], concat, block4_conv3
 
 
-def SSD300(n_classes: int,
+def SSD300(n_classes: int = 20,
            mode: str = 'training',
            kernel_initializer: str = 'he_normal',
            l2_regularization: float = 0.0005,
@@ -137,7 +137,7 @@ def SSD300(n_classes: int,
            top_k: int = 200,
            nms_max_output_size: int = 400,
            dct: bool = False,
-           image_shape: Tuple[int, int] = None):
+           image_shape: Tuple[int, int] = (300, 300)):
     '''
     Builds a ssd network, the network built can either be an RGB or DCT network. For more details on the architecture, see [the article](https://arxiv.org/abs/1512.02325v5).
 
@@ -194,7 +194,7 @@ def SSD300(n_classes: int,
             image_shape, l2_regularization=l2_regularization, kernel_initializer=kernel_initializer)
 
     # Create the network.
-    if args.dct:
+    if dct:
         name = 'block5_conv1_dct'
     else:
         name = 'block5_conv1'

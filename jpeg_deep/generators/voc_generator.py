@@ -13,7 +13,7 @@ from random import shuffle
 
 import numpy as np
 
-import sklearn.utils
+#import sklearn.utils
 
 from PIL import Image
 import cv2
