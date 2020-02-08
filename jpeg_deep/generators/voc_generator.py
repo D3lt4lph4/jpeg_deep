@@ -79,15 +79,13 @@ class VOCGenerator(TemplateGenerator):
         self.label_encoder = label_encoder
 
         if not images_path is None:
-            for file in images_path:
-                splitted = file.split("/")
-                directory_voc = "/".join(splitted[:6])
-                with open(file) as description_file:
-                    files = description_file.read().splitlines()
+            for image_dir, set_file in images_path:
+                with open(set_file, "r") as f:
+                    files = [file.rstrip() for file in f.readlines()]
 
                 for filename in files:
                     self.images_path.append(
-                        join(directory_voc, "JPEGImages", filename + ".jpg"))
+                        join(image_dir, filename + ".jpg"))
 
             self.dataset_size = len(self.images_path)
         else:
@@ -97,7 +95,7 @@ class VOCGenerator(TemplateGenerator):
         self._shuffle = shuffle
         self._number_of_data_samples = len(self.images_path)
 
-        self.batches_per_epoch = len(self.images_path) // self._batch_size
+        self.batch_per_epoch = len(self.images_path) // self._batch_size
         self.indexes = np.arange(len(self.images_path))
 
         self.labels = []
@@ -135,7 +133,7 @@ class VOCGenerator(TemplateGenerator):
         # Argument:
             - index: The index of the batch
         """
-        index = index % self.batches_per_epoch
+        index = index % self.batch_per_epoch
         indexes = self.indexes[index * self.batch_size:(index + 1) *
                                self._batch_size]
 
@@ -219,6 +217,8 @@ class VOCGenerator(TemplateGenerator):
         else:
             batch_y_encoded = batch_y
 
+        return batch_X, batch_y_encoded
+
         X_y = []
         X_cbcr = []
         for i, image_to_save in enumerate(batch_X):
@@ -262,7 +262,7 @@ class VOCGenerator(TemplateGenerator):
         # Argument:
             - index: The index of the batch
         """
-        index = index % self.batches_per_epoch
+        index = index % self.batch_per_epoch
         indexes = self.indexes[index *
                                self.batch_size:(index + 1) * self._batch_size]
 

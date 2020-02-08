@@ -6,6 +6,7 @@ The script can:
     - create a csv file with the val_loss and train_loss locally
     - save the checkpoints locally
 """
+
 import sys
 from os import mkdir, listdir, environ, makedirs
 from os.path import join, dirname, isfile, expanduser
@@ -56,6 +57,7 @@ key = ''.join(random.choice(string.ascii_uppercase +
 output_dir = "{}_{}_{}".format(config.workspace, config.project_name, key)
 
 if (args.horovod and hvd.rank() == 0) or (not args.horovod):
+    verbose = 1
     output_dir = join(environ["EXPERIMENTS_OUTPUT_DIRECTORY"], "{}_{}_{}".format(
         config.workspace, config.project_name, key))
 
@@ -69,8 +71,8 @@ if (args.horovod and hvd.rank() == 0) or (not args.horovod):
     makedirs(config_output_dir, exist_ok=True)
     makedirs(logs_output_dir, exist_ok=True)
 
-directories_dict = {"output": output_dir, "checkpoints_dir": checkpoints_output_dir,
-                    "config_dir": config_output_dir, "log_dir": logs_output_dir}
+    directories_dict = {"output": output_dir, "checkpoints_dir": checkpoints_output_dir,
+                        "config_dir": config_output_dir, "log_dir": logs_output_dir}
 
 # Prepare the generators
 config.prepare_training_generators()
@@ -85,9 +87,9 @@ if (args.horovod and hvd.rank() == 0) or (not args.horovod):
     config.prepare_runtime_checkpoints(directories_dict)
 
     # Saving the config file.
-    copyfile(join(args.restart, "config/saved_config.py"),
+    copyfile(join(args.configuration, "config_file.py"),
              join(config_output_dir, "saved_config.py"))
-    copyfile(join(args.restart, "config/saved_config.py"),
+    copyfile(join(args.configuration, "config_file.py"),
              join(config_output_dir, "temp_config.py"))
 
 if config.weights is not None and args.horovod and hvd.rank() == 0 or config.weights is not None and not args.horovod:

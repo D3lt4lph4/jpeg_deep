@@ -105,18 +105,18 @@ class AnchorBoxesTensorflow(Layer):
         cy_grid = tf.expand_dims(cy_grid, -1)
 
         cx_grid_b = tf.expand_dims(
-            tf.tile(cx_grid, (1, 1, self.tf_n_boxes)), -1) #/ 300.0
+            tf.tile(cx_grid, (1, 1, self.tf_n_boxes)), -1)  # / 300.0
         cy_grid_b = tf.expand_dims(
-            tf.tile(cy_grid, (1, 1, self.tf_n_boxes)), -1) #/ 300.0
+            tf.tile(cy_grid, (1, 1, self.tf_n_boxes)), -1)  # / 300.0
 
         wh_list_w = tf.expand_dims(tf.expand_dims(
             tf.expand_dims(self.tf_wh_list[:, 0], 0), 0), -1)
         wh_list_w = tf.tile(
-            wh_list_w, (feature_map_height, feature_map_width, 1, 1)) #/ 300.0
+            wh_list_w, (feature_map_height, feature_map_width, 1, 1))  # / 300.0
         wh_list_h = tf.expand_dims(tf.expand_dims(
             tf.expand_dims(self.tf_wh_list[:, 1], 0), 0), -1)
         wh_list_h = tf.tile(
-            wh_list_h, (feature_map_height, feature_map_width, 1, 1)) #/ 300.0
+            wh_list_h, (feature_map_height, feature_map_width, 1, 1))  # / 300.0
 
         boxes_tensor = tf.concat(
             [cx_grid_b, cy_grid_b, wh_list_w, wh_list_h], axis=-1)

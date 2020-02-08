@@ -3,7 +3,7 @@ from os.path import join
 
 from keras.optimizers import Adadelta, SGD
 from keras.losses import categorical_crossentropy
-from keras.callbacks import ModelCheckpoint, TerminateOnNaN, CSVLogger, EarlyStopping, ReduceLROnPlateau
+from keras.callbacks import ModelCheckpoint, TerminateOnNaN, CSVLogger, EarlyStopping, ReduceLROnPlateau, TensorBoard
 from keras.preprocessing.image import ImageDataGenerator
 from keras.applications.vgg16 import preprocess_input
 
@@ -11,6 +11,8 @@ from jpeg_deep.networks import SSD300
 from jpeg_deep.generators import VOCGenerator
 from jpeg_deep.evaluation import Evaluator
 
+from jpeg_deep.generators import SSDInputEncoder
+from jpeg_deep.tranformations import SSDDataAugmentation, ConvertTo3Channels, Resize
 #from template.config import TemplateConfiguration
 
 
@@ -21,8 +23,8 @@ class TrainingConfiguration(object):
         self.config_description = "This is the template config file."
 
         # System dependent variable
-        self._workers = 14
-        self._multiprocessing = True
+        self._workers = 1
+        self._multiprocessing = False
 
         # Variables for comet.ml
         self._project_name = "jpeg_deep"
@@ -42,11 +44,11 @@ class TrainingConfiguration(object):
         self._loss = categorical_crossentropy
         self._metrics = ['accuracy']
         dataset_path = environ["DATASET_PATH"]
-        images_2007_path = join(dataset_path, "VOC2007/JPEGImages")
-        self.train_sets = [(images_2007_path, join(dataset_path, "VOC2007/ImageSets/Main/train.txt"))
+        images_2007_path = join(dataset_path, "VOC2007_trainval/JPEGImages")
+        self.train_sets = [(images_2007_path, join(dataset_path, "VOC2007_trainval/ImageSets/Main/train.txt"))
                            ]
         self.validation_sets = [(images_2007_path, join(
-            dataset_path, "VOC2007/ImageSets/Main/val.txt"))]
+            dataset_path, "VOC2007_trainval/ImageSets/Main/val.txt"))]
         self.test_sets = [(images_2007_path, join(
             dataset_path, "VOC2007/ImageSets/Main/test.txt"))]
 
@@ -91,7 +93,7 @@ class TrainingConfiguration(object):
                                              n_classes=n_classes,
                                              predictor_sizes=predictor_sizes,
                                              scales=scales,
-                                             aspect_ratios_per_layer=aspect_ratios,
+                                             aspect_ratios_per_layer=aspect_ratios_per_layer,
                                              two_boxes_for_ar1=two_boxes_for_ar1,
                                              steps=steps,
                                              offsets=offsets,
@@ -172,8 +174,11 @@ class TrainingConfiguration(object):
     def prepare_training_generators(self):
         self._train_generator = VOCGenerator(batch_size=self.batch_size, shuffle=True, label_encoder=self.input_encoder,
                                              transforms=self.train_tranformations, load_images_into_memory=None, images_path=self.train_sets)
+        self._train_generator.prepare_dataset()
         self._validation_generator = VOCGenerator(batch_size=self.batch_size, shuffle=True, label_encoder=self.input_encoder,
                                                   transforms=self.validation_transformations, load_images_into_memory=None, images_path=self.validation_sets)
+        self._validation_generator.prepare_dataset()
+        self.validation_steps = len(self._validation_generator)
 
     @property
     def train_generator(self):
