@@ -13,6 +13,8 @@ from jpeg_deep.evaluation import Evaluator
 
 from jpeg_deep.generators import SSDInputEncoder
 from jpeg_deep.tranformations import SSDDataAugmentation, ConvertTo3Channels, Resize
+from jpeg_deep.losses import SSDLoss
+
 #from template.config import TemplateConfiguration
 
 
@@ -31,26 +33,25 @@ class TrainingConfiguration(object):
         self._workspace = "ssd"
 
         # Network variables
-        self._weights = None
-        self._network = SSD300()
+        self._weights = "/d2/thesis/weights/keras/vgg/epoch-86_loss-1.4413_val_loss-1.9857.h5"
 
         # Training variables
         self._epochs = 240
-        self._batch_size = 32
+        self._batch_size = 22
         self._steps_per_epoch = 1000
         self.optimizer_params = {
-            "lr": 0.001, "momentum": 0.9}
+            "lr": 0.001, "momentum": 0.9, "decay": 0.0, "nesterov": False}
         self._optimizer = SGD(**self.optimizer_params)
-        self._loss = categorical_crossentropy
-        self._metrics = ['accuracy']
+        self._loss = SSDLoss(neg_pos_ratio=3, alpha=1.0).compute_loss
+        self._metrics = None
         dataset_path = environ["DATASET_PATH"]
-        images_2007_path = join(dataset_path, "VOC2007_trainval/JPEGImages")
-        self.train_sets = [(images_2007_path, join(dataset_path, "VOC2007_trainval/ImageSets/Main/train.txt"))
+        images_2007_path = join(dataset_path, "VOC2012_trainval/JPEGImages")
+        self.train_sets = [(images_2007_path, join(dataset_path, "VOC2012_trainval/ImageSets/Main/train.txt"))
                            ]
         self.validation_sets = [(images_2007_path, join(
-            dataset_path, "VOC2007_trainval/ImageSets/Main/val.txt"))]
+            dataset_path, "VOC2012_trainval/ImageSets/Main/val.txt"))]
         self.test_sets = [(images_2007_path, join(
-            dataset_path, "VOC2007/ImageSets/Main/test.txt"))]
+            dataset_path, "VOC2012/ImageSets/Main/test.txt"))]
 
         # Keras stuff
         self.model_checkpoint = None
@@ -61,7 +62,7 @@ class TrainingConfiguration(object):
                                             patience=15)
 
         self._callbacks = [self.reduce_lr_on_plateau,
-                           self.terminate_on_nan, self.early_stopping]
+                           self.terminate_on_nan]
 
         # Creating the objects for the generators
         # Temporary variables before intergration to code
@@ -87,7 +88,9 @@ class TrainingConfiguration(object):
         # The variances by which the encoded target coordinates are divided as in the original implementation
         variances = [0.1, 0.1, 0.2, 0.2]
         normalize_coords = True
-
+        mean_color = [123, 117, 104]
+        swap_channels = [2, 1, 0]
+        self._network = SSD300()
         self.input_encoder = SSDInputEncoder(img_height=img_height,
                                              img_width=img_width,
                                              n_classes=n_classes,
@@ -105,7 +108,6 @@ class TrainingConfiguration(object):
                                              normalize_coords=normalize_coords)
 
         # The per-channel mean of the images in the dataset. Do not change this value if you're using any of the pre-trained weights.
-        mean_color = [123, 117, 104]
 
         self.train_tranformations = [SSDDataAugmentation(img_height=img_height,
                                                          img_width=img_width,
@@ -133,6 +135,7 @@ class TrainingConfiguration(object):
             TensorBoard(log_dir))
 
     def prepare_horovod(self, hvd):
+        print("setting hvd...........")
         self._horovod = hvd
         self.optimizer_parameters["lr"] = self.optimizer_parameters["lr"] * hvd.size()
         self._optimizer = SGD(**self.optimizer_parameters)

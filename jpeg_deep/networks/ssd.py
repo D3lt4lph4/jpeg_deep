@@ -3,6 +3,7 @@ from typing import Tuple
 import numpy as np
 
 import tensorflow as tf
+import keras.backend as K
 from keras.models import Model
 from keras.layers import Input, Lambda, Activation, Conv2D, MaxPooling2D, Reshape, Concatenate, BatchNormalization, ZeroPadding2D
 from keras.regularizers import l2
@@ -13,6 +14,11 @@ from jpeg_deep.layers.ssd_layers import AnchorBoxes, AnchorBoxesTensorflow, L2No
 # Helper functions
 def identity_layer(tensor):
     return tensor
+
+
+def input_channel_swap(tensor):
+    swap_channels = [2, 1, 0]
+    return K.stack([tensor[..., swap_channels[0]], tensor[..., swap_channels[1]], tensor[..., swap_channels[2]]], axis=-1)
 
 
 def input_mean_normalization(tensor):
@@ -38,6 +44,9 @@ def feature_map_rgb(image_shape: Tuple[int, int], l2_regularization: float = 0.0
                           name='identity_layer')(input_layer)
     input_mean_normalization_layer = Lambda(input_mean_normalization, output_shape=(
         img_h, img_w, 3), name='input_mean_normalization')(lambda_layer)
+
+    input_swap = Lambda(input_channel_swap, output_shape=(
+        img_h, img_w, 3), name='input_channel_swap')(input_mean_normalization_layer)
 
     block1_conv1 = Conv2D(64, (3, 3), activation='relu', padding='same',
                           kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularization), name='block1_conv1')(input_mean_normalization_layer)
@@ -177,6 +186,17 @@ def SSD300(n_classes: int = 20,
     # The number of anchor boxes for the given output layer.
     n_boxes = [4, 6, 6, 6, 4, 4]
 
+    two_boxes_for_ar1 = True
+
+    clip_boxes = False
+
+    coords = 'centroids'
+
+    normalize_coords = True
+
+    # The variances by which the encoded target coordinates are divided as in the original implementation
+    variances = [0.1, 0.1, 0.2, 0.2]
+
     # If we train we set to the pre-set size else either None or the specified size.
     if mode == "training":
         img_h, img_w = 300, 300
@@ -287,18 +307,43 @@ def SSD300(n_classes: int = 20,
         conv9_2_mbox_priorbox = AnchorBoxesTensorflow(
             this_scale=scales[5], next_scale=scales[6], step=steps[5], aspect_ratios=aspect_ratios[5], name='conv9_2_mbox_priorbox')(conv9_2_mbox_loc)
     else:
-        block4_conv3_norm_mbox_priorbox = AnchorBoxes(
-            img_h, img_w, this_scale=scales[0], next_scale=scales[1], aspect_ratios=aspect_ratios[0], this_steps=steps[0], this_offsets=offsets[0])(block4_conv3_norm_mbox_loc)
+        block4_conv3_norm_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[0], next_scale=scales[1], aspect_ratios=aspect_ratios[0],
+                                                      two_boxes_for_ar1=two_boxes_for_ar1, this_steps=steps[
+            0], this_offsets=offsets[0], clip_boxes=clip_boxes,
+            variances=variances, coords=coords, normalize_coords=normalize_coords, name='conv4_3_norm_mbox_priorbox')(block4_conv3_norm_mbox_loc)
         fc7_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[1], next_scale=scales[2], aspect_ratios=aspect_ratios[1],
-                                        this_steps=steps[1], this_offsets=offsets[1])(fc7_mbox_loc)
+                                        two_boxes_for_ar1=two_boxes_for_ar1, this_steps=steps[
+                                            1], this_offsets=offsets[1], clip_boxes=clip_boxes,
+                                        variances=variances, coords=coords, normalize_coords=normalize_coords, name='fc7_mbox_priorbox')(fc7_mbox_loc)
         conv6_2_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[2], next_scale=scales[3], aspect_ratios=aspect_ratios[2],
-                                            this_steps=steps[2], this_offsets=offsets[2])(conv6_2_mbox_loc)
+                                            two_boxes_for_ar1=two_boxes_for_ar1, this_steps=steps[
+                                                2], this_offsets=offsets[2], clip_boxes=clip_boxes,
+                                            variances=variances, coords=coords, normalize_coords=normalize_coords, name='conv6_2_mbox_priorbox')(conv6_2_mbox_loc)
         conv7_2_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[3], next_scale=scales[4], aspect_ratios=aspect_ratios[3],
-                                            this_steps=steps[3], this_offsets=offsets[3])(conv7_2_mbox_loc)
+                                            two_boxes_for_ar1=two_boxes_for_ar1, this_steps=steps[
+                                                3], this_offsets=offsets[3], clip_boxes=clip_boxes,
+                                            variances=variances, coords=coords, normalize_coords=normalize_coords, name='conv7_2_mbox_priorbox')(conv7_2_mbox_loc)
         conv8_2_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[4], next_scale=scales[5], aspect_ratios=aspect_ratios[4],
-                                            this_steps=steps[4], this_offsets=offsets[4])(conv8_2_mbox_loc)
+                                            two_boxes_for_ar1=two_boxes_for_ar1, this_steps=steps[
+                                                4], this_offsets=offsets[4], clip_boxes=clip_boxes,
+                                            variances=variances, coords=coords, normalize_coords=normalize_coords, name='conv8_2_mbox_priorbox')(conv8_2_mbox_loc)
         conv9_2_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[5], next_scale=scales[6], aspect_ratios=aspect_ratios[5],
-                                            this_steps=steps[5], this_offsets=offsets[5])(conv9_2_mbox_loc)
+                                            two_boxes_for_ar1=two_boxes_for_ar1, this_steps=steps[
+                                                5], this_offsets=offsets[5], clip_boxes=clip_boxes,
+                                            variances=variances, coords=coords, normalize_coords=normalize_coords, name='conv9_2_mbox_priorbox')(conv9_2_mbox_loc)
+
+        # block4_conv3_norm_mbox_priorbox = AnchorBoxes(
+        #     img_h, img_w, this_scale=scales[0], next_scale=scales[1], aspect_ratios=aspect_ratios[0], this_steps=steps[0], this_offsets=offsets[0])(block4_conv3_norm_mbox_loc)
+        # fc7_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[1], next_scale=scales[2], aspect_ratios=aspect_ratios[1],
+        #                                 this_steps=steps[1], this_offsets=offsets[1])(fc7_mbox_loc)
+        # conv6_2_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[2], next_scale=scales[3], aspect_ratios=aspect_ratios[2],
+        #                                     this_steps=steps[2], this_offsets=offsets[2])(conv6_2_mbox_loc)
+        # conv7_2_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[3], next_scale=scales[4], aspect_ratios=aspect_ratios[3],
+        #                                     this_steps=steps[3], this_offsets=offsets[3])(conv7_2_mbox_loc)
+        # conv8_2_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[4], next_scale=scales[5], aspect_ratios=aspect_ratios[4],
+        #                                     this_steps=steps[4], this_offsets=offsets[4])(conv8_2_mbox_loc)
+        # conv9_2_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[5], next_scale=scales[6], aspect_ratios=aspect_ratios[5],
+        #                                     this_steps=steps[5], this_offsets=offsets[5])(conv9_2_mbox_loc)
 
     # Reshape
     # Reshape the class predictions, yielding 3D tensors of shape `(batch, height * width * n_boxes, n_classes)`
@@ -381,7 +426,7 @@ def SSD300(n_classes: int = 20,
     # Concatenate the class and box predictions and the anchors to one large predictions vector
     # Output shape of `predictions`: (batch, n_boxes_total, n_classes + 4 + 8)
     predictions = Concatenate(
-        axis=-1, name='predictions')([mbox_conf_softmax, mbox_loc, mbox_priorbox])
+        axis=-1, name='predictions_ssd')([mbox_conf_softmax, mbox_loc, mbox_priorbox])
 
     if mode == 'training':
         model = Model(inputs=input_layer, outputs=predictions)
