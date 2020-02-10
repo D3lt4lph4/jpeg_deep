@@ -18,6 +18,8 @@ limitations under the License.
 
 import numpy as np
 
+from typing import List
+
 from jpeg_deep.utils import iou, convert_coordinates
 from jpeg_deep.utils import iou
 
@@ -427,31 +429,27 @@ class SSDInputEncoder:
     '''
 
     def __init__(self,
-                 img_height,
-                 img_width,
-                 n_classes,
-                 predictor_sizes,
-                 min_scale=0.1,
-                 max_scale=0.9,
-                 scales=None,
-                 aspect_ratios_global=[0.5, 1.0, 2.0],
-                 aspect_ratios_per_layer=None,
-                 two_boxes_for_ar1=True,
+                 n_classes: int=20,
+                 predictor_sizes: List[int]=None,
+                 min_scale: float=0.1,
+                 max_scale: float=0.9,
+                 scales: List[float]=None,
+                 aspect_ratios_global: List[float]=[0.5, 1.0, 2.0],
+                 aspect_ratios_per_layer: List[float]=None,
+                 two_boxes_for_ar1: bool=True,
                  steps=None,
                  offsets=None,
                  clip_boxes=False,
                  variances=[0.1, 0.1, 0.2, 0.2],
                  matching_type='multi',
                  pos_iou_threshold=0.5,
-                 neg_iou_limit=0.3,
+                 neg_iou_limit=0.5,
                  border_pixels='half',
                  coords='centroids',
                  normalize_coords=True,
                  background_id=0):
         '''
         Arguments:
-            img_height (int): The height of the input images.
-            img_width (int): The width of the input images.
             n_classes (int): The number of positive classes, e.g. 20 for Pascal VOC, 80 for MS COCO.
             predictor_sizes (list): A list of int-tuples of the format `(height, width)`
                 containing the output heights and widths of the convolutional predictor layers.
@@ -524,7 +522,10 @@ class SSDInputEncoder:
                 This way learning becomes independent of the input image size.
             background_id (int, optional): Determines which class ID is for the background class.
         '''
-        predictor_sizes = np.array(predictor_sizes)
+        if predictor_sizes is None:
+            predictor_sizes = np.array([[38, 38], [19, 19], [10, 10], [5, 5], [3, 3], [1, 1]])
+        else:
+            predictor_sizes = np.array(predictor_sizes)
         if predictor_sizes.ndim == 1:
             predictor_sizes = np.expand_dims(predictor_sizes, axis=0)
 
@@ -576,8 +577,8 @@ class SSDInputEncoder:
         # Set or compute members.
         ##################################################################################
 
-        self.img_height = img_height
-        self.img_width = img_width
+        self.img_height = 300 
+        self.img_width = 300
         self.n_classes = n_classes + 1 # + 1 for the background class
         self.predictor_sizes = predictor_sizes
         self.min_scale = min_scale
@@ -586,7 +587,7 @@ class SSDInputEncoder:
         # `min_scale` and `max_scale`. If an explicit list of `scales` is given, however,
         # then it takes precedent over `min_scale` and `max_scale`.
         if (scales is None):
-            self.scales = np.linspace(self.min_scale, self.max_scale, len(self.predictor_sizes)+1)
+            self.scales = [0.1, 0.2, 0.37, 0.54, 0.71, 0.88, 1.05]
         else:
             # If a list of scales is given explicitly, we'll use that instead of computing it from `min_scale` and `max_scale`.
             self.scales = scales
@@ -594,7 +595,12 @@ class SSDInputEncoder:
         # `aspect_ratios_global` for all predictor layers. If `aspect_ratios_per_layer` is given,
         # however, then it takes precedent over `aspect_ratios_global`.
         if (aspect_ratios_per_layer is None):
-            self.aspect_ratios = [aspect_ratios_global] * predictor_sizes.shape[0]
+            self.aspect_ratios = [[1.0, 2.0, 0.5],
+                                   [1.0, 2.0, 0.5, 3.0, 1.0/3.0],
+                                   [1.0, 2.0, 0.5, 3.0, 1.0/3.0],
+                                   [1.0, 2.0, 0.5, 3.0, 1.0/3.0],
+                                   [1.0, 2.0, 0.5],
+                                   [1.0, 2.0, 0.5]]
         else:
             # If aspect ratios are given per layer, we'll use those.
             self.aspect_ratios = aspect_ratios_per_layer
@@ -602,11 +608,11 @@ class SSDInputEncoder:
         if not (steps is None):
             self.steps = steps
         else:
-            self.steps = [None] * predictor_sizes.shape[0]
+            self.steps = [8, 16, 32, 64, 100, 300]
         if not (offsets is None):
             self.offsets = offsets
         else:
-            self.offsets = [None] * predictor_sizes.shape[0]
+            self.offsets = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
         self.clip_boxes = clip_boxes
         self.variances = variances
         self.matching_type = matching_type

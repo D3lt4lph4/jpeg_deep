@@ -64,51 +64,14 @@ class TrainingConfiguration(object):
         self._callbacks = [self.reduce_lr_on_plateau,
                            self.terminate_on_nan]
 
-        # Creating the objects for the generators
-        # Temporary variables before intergration to code
-        img_height = 300
-        img_width = 300
-        n_classes = 20
-        predictor_sizes = [[38, 38], [19, 19],
-                           [10, 10], [5, 5], [3, 3], [1, 1]]
-        scales = [0.1, 0.2, 0.37, 0.54, 0.71, 0.88, 1.05]
-        aspect_ratios_per_layer = [[1.0, 2.0, 0.5],
-                                   [1.0, 2.0, 0.5, 3.0, 1.0/3.0],
-                                   [1.0, 2.0, 0.5, 3.0, 1.0/3.0],
-                                   [1.0, 2.0, 0.5, 3.0, 1.0/3.0],
-                                   [1.0, 2.0, 0.5],
-                                   [1.0, 2.0, 0.5]]
-        two_boxes_for_ar1 = True
-        # The space between two adjacent anchor box center points for each predictor layer.
-        steps = [8, 16, 32, 64, 100, 300]
-        # The offsets of the first anchor box center points from the top and left borders of the image as a fraction of the step size for each predictor layer.
-        offsets = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
-        # Whether or not to clip the anchor boxes to lie entirely within the image boundaries
-        clip_boxes = False
-        # The variances by which the encoded target coordinates are divided as in the original implementation
-        variances = [0.1, 0.1, 0.2, 0.2]
-        normalize_coords = True
         mean_color = [123, 117, 104]
         swap_channels = [2, 1, 0]
         self._network = SSD300()
-        self.input_encoder = SSDInputEncoder(img_height=img_height,
-                                             img_width=img_width,
-                                             n_classes=n_classes,
-                                             predictor_sizes=predictor_sizes,
-                                             scales=scales,
-                                             aspect_ratios_per_layer=aspect_ratios_per_layer,
-                                             two_boxes_for_ar1=two_boxes_for_ar1,
-                                             steps=steps,
-                                             offsets=offsets,
-                                             clip_boxes=clip_boxes,
-                                             variances=variances,
-                                             matching_type='multi',
-                                             pos_iou_threshold=0.5,
-                                             neg_iou_limit=0.5,
-                                             normalize_coords=normalize_coords)
+        self.input_encoder = SSDInputEncoder()
 
         # The per-channel mean of the images in the dataset. Do not change this value if you're using any of the pre-trained weights.
-
+        img_height = 300
+        img_width = 300
         self.train_tranformations = [SSDDataAugmentation(img_height=img_height,
                                                          img_width=img_width,
                                                          background=mean_color)]
