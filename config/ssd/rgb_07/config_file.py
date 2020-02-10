@@ -34,6 +34,7 @@ class TrainingConfiguration(object):
 
         # Network variables
         self._weights = "/d2/thesis/weights/keras/vgg/epoch-86_loss-1.4413_val_loss-1.9857.h5"
+        self._network = SSD300()
 
         # Training variables
         self._epochs = 240
@@ -64,21 +65,13 @@ class TrainingConfiguration(object):
         self._callbacks = [self.reduce_lr_on_plateau,
                            self.terminate_on_nan]
 
-        mean_color = [123, 117, 104]
-        swap_channels = [2, 1, 0]
-        self._network = SSD300()
         self.input_encoder = SSDInputEncoder()
 
-        # The per-channel mean of the images in the dataset. Do not change this value if you're using any of the pre-trained weights.
-        img_height = 300
-        img_width = 300
-        self.train_tranformations = [SSDDataAugmentation(img_height=img_height,
-                                                         img_width=img_width,
-                                                         background=mean_color)]
+        self.train_tranformations = [SSDDataAugmentation()]
         self.validation_transformations = [
-            ConvertTo3Channels(), Resize(height=img_height, width=img_width)]
+            ConvertTo3Channels(), Resize(height=300, width=300)]
         self.test_transformations = [ConvertTo3Channels(), Resize(
-            height=img_height, width=img_width)]
+            height=300, width=300)]
 
         self._train_generator = None
         self._validation_generator = None
