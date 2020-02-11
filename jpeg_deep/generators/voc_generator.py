@@ -60,6 +60,7 @@ class VOCGenerator(TemplateGenerator):
                  transforms: List[object] = None,
                  load_images_into_memory: bool = False,
                  images_path: List[str] = None,
+                 dct: bool: False,
                  labels_output_format: List[str] = (
                      'class_id', 'xmin', 'ymin', 'xmax', 'ymax')):
         '''
@@ -217,28 +218,29 @@ class VOCGenerator(TemplateGenerator):
         else:
             batch_y_encoded = batch_y
 
-        return batch_X, batch_y_encoded
+        if not self.dct:
+            return batch_X, batch_y_encoded
+        else:
+            X_y = []
+            X_cbcr = []
+            for i, image_to_save in enumerate(batch_X):
+                im = Image.fromarray(image_to_save)
+                fake_file = BytesIO()
+                im.save(fake_file, format="jpeg")
 
-        X_y = []
-        X_cbcr = []
-        for i, image_to_save in enumerate(batch_X):
-            im = Image.fromarray(image_to_save)
-            fake_file = BytesIO()
-            im.save(fake_file, format="jpeg")
+                dct_y, dct_cb, dct_cr = loads(fake_file.getvalue())
 
-            dct_y, dct_cb, dct_cr = loads(fake_file.getvalue())
+                y_x, y_y, y_c = dct_y.shape
+                cb_x, cb_y, cb_c = dct_cb.shape
 
-            y_x, y_y, y_c = dct_y.shape
-            cb_x, cb_y, cb_c = dct_cb.shape
+                temp_y = np.empty((cb_x * 2, cb_y * 2, y_c))
 
-            temp_y = np.empty((cb_x * 2, cb_y * 2, y_c))
+                temp_y[:y_x, :y_y, :] = dct_y
 
-            temp_y[:y_x, :y_y, :] = dct_y
+                X_y.append(temp_y)
+                X_cbcr.append(np.concatenate([dct_cb, dct_cr], axis=-1))
 
-            X_y.append(temp_y)
-            X_cbcr.append(np.concatenate([dct_cb, dct_cr], axis=-1))
-
-        return [np.array(X_y), np.array(X_cbcr)], batch_y_encoded
+            return [np.array(X_y), np.array(X_cbcr)], batch_y_encoded
 
     def prepare_dataset(self):
         """ We load all the labels when preparing the data. If there is the load in memory option activated, we pre-load the images as well. """
