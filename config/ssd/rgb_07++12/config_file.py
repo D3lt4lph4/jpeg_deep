@@ -48,12 +48,12 @@ class TrainingConfiguration(object):
         dataset_path = environ["DATASET_PATH"]
         images_2007_path = join(dataset_path, "VOC2007/JPEGImages")
         images_2012_path = join(dataset_path, "VOC2012/JPEGImages")
-        self.train_sets = [(images_2007_path, join(dataset_path, "VOC2007/ImageSets/Main/train.txt")),
-                           (images_2012_path, join(dataset_path, "VOC2012/ImageSets/Main/train.txt"))]
+        self.train_sets = [(images_2007_path, join(dataset_path, "VOC2007/ImageSets/Main/train.txt")), (images_2012_path, join(
+            dataset_path, "VOC2012/ImageSets/Main/train.txt")), (images_2007_path, join(dataset_path, "VOC2007/ImageSets/Main/test.txt"))]
         self.validation_sets = [(images_2007_path, join(dataset_path, "VOC2007/ImageSets/Main/val.txt")),
                                 (images_2012_path, join(dataset_path, "VOC2012/ImageSets/Main/val.txt"))]
-        self.test_sets = [(images_2007_path, join(
-            dataset_path, "VOC2007/ImageSets/Main/test.txt"))]
+        self.test_sets = [(images_2012_path, join(
+            dataset_path, "VOC2012/ImageSets/Main/test.txt"))]
 
         # Keras stuff
         self.model_checkpoint = None
