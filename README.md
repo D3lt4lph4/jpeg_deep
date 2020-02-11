@@ -116,6 +116,17 @@ python inference.py <experiment_path> <weights_path>
 
 ## Classification
 
+The table below shows the results obtained compared with the state of the art. For the training, the ImageNet train set was used as training and the ImageNet validation set was used as validation. Except for the official results, the new results were evaluated reshaping the smallest size of the images to 256 and then center cropping.
+
+| Newtork | top-1 | top-5 |
+|:-:|:-:|:-:|
+| VGG A (official) | 29.6 | 10.4 |
+| VGG D (official) | 27.0 | 8.8 |
+| VGG A (retrained) | 32.2 | 12.1 |
+| VGG D (retrained) | 30.1 | 10.4 |
+| VGG A DCT | 39.6 | 17.2 |
+| VGG D DCT | 36.74 | 15.2 |
+
 ### Details in the dataset path
 
 ## Detection
