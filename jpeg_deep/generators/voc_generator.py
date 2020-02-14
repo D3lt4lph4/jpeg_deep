@@ -60,7 +60,7 @@ class VOCGenerator(TemplateGenerator):
                  transforms: List[object] = None,
                  load_images_into_memory: bool = False,
                  images_path: List[str] = None,
-                 dct: bool: False,
+                 dct: bool = False,
                  labels_output_format: List[str] = (
                      'class_id', 'xmin', 'ymin', 'xmax', 'ymax')):
         '''
