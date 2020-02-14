@@ -1,5 +1,3 @@
-from __future__ import division
-
 from os.path import basename, join
 from copy import deepcopy
 import inspect
@@ -27,6 +25,8 @@ from jpeg2dct.numpy import load, loads
 import h5py
 
 from bs4 import BeautifulSoup
+
+from keras.applications.vgg16 import preprocess_input
 
 from .helper_ssd import BoxFilter
 
@@ -102,6 +102,7 @@ class VOCGenerator(TemplateGenerator):
         self.labels = []
         self.image_ids = None
         self.difficult = None
+        self.dct = dct
 
         self.box_filter = BoxFilter(check_overlap=False, check_min_area=False,
                                     check_degenerate=True, labels_format=self.labels_format)

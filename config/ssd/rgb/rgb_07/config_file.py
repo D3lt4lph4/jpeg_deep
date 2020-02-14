@@ -33,7 +33,7 @@ class TrainingConfiguration(object):
         self._workspace = "ssd"
 
         # Network variables
-        self._weights = "/d2/thesis/weights/keras/vgg/epoch-86_loss-1.4413_val_loss-1.9857.h5"
+        self._weights = None
         self._network = SSD300()
 
         # Training variables
@@ -47,11 +47,10 @@ class TrainingConfiguration(object):
         self._metrics = None
         dataset_path = environ["DATASET_PATH"]
         images_2007_path = join(dataset_path, "VOC2007/JPEGImages")
-        images_2012_path = join(dataset_path, "VOC2012/JPEGImages")
-        self.train_sets = [(images_2007_path, join(dataset_path, "VOC2007/ImageSets/Main/train.txt")),
-                           (images_2012_path, join(dataset_path, "VOC2012/ImageSets/Main/train.txt"))]
-        self.validation_sets = [(images_2007_path, join(dataset_path, "VOC2007/ImageSets/Main/val.txt")),
-                                (images_2012_path, join(dataset_path, "VOC2012/ImageSets/Main/val.txt"))]
+        self.train_sets = [(images_2007_path, join(
+            dataset_path, "VOC2007/ImageSets/Main/train.txt"))]
+        self.validation_sets = [(images_2007_path, join(
+            dataset_path, "VOC2007/ImageSets/Main/val.txt"))]
         self.test_sets = [(images_2007_path, join(
             dataset_path, "VOC2007/ImageSets/Main/test.txt"))]
 
