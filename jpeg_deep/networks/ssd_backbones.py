@@ -11,20 +11,6 @@ from keras.regularizers import l2
 from jpeg_deep.layers.ssd_layers import AnchorBoxes, AnchorBoxesTensorflow, L2Normalization, DecodeDetections
 
 
-# Helper functions
-def identity_layer(tensor):
-    return tensor
-
-
-def input_channel_swap(tensor):
-    swap_channels = [2, 1, 0]
-    return K.stack([tensor[..., swap_channels[0]], tensor[..., swap_channels[1]], tensor[..., swap_channels[2]]], axis=-1)
-
-
-def input_mean_normalization(tensor):
-    return tensor - np.array([123, 117, 104])
-
-
 def feature_map_rgb(image_shape: Tuple[int, int], kernel_initializer: str = 'glorot_uniform'):
     """ Helper function that generates the first layers of the SSD. This function generates the layers for the RGB network.
 
@@ -39,17 +25,8 @@ def feature_map_rgb(image_shape: Tuple[int, int], kernel_initializer: str = 'glo
     img_h, img_w = image_shape
     input_layer = Input(shape=(img_h, img_w, 3))
 
-    # The following identity layer is only needed so that the subsequent lambda layers can be optional.
-    lambda_layer = Lambda(identity_layer, output_shape=(img_h, img_w, 3),
-                          name='identity_layer')(input_layer)
-    input_mean_normalization_layer = Lambda(input_mean_normalization, output_shape=(
-        img_h, img_w, 3), name='input_mean_normalization')(lambda_layer)
-
-    input_swap = Lambda(input_channel_swap, output_shape=(
-        img_h, img_w, 3), name='input_channel_swap')(input_mean_normalization_layer)
-
     block1_conv1 = Conv2D(64, (3, 3), activation='relu', padding='same',
-                          kernel_initializer=kernel_initializer, name='block1_conv1')(input_mean_normalization_layer)
+                          kernel_initializer=kernel_initializer, name='block1_conv1')(input_layer)
     block1_conv2 = Conv2D(64, (3, 3), activation='relu', padding='same',
                           kernel_initializer=kernel_initializer, name='block1_conv2')(block1_conv1)
     block1_pool = MaxPooling2D(pool_size=(2, 2), strides=(
@@ -151,17 +128,8 @@ def feature_map_resnet_rgb(image_shape: Tuple[int, int], kernel_initializer: str
     img_h, img_w = image_shape
     input_layer = Input(shape=(img_h, img_w, 3))
 
-    # The following identity layer is only needed so that the subsequent lambda layers can be optional.
-    lambda_layer = Lambda(identity_layer, output_shape=(img_h, img_w, 3),
-                          name='identity_layer')(input_layer)
-    input_mean_normalization_layer = Lambda(input_mean_normalization, output_shape=(
-        img_h, img_w, 3), name='input_mean_normalization')(lambda_layer)
-
-    input_swap = Lambda(input_channel_swap, output_shape=(
-        img_h, img_w, 3), name='input_channel_swap')(input_mean_normalization_layer)
-
     # 1
-    x = layers.ZeroPadding2D(padding=(3, 3), name='conv1_pad')(img_input)
+    x = layers.ZeroPadding2D(padding=(3, 3), name='conv1_pad')(input_layer)
     x = layers.Conv2D(64, (7, 7),
                       strides=(2, 2),
                       padding='valid',
