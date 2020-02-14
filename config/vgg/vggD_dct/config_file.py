@@ -37,7 +37,7 @@ class TrainingConfiguration(object):
 
         # Network variables
         self._weights = None
-        self._network = vggd_dct(self.num_classes)
+        self._network = vggd_dct()
 
         # Training variables
         self._epochs = 180
@@ -49,7 +49,7 @@ class TrainingConfiguration(object):
         self._optimizer = SGD(**self.optimizer_parameters)
         self._loss = categorical_crossentropy
         self._metrics = ['accuracy', 'top_k_categorical_accuracy']
-        
+
         self.train_directory = join(
             environ["DATASET_PATH_TRAIN"], "imagenet/train")
         self.validation_directory = join(

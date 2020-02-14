@@ -168,7 +168,7 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
             img = cv2.imread(self.images_path[k])
 
             if self.transforms:
-                for transform in self.albumentation_compose:
+                for transform in self.transforms:
                     img = transform(image=img)['image']
 
             _, buffer = cv2.imencode(".jpg", img)

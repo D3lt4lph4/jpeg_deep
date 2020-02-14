@@ -38,7 +38,7 @@ class TrainingConfiguration(object):
 
         # Network variables
         self._weights = None
-        self._network = vgga_dct(self.num_classes)
+        self._network = vgga_dct()
 
         # Training variables
         self._epochs = 180
