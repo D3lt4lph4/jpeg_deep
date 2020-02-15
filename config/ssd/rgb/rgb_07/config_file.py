@@ -41,7 +41,7 @@ class TrainingConfiguration(object):
         self._batch_size = 32
         self._steps_per_epoch = 1000
         self.optimizer_params = {
-            "lr": 0.001, "momentum": 0.9, "decay": 0.0, "nesterov": False}
+            "lr": 0.001, "momentum": 0.9, "decay": 0.0005}
         self._optimizer = SGD(**self.optimizer_params)
         self._loss = SSDLoss(neg_pos_ratio=3, alpha=1.0).compute_loss
         self._metrics = None
@@ -56,7 +56,7 @@ class TrainingConfiguration(object):
 
         # Keras stuff
         self.model_checkpoint = None
-        self.reduce_lr_on_plateau = ReduceLROnPlateau(patience=7, verbose=1)
+        self.reduce_lr_on_plateau = ReduceLROnPlateau(patience=5, verbose=1)
         self.terminate_on_nan = TerminateOnNaN()
         self.early_stopping = EarlyStopping(monitor='val_loss',
                                             min_delta=0,
@@ -91,7 +91,6 @@ class TrainingConfiguration(object):
             TensorBoard(log_dir))
 
     def prepare_horovod(self, hvd):
-        print("setting hvd...........")
         self._horovod = hvd
         self.optimizer_parameters["lr"] = self.optimizer_parameters["lr"] * hvd.size()
         self._optimizer = SGD(**self.optimizer_parameters)

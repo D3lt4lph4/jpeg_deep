@@ -57,7 +57,7 @@ class TrainingConfiguration(object):
 
         # Keras stuff
         self.model_checkpoint = None
-        self.reduce_lr_on_plateau = ReduceLROnPlateau(patience=7, verbose=1)
+        self.reduce_lr_on_plateau = ReduceLROnPlateau(patience=5, verbose=1)
         self.terminate_on_nan = TerminateOnNaN()
         self.early_stopping = EarlyStopping(monitor='val_loss',
                                             min_delta=0,
