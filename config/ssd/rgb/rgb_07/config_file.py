@@ -25,24 +25,25 @@ class TrainingConfiguration(object):
         self.config_description = "This is the template config file."
 
         # System dependent variable
-        self._workers = 1
-        self._multiprocessing = False
+        self._workers = 5
+        self._multiprocessing = True
 
         # Variables for comet.ml
         self._project_name = "jpeg_deep"
         self._workspace = "ssd"
 
         # Network variables
-        self._weights = None
+        self._weights = "/dlocal/home/2017018/bdegue01/weights/vgg_keras_rgb/vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5"
         self._network = SSD300()
 
         # Training variables
         self._epochs = 240
-        self._batch_size = 32
+        self._batch_size = 16
         self._steps_per_epoch = 1000
-        self.optimizer_params = {
-            "lr": 0.001, "momentum": 0.9, "decay": 0.0005}
-        self._optimizer = SGD(**self.optimizer_params)
+        self._validation_steps = 100
+        self.optimizer_parameters = {
+            "lr": 0.0005, "momentum": 0.9, "decay": 0.0005}
+        self._optimizer = SGD(**self.optimizer_parameters)
         self._loss = SSDLoss(neg_pos_ratio=3, alpha=1.0).compute_loss
         self._metrics = None
         dataset_path = environ["DATASET_PATH"]
