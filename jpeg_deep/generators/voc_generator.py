@@ -11,8 +11,6 @@ from random import shuffle
 
 import numpy as np
 
-#import sklearn.utils
-
 from PIL import Image
 import cv2
 
@@ -165,6 +163,7 @@ class VOCGenerator(TemplateGenerator):
         else:
             for i in indexes:
                 with Image.open(self.images_path[i]) as image:
+                    image = image.convert("RGB")
                     batch_X.append(np.array(image, dtype=np.uint8))
                 batch_y.append(deepcopy(self.labels[i]))
 
@@ -223,6 +222,8 @@ class VOCGenerator(TemplateGenerator):
                 batch_X[i] = preprocess_input(batch_X[i])
 
             batch_X = np.array(batch_X)
+            if len(batch_items_to_remove) > 0:
+                print(len(batch_items_to_remove))
             return batch_X, batch_y_encoded
         else:
             X_y = []

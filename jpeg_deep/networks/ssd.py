@@ -43,6 +43,7 @@ def SSD300(n_classes: int = 20,
     # Returns:
         - model: A keras model, representation of the SSD.
     '''
+    l2_reg = 0.0005
     n_classes += 1  # Account for the background class.
 
     #  Scales values for the anchor boxes
@@ -99,42 +100,42 @@ def SSD300(n_classes: int = 20,
     else:
         name = 'block5_conv1_dct'
 
-    block5_conv1 = Conv2D(512, (3, 3), activation='relu', padding='same',
+    block5_conv1 = Conv2D(512, (3, 3), activation='relu', padding='same', kernel_regularizer=l2(l2_reg),
                           kernel_initializer=kernel_initializer, name=name)(block4_pool)
-    block5_conv2 = Conv2D(512, (3, 3), activation='relu', padding='same',
+    block5_conv2 = Conv2D(512, (3, 3), activation='relu', padding='same', kernel_regularizer=l2(l2_reg),
                           kernel_initializer=kernel_initializer, name='block5_conv2')(block5_conv1)
     block5_conv3 = Conv2D(512, (3, 3), activation='relu', padding='same',
-                          kernel_initializer=kernel_initializer, name='block5_conv3')(block5_conv2)
+                          kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_reg), name='block5_conv3')(block5_conv2)
     block5_pool = MaxPooling2D(pool_size=(3, 3), strides=(
         1, 1), padding='same', name='block5_pool')(block5_conv3)
-    fc6 = Conv2D(1024, (3, 3), dilation_rate=(6, 6), activation='relu', padding='same',
+    fc6 = Conv2D(1024, (3, 3), dilation_rate=(6, 6), kernel_regularizer=l2(l2_reg), activation='relu', padding='same',
                  kernel_initializer=kernel_initializer, name='fc6')(block5_pool)
 
     fc7 = Conv2D(1024, (1, 1), activation='relu', padding='same',
-                 kernel_initializer=kernel_initializer, name='fc7')(fc6)
+                 kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_reg), name='fc7')(fc6)
 
     conv6_1 = Conv2D(256, (1, 1), activation='relu', padding='same',
-                     kernel_initializer=kernel_initializer, name='conv6_1')(fc7)
+                     kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_reg), name='conv6_1')(fc7)
     conv6_1 = ZeroPadding2D(padding=((1, 1), (1, 1)),
                             name='conv6_padding')(conv6_1)
-    conv6_2 = Conv2D(512, (3, 3), strides=(2, 2), activation='relu', padding='valid',
+    conv6_2 = Conv2D(512, (3, 3), strides=(2, 2), kernel_regularizer=l2(l2_reg), activation='relu', padding='valid',
                      kernel_initializer=kernel_initializer, name='conv6_2')(conv6_1)
 
-    conv7_1 = Conv2D(128, (1, 1), activation='relu', padding='same',
+    conv7_1 = Conv2D(128, (1, 1), activation='relu', padding='same', kernel_regularizer=l2(l2_reg),
                      kernel_initializer=kernel_initializer, name='conv7_1')(conv6_2)
     conv7_1 = ZeroPadding2D(padding=((1, 1), (1, 1)),
                             name='conv7_padding')(conv7_1)
-    conv7_2 = Conv2D(256, (3, 3), strides=(2, 2), activation='relu', padding='valid',
+    conv7_2 = Conv2D(256, (3, 3), strides=(2, 2), activation='relu', kernel_regularizer=l2(l2_reg), padding='valid',
                      kernel_initializer=kernel_initializer, name='conv7_2')(conv7_1)
 
-    conv8_1 = Conv2D(128, (1, 1), activation='relu', padding='same',
+    conv8_1 = Conv2D(128, (1, 1), activation='relu', padding='same', kernel_regularizer=l2(l2_reg),
                      kernel_initializer=kernel_initializer, name='conv8_1')(conv7_2)
-    conv8_2 = Conv2D(256, (3, 3), strides=(1, 1), activation='relu', padding='valid',
+    conv8_2 = Conv2D(256, (3, 3), strides=(1, 1), activation='relu', kernel_regularizer=l2(l2_reg), padding='valid',
                      kernel_initializer=kernel_initializer, name='conv8_2')(conv8_1)
 
-    conv9_1 = Conv2D(128, (1, 1), activation='relu', padding='same',
+    conv9_1 = Conv2D(128, (1, 1), activation='relu', padding='same', kernel_regularizer=l2(l2_reg),
                      kernel_initializer=kernel_initializer, name='conv9_1')(conv8_2)
-    conv9_2 = Conv2D(256, (3, 3), strides=(1, 1), activation='relu', padding='valid',
+    conv9_2 = Conv2D(256, (3, 3), strides=(1, 1), activation='relu', kernel_regularizer=l2(l2_reg), padding='valid',
                      kernel_initializer=kernel_initializer, name='conv9_2')(conv9_1)
 
     # Feed block4_conv3 into the L2 normalization layer
@@ -144,17 +145,17 @@ def SSD300(n_classes: int = 20,
     # Build the convolutional predictor layers on top of the base network
     # We predict `n_classes` confidence values for each box, hence the confidence predictors have depth `n_boxes * n_classes`
     # Output shape of the confidence layers: `(batch, height, width, n_boxes * n_classes)`
-    block4_conv3_norm_mbox_conf = Conv2D(n_boxes[0] * n_classes, (3, 3), padding='same', kernel_initializer=kernel_initializer,
+    block4_conv3_norm_mbox_conf = Conv2D(n_boxes[0] * n_classes, (3, 3), padding='same', kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_reg),
                                          name='block4_conv3_norm_mbox_conf')(block4_conv3_norm)
-    fc7_mbox_conf = Conv2D(n_boxes[1] * n_classes, (3, 3), padding='same',
+    fc7_mbox_conf = Conv2D(n_boxes[1] * n_classes, (3, 3), padding='same', kernel_regularizer=l2(l2_reg),
                            kernel_initializer=kernel_initializer, name='fc7_mbox_conf')(fc7)
-    conv6_2_mbox_conf = Conv2D(n_boxes[2] * n_classes, (3, 3), padding='same',
+    conv6_2_mbox_conf = Conv2D(n_boxes[2] * n_classes, (3, 3), padding='same', kernel_regularizer=l2(l2_reg),
                                kernel_initializer=kernel_initializer, name='conv6_2_mbox_conf')(conv6_2)
-    conv7_2_mbox_conf = Conv2D(n_boxes[3] * n_classes, (3, 3), padding='same',
+    conv7_2_mbox_conf = Conv2D(n_boxes[3] * n_classes, (3, 3), padding='same', kernel_regularizer=l2(l2_reg),
                                kernel_initializer=kernel_initializer, name='conv7_2_mbox_conf')(conv7_2)
-    conv8_2_mbox_conf = Conv2D(n_boxes[4] * n_classes, (3, 3), padding='same',
+    conv8_2_mbox_conf = Conv2D(n_boxes[4] * n_classes, (3, 3), padding='same', kernel_regularizer=l2(l2_reg),
                                kernel_initializer=kernel_initializer, name='conv8_2_mbox_conf')(conv8_2)
-    conv9_2_mbox_conf = Conv2D(n_boxes[5] * n_classes, (3, 3), padding='same',
+    conv9_2_mbox_conf = Conv2D(n_boxes[5] * n_classes, (3, 3), padding='same', kernel_regularizer=l2(l2_reg),
                                kernel_initializer=kernel_initializer, name='conv9_2_mbox_conf')(conv9_2)
 
     # We predict 4 box coordinates for each box, hence the localization predictors have depth `n_boxes * 4`
