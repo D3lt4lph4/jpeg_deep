@@ -63,7 +63,7 @@ parser.add_argument("mt", help="The type of the model to convert, for now one of
 parser.add_argument("wp", help="The weights to be converted", type=str)
 args = parser.parse_args()
 
-if args.mt == vgga:
+if args.mt == "vgga":
     model = vgga(1000)
 else:
     model = vggd(1000)
