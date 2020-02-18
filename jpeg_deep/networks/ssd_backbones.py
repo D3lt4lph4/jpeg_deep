@@ -11,7 +11,7 @@ from keras.regularizers import l2
 from jpeg_deep.layers.ssd_layers import AnchorBoxes, L2Normalization, DecodeDetections
 
 
-def feature_map_rgb(image_shape: Tuple[int, int], kernel_initializer: str = 'glorot_uniform', l2_reg=0.0005):
+def feature_map_rgb(image_shape: Tuple[int, int], kernel_initializer: str = 'he_normal', l2_reg=0.00025):
     """ Helper function that generates the first layers of the SSD. This function generates the layers for the RGB network.
 
     # Arguments:
@@ -25,41 +25,41 @@ def feature_map_rgb(image_shape: Tuple[int, int], kernel_initializer: str = 'glo
     img_h, img_w = image_shape
     input_layer = Input(shape=(img_h, img_w, 3))
 
-    block1_conv1 = Conv2D(64, (3, 3), activation='relu', padding='same', kernel_regularizer=l2(l2_reg),
+    block1_conv1 = Conv2D(64, (3, 3), activation='relu', padding='same', kernel_regularizer=l2(l2_reg), bias_regularizer=l2(l2_reg),
                           kernel_initializer=kernel_initializer, name='block1_conv1')(input_layer)
-    block1_conv2 = Conv2D(64, (3, 3), activation='relu', padding='same', kernel_regularizer=l2(l2_reg),
+    block1_conv2 = Conv2D(64, (3, 3), activation='relu', padding='same', kernel_regularizer=l2(l2_reg), bias_regularizer=l2(l2_reg),
                           kernel_initializer=kernel_initializer, name='block1_conv2')(block1_conv1)
     block1_pool = MaxPooling2D(pool_size=(2, 2), strides=(
         2, 2), padding='same', name='block1_pool')(block1_conv2)
 
-    block2_conv1 = Conv2D(128, (3, 3), activation='relu', padding='same', kernel_regularizer=l2(l2_reg),
+    block2_conv1 = Conv2D(128, (3, 3), activation='relu', padding='same', kernel_regularizer=l2(l2_reg), bias_regularizer=l2(l2_reg),
                           kernel_initializer=kernel_initializer, name='block2_conv1')(block1_pool)
-    block2_conv2 = Conv2D(128, (3, 3), activation='relu', padding='same', kernel_regularizer=l2(l2_reg),
+    block2_conv2 = Conv2D(128, (3, 3), activation='relu', padding='same', kernel_regularizer=l2(l2_reg), bias_regularizer=l2(l2_reg),
                           kernel_initializer=kernel_initializer, name='block2_conv2')(block2_conv1)
     block2_pool = MaxPooling2D(pool_size=(2, 2), strides=(
         2, 2), padding='same', name='block2_pool')(block2_conv2)
 
-    block3_conv1 = Conv2D(256, (3, 3), activation='relu', padding='same', kernel_regularizer=l2(l2_reg),
+    block3_conv1 = Conv2D(256, (3, 3), activation='relu', padding='same', kernel_regularizer=l2(l2_reg), bias_regularizer=l2(l2_reg),
                           kernel_initializer=kernel_initializer, name='block3_conv1')(block2_pool)
-    block3_conv2 = Conv2D(256, (3, 3), activation='relu', padding='same', kernel_regularizer=l2(l2_reg),
+    block3_conv2 = Conv2D(256, (3, 3), activation='relu', padding='same', kernel_regularizer=l2(l2_reg), bias_regularizer=l2(l2_reg),
                           kernel_initializer=kernel_initializer, name='block3_conv2')(block3_conv1)
-    block3_conv3 = Conv2D(256, (3, 3), activation='relu', padding='same', kernel_regularizer=l2(l2_reg),
+    block3_conv3 = Conv2D(256, (3, 3), activation='relu', padding='same', kernel_regularizer=l2(l2_reg), bias_regularizer=l2(l2_reg),
                           kernel_initializer=kernel_initializer, name='block3_conv3')(block3_conv2)
     block3_pool = MaxPooling2D(pool_size=(2, 2), strides=(
         2, 2), padding='same', name='block3_pool')(block3_conv3)
 
-    block4_conv1 = Conv2D(512, (3, 3), activation='relu', padding='same', kernel_regularizer=l2(l2_reg),
+    block4_conv1 = Conv2D(512, (3, 3), activation='relu', padding='same', kernel_regularizer=l2(l2_reg), bias_regularizer=l2(l2_reg),
                           kernel_initializer=kernel_initializer, name='block4_conv1')(block3_pool)
-    block4_conv2 = Conv2D(512, (3, 3), activation='relu', padding='same', kernel_regularizer=l2(l2_reg),
+    block4_conv2 = Conv2D(512, (3, 3), activation='relu', padding='same', kernel_regularizer=l2(l2_reg), bias_regularizer=l2(l2_reg),
                           kernel_initializer=kernel_initializer, name='block4_conv2')(block4_conv1)
-    block4_conv3 = Conv2D(512, (3, 3), activation='relu', padding='same', kernel_regularizer=l2(l2_reg),
+    block4_conv3 = Conv2D(512, (3, 3), activation='relu', padding='same', kernel_regularizer=l2(l2_reg), bias_regularizer=l2(l2_reg),
                           kernel_initializer=kernel_initializer, name='block4_conv3')(block4_conv2)
     block4_pool = MaxPooling2D(pool_size=(2, 2), strides=(
         2, 2), padding='same', name='block4_pool')(block4_conv3)
     return input_layer, block4_pool, block4_conv3
 
 
-def feature_map_dct(image_shape: Tuple[int, int],  kernel_initializer: str = 'glorot_uniform'):
+def feature_map_dct(image_shape: Tuple[int, int],  kernel_initializer: str = 'he_normal', l2_reg=0.00025):
     """ Helper function that generates the first layers of the SSD. This function generates the layers for the DCT network.
 
     # Arguments:
@@ -88,21 +88,21 @@ def feature_map_dct(image_shape: Tuple[int, int],  kernel_initializer: str = 'gl
     norm_y = BatchNormalization(
         name="b_norm_y", input_shape=input_shape_y)(input_y)
 
-    block1_conv1 = Conv2D(256, (3, 3),
+    block1_conv1 = Conv2D(256, (3, 3), kernel_regularizer=l2(l2_reg), bias_regularizer=l2(l2_reg),
                           activation='relu',
                           padding='same',
                           name='block1_conv1_dct_256')(norm_y)
 
     # Block 4
-    block4_conv1 = Conv2D(512, (3, 3),
+    block4_conv1 = Conv2D(512, (3, 3), kernel_regularizer=l2(l2_reg), bias_regularizer=l2(l2_reg),
                           activation='relu',
                           padding='same',
                           name='block4_conv1_dct')(block1_conv1)
-    block4_conv2 = Conv2D(512, (3, 3),
+    block4_conv2 = Conv2D(512, (3, 3), kernel_regularizer=l2(l2_reg), bias_regularizer=l2(l2_reg),
                           activation='relu',
                           padding='same',
                           name='block4_conv2')(block4_conv1)
-    block4_conv3 = Conv2D(512, (3, 3),
+    block4_conv3 = Conv2D(512, (3, 3), kernel_regularizer=l2(l2_reg), bias_regularizer=l2(l2_reg),
                           activation='relu',
                           padding='same',
                           name='block4_conv3')(block4_conv2)
@@ -114,7 +114,7 @@ def feature_map_dct(image_shape: Tuple[int, int],  kernel_initializer: str = 'gl
     return [input_y, input_cbcr], concat, block4_conv3
 
 
-def feature_map_resnet_rgb(image_shape: Tuple[int, int], kernel_initializer: str = 'glorot_uniform'):
+def feature_map_resnet_rgb(image_shape: Tuple[int, int], kernel_initializer: str = 'he_normal', l2_reg=0.00025):
     """ Helper function that generates the first layers of the SSD. This function generates the layers for the RGB network.
 
     # Arguments:
@@ -134,7 +134,7 @@ def feature_map_resnet_rgb(image_shape: Tuple[int, int], kernel_initializer: str
                       strides=(2, 2),
                       padding='valid',
                       kernel_initializer='he_normal',
-                      kernel_regularizer=l2(0.00005),
+                      kernel_regularizer=l2(l2_reg),
                       name='conv1')(x)
     x = layers.BatchNormalization(
         axis=bn_axis, momentum=0.9, epsilon=1e-5, name='bn_conv1')(x)
