@@ -8,7 +8,7 @@ from keras.models import Model
 from keras.layers import Input, Lambda, Activation, Conv2D, MaxPooling2D, Reshape, Concatenate, BatchNormalization, ZeroPadding2D
 from keras.regularizers import l2
 
-from jpeg_deep.layers.ssd_layers import AnchorBoxes, AnchorBoxesTensorflow, L2Normalization, DecodeDetections
+from jpeg_deep.layers.ssd_layers import AnchorBoxes, L2Normalization, DecodeDetections
 
 
 def feature_map_rgb(image_shape: Tuple[int, int], kernel_initializer: str = 'glorot_uniform', l2_reg=0.0005):

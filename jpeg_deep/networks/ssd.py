@@ -8,7 +8,7 @@ from keras.models import Model
 from keras.layers import Input, Lambda, Activation, Conv2D, MaxPooling2D, Reshape, Concatenate, BatchNormalization, ZeroPadding2D
 from keras.regularizers import l2
 
-from jpeg_deep.layers.ssd_layers import AnchorBoxes, AnchorBoxesTensorflow, L2Normalization, DecodeDetections
+from jpeg_deep.layers.ssd_layers import AnchorBoxes, L2Normalization, DecodeDetections
 
 from .ssd_backbones import feature_map_dct, feature_map_resnet_dct
 from .ssd_backbones import feature_map_rgb, feature_map_resnet_rgb
@@ -176,18 +176,19 @@ def SSD300(n_classes: int = 20,
     # Generate the anchor (prior) boxes
     # Output shape of anchors: `(batch, height, width, n_boxes, 8)
     if image_shape[0] is None:
-        block4_conv3_norm_mbox_priorbox = AnchorBoxesTensorflow(
-            this_scale=scales[0], next_scale=scales[1], step=steps[0], aspect_ratios=aspect_ratios[0], name='block4_conv3_norm_mbox_priorbox')(block4_conv3_norm_mbox_loc)
-        fc7_mbox_priorbox = AnchorBoxesTensorflow(
-            this_scale=scales[1], next_scale=scales[2], step=steps[1], aspect_ratios=aspect_ratios[1], name='fc7_mbox_priorbox')(fc7_mbox_loc)
-        conv6_2_mbox_priorbox = AnchorBoxesTensorflow(
-            this_scale=scales[2], next_scale=scales[3], step=steps[2], aspect_ratios=aspect_ratios[2], name='conv6_2_mbox_priorbox')(conv6_2_mbox_loc)
-        conv7_2_mbox_priorbox = AnchorBoxesTensorflow(
-            this_scale=scales[3], next_scale=scales[4], step=steps[3], aspect_ratios=aspect_ratios[3], name='conv7_2_mbox_priorbox')(conv7_2_mbox_loc)
-        conv8_2_mbox_priorbox = AnchorBoxesTensorflow(
-            this_scale=scales[4], next_scale=scales[5], step=steps[4], aspect_ratios=aspect_ratios[4], name='conv8_2_mbox_priorbox')(conv8_2_mbox_loc)
-        conv9_2_mbox_priorbox = AnchorBoxesTensorflow(
-            this_scale=scales[5], next_scale=scales[6], step=steps[5], aspect_ratios=aspect_ratios[5], name='conv9_2_mbox_priorbox')(conv9_2_mbox_loc)
+        print("ups")
+        # block4_conv3_norm_mbox_priorbox = AnchorBoxesTensorflow(
+        #     this_scale=scales[0], next_scale=scales[1], step=steps[0], aspect_ratios=aspect_ratios[0], name='block4_conv3_norm_mbox_priorbox')(block4_conv3_norm_mbox_loc)
+        # fc7_mbox_priorbox = AnchorBoxesTensorflow(
+        #     this_scale=scales[1], next_scale=scales[2], step=steps[1], aspect_ratios=aspect_ratios[1], name='fc7_mbox_priorbox')(fc7_mbox_loc)
+        # conv6_2_mbox_priorbox = AnchorBoxesTensorflow(
+        #     this_scale=scales[2], next_scale=scales[3], step=steps[2], aspect_ratios=aspect_ratios[2], name='conv6_2_mbox_priorbox')(conv6_2_mbox_loc)
+        # conv7_2_mbox_priorbox = AnchorBoxesTensorflow(
+        #     this_scale=scales[3], next_scale=scales[4], step=steps[3], aspect_ratios=aspect_ratios[3], name='conv7_2_mbox_priorbox')(conv7_2_mbox_loc)
+        # conv8_2_mbox_priorbox = AnchorBoxesTensorflow(
+        #     this_scale=scales[4], next_scale=scales[5], step=steps[4], aspect_ratios=aspect_ratios[4], name='conv8_2_mbox_priorbox')(conv8_2_mbox_loc)
+        # conv9_2_mbox_priorbox = AnchorBoxesTensorflow(
+        #     this_scale=scales[5], next_scale=scales[6], step=steps[5], aspect_ratios=aspect_ratios[5], name='conv9_2_mbox_priorbox')(conv9_2_mbox_loc)
     else:
         block4_conv3_norm_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[0], next_scale=scales[1], aspect_ratios=aspect_ratios[0],
                                                       two_boxes_for_ar1=two_boxes_for_ar1, this_steps=steps[
