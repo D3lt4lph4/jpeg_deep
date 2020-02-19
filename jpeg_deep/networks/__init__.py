@@ -1,4 +1,4 @@
-from .networks import vgga, vggd, vggd_conv
+from .networks import vgga, vggd, vgga_conv, vggd_conv
 from .networks_dct import vgga_dct, vggd_dct
 from .networks_dct import vgga_dct_conv, vggd_dct_conv
 

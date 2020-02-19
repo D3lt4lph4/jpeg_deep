@@ -181,18 +181,19 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
 
             if self.input_size is None:
                 X_cbcr = np.empty(
-                    (self._batch_size, dct_cb[0], dct_cb[1], dct_cb[2] * 2), dtype=np.int32)
+                    (self._batch_size, dct_cb.shape[0], dct_cb.shape[1], dct_cb.shape[2] * 2), dtype=np.int32)
                 X_cbcr[i] = np.concatenate([dct_cb, dct_cr], axis=-1)
 
                 X_y = np.empty(
-                    (self._batch_size, dct_cb[0] * 2, dct_cb[1] * 2, dct_cb[2]), dtype=np.int32)
+                    (self._batch_size, dct_cb.shape[0] * 2, dct_cb.shape[1] * 2, dct_cb.shape[2]), dtype=np.int32)
                 X_y[i, :dct_y.shape[0], :dct_y.shape[1], :] = dct_y
 
-            try:
-                X_y[i] = dct_y
-                X_cbcr[i] = np.concatenate([dct_cb, dct_cr], axis=-1)
-            except Exception as e:
-                raise Exception(str(e) + str(self.images_path[k]))
+            else:
+                try:
+                    X_y[i] = dct_y
+                    X_cbcr[i] = np.concatenate([dct_cb, dct_cr], axis=-1)
+                except Exception as e:
+                    raise Exception(str(e) + str(self.images_path[k]))
 
             # Setting the target class to 1
             y[i, int(self.association[index_class])] = 1

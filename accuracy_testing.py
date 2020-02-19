@@ -57,7 +57,7 @@ model.compile(optimizer=SGD(), loss=categorical_crossentropy,
 
 # Creating the generator for the testing
 if args.n in ["vggadct", "vggddct"]:
-    DCTGeneratorJPEG2DCT(args.dp, args.jf, input_size=(
+    generator = DCTGeneratorJPEG2DCT(args.dp, args.jf, input_size=(
         None), batch_size=1, transforms=transformations)
 else:
     generator = RGBGenerator(args.dp, args.jf, input_size=(
