@@ -7,7 +7,7 @@ from keras import models
 from keras.regularizers import l2
 
 
-def vgga_dct(classes=1000):
+def vgga_dct(classes=1000, input_shape=(28, 28)):
     """Instantiates the VGG16 architecture.
         classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True, and
@@ -15,8 +15,8 @@ def vgga_dct(classes=1000):
     # Returns
         A Keras model instance.
     """
-    input_shape_y = (28, 28, 64)
-    input_shape_cbcr = (14, 14, 128)
+    input_shape_y = (*input_shape, 64)
+    input_shape_cbcr = (input_shape[0] // 2, input_shape[1] // 2, 128)
 
     input_y = Input(input_shape_y)
     input_cbcr = Input(input_shape_cbcr)
@@ -65,7 +65,7 @@ def vgga_dct(classes=1000):
     return Model(inputs=[input_y, input_cbcr], outputs=x)
 
 
-def vggd_dct(classes=1000):
+def vggd_dct(classes=1000, input_shape=(28, 28)):
     """Instantiates the VGG16 architecture.
         classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True, and
@@ -73,8 +73,8 @@ def vggd_dct(classes=1000):
     # Returns
         A Keras model instance.
     """
-    input_shape_y = (28, 28, 64)
-    input_shape_cbcr = (14, 14, 128)
+    input_shape_y = (*input_shape, 64)
+    input_shape_cbcr = (input_shape[0] // 2, input_shape[1] // 2, 128)
 
     input_y = Input(input_shape_y)
     input_cbcr = Input(input_shape_cbcr)
@@ -143,7 +143,7 @@ def vggd_dct(classes=1000):
     return Model(inputs=[input_y, input_cbcr], outputs=x)
 
 
-def vgga_dct_conv(classes=1000):
+def vgga_dct_conv(classes=1000, input_shape=(28, 28)):
     """Instantiates the VGG16 architecture.
         classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True, and
@@ -151,8 +151,8 @@ def vgga_dct_conv(classes=1000):
     # Returns
         A Keras model instance.
     """
-    input_shape_y = (28, 28, 64)
-    input_shape_cbcr = (14, 14, 128)
+    input_shape_y = (*input_shape, 64)
+    input_shape_cbcr = (input_shape[0] // 2, input_shape[1] // 2, 128)
 
     input_y = Input(input_shape_y)
     input_cbcr = Input(input_shape_cbcr)
@@ -197,7 +197,7 @@ def vgga_dct_conv(classes=1000):
     return Model(inputs=[input_y, input_cbcr], outputs=x)
 
 
-def vggd_dct_conv(classes=1000):
+def vggd_dct_conv(classes=1000, input_shape=(28, 28)):
     """Instantiates the VGG16 architecture.
         classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True, and
@@ -205,8 +205,8 @@ def vggd_dct_conv(classes=1000):
     # Returns
         A Keras model instance.
     """
-    input_shape_y = (28, 28, 64)
-    input_shape_cbcr = (14, 14, 128)
+    input_shape_y = (*input_shape, 64)
+    input_shape_cbcr = (input_shape[0] // 2, input_shape[1] // 2, 128)
 
     input_y = Input(input_shape_y)
     input_cbcr = Input(input_shape_cbcr)
