@@ -95,9 +95,9 @@ with h5py.File("converted.h5", 'a') as f:
     names[-1] = b'fc7'
     f['model_weights'].attrs["layer_names"] = names
 
-    full_idx = np.arange(4096)
-    np.random.shuffle(full_idx)
-    idx = full_idx[:1024]
+    # full_idx = np.arange(4096)
+    # np.random.shuffle(full_idx)
+    # idx = full_idx[:1024]
 
     # Rename the groups
     f['model_weights']['fc6'] = f['model_weights']['conv2d_1']
@@ -128,14 +128,14 @@ with h5py.File("converted.h5", 'a') as f:
     del f['model_weights']['fc7']['fc7']['bias:0']
 
     # Select 1024 randomly for fc6
-    fc6_numpy = fc6_numpy[:, :, :, idx]
-    fc6_bias_numpy = fc6_bias_numpy[idx]
+    fc6_numpy = fc6_numpy[:, :, :, ::4]
+    fc6_bias_numpy = fc6_bias_numpy[::4]
     fc6_numpy = zoom(fc6_numpy, (0.42857, 0.42857, 1, 1))
 
     # Select 1024 randomly for fc7
-    fc7_numpy = fc7_numpy[:, :, :, idx]
-    fc7_bias_numpy = fc7_bias_numpy[idx]
-    fc7_numpy = fc7_numpy[:, :, idx, :]
+    fc7_numpy = fc7_numpy[:, :, :, ::4]
+    fc7_bias_numpy = fc7_bias_numpy[::4]
+    fc7_numpy = fc7_numpy[:, :, ::4, :]
 
     # Reset the new kernels
     f.create_dataset('model_weights/fc6/fc6/kernel:0', data=fc6_numpy)
