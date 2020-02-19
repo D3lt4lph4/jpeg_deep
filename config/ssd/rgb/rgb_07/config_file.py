@@ -66,39 +66,6 @@ class TrainingConfiguration(object):
         self._callbacks = [self.reduce_lr_on_plateau,
                            self.terminate_on_nan]
 
-        img_height = 300  # Height of the model input images
-        img_width = 300  # Width of the model input images
-        img_channels = 3  # Number of color channels of the model input images
-        # The per-channel mean of the images in the dataset. Do not change this value if you're using any of the pre-trained weights.
-        mean_color = [123, 117, 104]
-        # The color channel order in the original SSD is BGR, so we'll have the model reverse the color channel order of the input images.
-        swap_channels = [2, 1, 0]
-        n_classes = 20  # Number of positive classes, e.g. 20 for Pascal VOC, 80 for MS COCO
-        # The anchor box scaling factors used in the original SSD300 for the Pascal VOC datasets
-        scales_pascal = [0.1, 0.2, 0.37, 0.54, 0.71, 0.88, 1.05]
-        # The anchor box scaling factors used in the original SSD300 for the MS COCO datasets
-        scales_coco = [0.07, 0.15, 0.33, 0.51, 0.69, 0.87, 1.05]
-        scales = scales_pascal
-        aspect_ratios = [[1.0, 2.0, 0.5],
-                         [1.0, 2.0, 0.5, 3.0, 1.0/3.0],
-                         [1.0, 2.0, 0.5, 3.0, 1.0/3.0],
-                         [1.0, 2.0, 0.5, 3.0, 1.0/3.0],
-                         [1.0, 2.0, 0.5],
-                         [1.0, 2.0, 0.5]]  # The anchor box aspect ratios used in the original SSD300; the order matters
-        two_boxes_for_ar1 = True
-        # The space between two adjacent anchor box center points for each predictor layer.
-        steps = [8, 16, 32, 64, 100, 300]
-        # The offsets of the first anchor box center points from the top and left borders of the image as a fraction of the step size for each predictor layer.
-        offsets = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
-        # Whether or not to clip the anchor boxes to lie entirely within the image boundaries
-        clip_boxes = False
-        # The variances by which the encoded target coordinates are divided as in the original implementation
-        variances = [0.1, 0.1, 0.2, 0.2]
-        normalize_coords = True
-
-        predictor_sizes = [(38, 38), (19, 19), (10, 10),
-                           (5, 5), (3, 3), (1, 1)]
-
         self.input_encoder = SSDInputEncoder()
 
         self.train_tranformations = [SSDDataAugmentation()]
