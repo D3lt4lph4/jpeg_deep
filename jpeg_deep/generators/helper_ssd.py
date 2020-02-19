@@ -55,9 +55,10 @@ def match_bipartite_greedy(weight_matrix):
         along the first axis.
     '''
 
-    weight_matrix = np.copy(weight_matrix) # We'll modify this array.
+    weight_matrix = np.copy(weight_matrix)  # We'll modify this array.
     num_ground_truth_boxes = weight_matrix.shape[0]
-    all_gt_indices = list(range(num_ground_truth_boxes)) # Only relevant for fancy-indexing below.
+    # Only relevant for fancy-indexing below.
+    all_gt_indices = list(range(num_ground_truth_boxes))
 
     # This 1D array will contain for each ground truth box the index of
     # the matched anchor box.
@@ -69,19 +70,22 @@ def match_bipartite_greedy(weight_matrix):
 
         # Find the maximal anchor-ground truth pair in two steps: First, reduce
         # over the anchor boxes and then reduce over the ground truth boxes.
-        anchor_indices = np.argmax(weight_matrix, axis=1) # Reduce along the anchor box axis.
+        # Reduce along the anchor box axis.
+        anchor_indices = np.argmax(weight_matrix, axis=1)
         overlaps = weight_matrix[all_gt_indices, anchor_indices]
-        ground_truth_index = np.argmax(overlaps) # Reduce along the ground truth box axis.
+        # Reduce along the ground truth box axis.
+        ground_truth_index = np.argmax(overlaps)
         anchor_index = anchor_indices[ground_truth_index]
-        matches[ground_truth_index] = anchor_index # Set the match.
+        matches[ground_truth_index] = anchor_index  # Set the match.
 
         # Set the row of the matched ground truth box and the column of the matched
         # anchor box to all zeros. This ensures that those boxes will not be matched again,
         # because they will never be the best matches for any other boxes.
         weight_matrix[ground_truth_index] = 0
-        weight_matrix[:,anchor_index] = 0
+        weight_matrix[:, anchor_index] = 0
 
     return matches
+
 
 def match_multi(weight_matrix, threshold):
     '''
@@ -108,11 +112,14 @@ def match_multi(weight_matrix, threshold):
     '''
 
     num_anchor_boxes = weight_matrix.shape[1]
-    all_anchor_indices = list(range(num_anchor_boxes)) # Only relevant for fancy-indexing below.
+    # Only relevant for fancy-indexing below.
+    all_anchor_indices = list(range(num_anchor_boxes))
 
     # Find the best ground truth match for every anchor box.
-    ground_truth_indices = np.argmax(weight_matrix, axis=0) # Array of shape (weight_matrix.shape[1],)
-    overlaps = weight_matrix[ground_truth_indices, all_anchor_indices] # Array of shape (weight_matrix.shape[1],)
+    # Array of shape (weight_matrix.shape[1],)
+    ground_truth_indices = np.argmax(weight_matrix, axis=0)
+    # Array of shape (weight_matrix.shape[1],)
+    overlaps = weight_matrix[ground_truth_indices, all_anchor_indices]
 
     # Filter out the matches with a weight below the threshold.
     anchor_indices_thresh_met = np.nonzero(overlaps >= threshold)[0]
@@ -120,11 +127,13 @@ def match_multi(weight_matrix, threshold):
 
     return gt_indices_thresh_met, anchor_indices_thresh_met
 
+
 class BoundGenerator:
     '''
     Generates pairs of floating point values that represent lower and upper bounds
     from a given sample space.
     '''
+
     def __init__(self,
                  sample_space=((0.1, None),
                                (0.3, None),
@@ -143,23 +152,29 @@ class BoundGenerator:
         '''
 
         if (not (weights is None)) and len(weights) != len(sample_space):
-            raise ValueError("`weights` must either be `None` for uniform distribution or have the same length as `sample_space`.")
+            raise ValueError(
+                "`weights` must either be `None` for uniform distribution or have the same length as `sample_space`.")
 
         self.sample_space = []
         for bound_pair in sample_space:
             if len(bound_pair) != 2:
-                raise ValueError("All elements of the sample space must be 2-tuples.")
+                raise ValueError(
+                    "All elements of the sample space must be 2-tuples.")
             bound_pair = list(bound_pair)
-            if bound_pair[0] is None: bound_pair[0] = 0.0
-            if bound_pair[1] is None: bound_pair[1] = 1.0
+            if bound_pair[0] is None:
+                bound_pair[0] = 0.0
+            if bound_pair[1] is None:
+                bound_pair[1] = 1.0
             if bound_pair[0] > bound_pair[1]:
-                raise ValueError("For all sample space elements, the lower bound cannot be greater than the upper bound.")
+                raise ValueError(
+                    "For all sample space elements, the lower bound cannot be greater than the upper bound.")
             self.sample_space.append(bound_pair)
 
         self.sample_space_size = len(self.sample_space)
 
         if weights is None:
-            self.weights = [1.0/self.sample_space_size] * self.sample_space_size
+            self.weights = [1.0/self.sample_space_size] * \
+                self.sample_space_size
         else:
             self.weights = weights
 
@@ -170,6 +185,7 @@ class BoundGenerator:
         '''
         i = np.random.choice(self.sample_space_size, p=self.weights)
         return self.sample_space[i]
+
 
 class BoxFilter:
     '''
@@ -183,7 +199,8 @@ class BoxFilter:
                  overlap_criterion='center_point',
                  overlap_bounds=(0.3, 1.0),
                  min_area=16,
-                 labels_format={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4},
+                 labels_format={'class_id': 0, 'xmin': 1,
+                                'ymin': 2, 'xmax': 3, 'ymax': 4},
                  border_pixels='half'):
         '''
         Arguments:
@@ -225,11 +242,14 @@ class BoxFilter:
                 to the boxex, but not the other.
         '''
         if not isinstance(overlap_bounds, (list, tuple, BoundGenerator)):
-            raise ValueError("`overlap_bounds` must be either a 2-tuple of scalars or a `BoundGenerator` object.")
+            raise ValueError(
+                "`overlap_bounds` must be either a 2-tuple of scalars or a `BoundGenerator` object.")
         if isinstance(overlap_bounds, (list, tuple)) and (overlap_bounds[0] > overlap_bounds[1]):
-            raise ValueError("The lower bound must not be greater than the upper bound.")
+            raise ValueError(
+                "The lower bound must not be greater than the upper bound.")
         if not (overlap_criterion in {'iou', 'area', 'center_point'}):
-            raise ValueError("`overlap_criterion` must be one of 'iou', 'area', or 'center_point'.")
+            raise ValueError(
+                "`overlap_criterion` must be one of 'iou', 'area', or 'center_point'.")
         self.overlap_criterion = overlap_criterion
         self.overlap_bounds = overlap_bounds
         self.min_area = min_area
@@ -270,12 +290,14 @@ class BoxFilter:
 
         if self.check_degenerate:
 
-            non_degenerate = (labels[:,xmax] > labels[:,xmin]) * (labels[:,ymax] > labels[:,ymin])
+            non_degenerate = (
+                labels[:, xmax] > labels[:, xmin]) * (labels[:, ymax] > labels[:, ymin])
             requirements_met *= non_degenerate
 
         if self.check_min_area:
 
-            min_area_met = (labels[:,xmax] - labels[:,xmin]) * (labels[:,ymax] - labels[:,ymin]) >= self.min_area
+            min_area_met = (labels[:, xmax] - labels[:, xmin]) * \
+                (labels[:, ymax] - labels[:, ymin]) >= self.min_area
             requirements_met *= min_area_met
 
         if self.check_overlap:
@@ -292,39 +314,52 @@ class BoxFilter:
                 # Compute the patch coordinates.
                 image_coords = np.array([0, 0, image_width, image_height])
                 # Compute the IoU between the patch and all of the ground truth boxes.
-                image_boxes_iou = iou(image_coords, labels[:, [xmin, ymin, xmax, ymax]], coords='corners', mode='element-wise', border_pixels=self.border_pixels)
-                requirements_met *= (image_boxes_iou > lower) * (image_boxes_iou <= upper)
+                image_boxes_iou = iou(image_coords, labels[:, [
+                                      xmin, ymin, xmax, ymax]], coords='corners', mode='element-wise', border_pixels=self.border_pixels)
+                requirements_met *= (image_boxes_iou > lower) * \
+                    (image_boxes_iou <= upper)
 
             elif self.overlap_criterion == 'area':
                 if self.border_pixels == 'half':
                     d = 0
                 elif self.border_pixels == 'include':
-                    d = 1 # If border pixels are supposed to belong to the bounding boxes, we have to add one pixel to any difference `xmax - xmin` or `ymax - ymin`.
+                    # If border pixels are supposed to belong to the bounding boxes, we have to add one pixel to any difference `xmax - xmin` or `ymax - ymin`.
+                    d = 1
                 elif self.border_pixels == 'exclude':
-                    d = -1 # If border pixels are not supposed to belong to the bounding boxes, we have to subtract one pixel from any difference `xmax - xmin` or `ymax - ymin`.
+                    # If border pixels are not supposed to belong to the bounding boxes, we have to subtract one pixel from any difference `xmax - xmin` or `ymax - ymin`.
+                    d = -1
                 # Compute the areas of the boxes.
-                box_areas = (labels[:,xmax] - labels[:,xmin] + d) * (labels[:,ymax] - labels[:,ymin] + d)
+                box_areas = (labels[:, xmax] - labels[:, xmin] + d) * \
+                    (labels[:, ymax] - labels[:, ymin] + d)
                 # Compute the intersection area between the patch and all of the ground truth boxes.
                 clipped_boxes = np.copy(labels)
-                clipped_boxes[:,[ymin,ymax]] = np.clip(labels[:,[ymin,ymax]], a_min=0, a_max=image_height-1)
-                clipped_boxes[:,[xmin,xmax]] = np.clip(labels[:,[xmin,xmax]], a_min=0, a_max=image_width-1)
-                intersection_areas = (clipped_boxes[:,xmax] - clipped_boxes[:,xmin] + d) * (clipped_boxes[:,ymax] - clipped_boxes[:,ymin] + d) # +1 because the border pixels belong to the box areas.
+                clipped_boxes[:, [ymin, ymax]] = np.clip(
+                    labels[:, [ymin, ymax]], a_min=0, a_max=image_height-1)
+                clipped_boxes[:, [xmin, xmax]] = np.clip(
+                    labels[:, [xmin, xmax]], a_min=0, a_max=image_width-1)
+                # +1 because the border pixels belong to the box areas.
+                intersection_areas = (clipped_boxes[:, xmax] - clipped_boxes[:, xmin] + d) * (
+                    clipped_boxes[:, ymax] - clipped_boxes[:, ymin] + d)
                 # Check which boxes meet the overlap requirements.
                 if lower == 0.0:
-                    mask_lower = intersection_areas > lower * box_areas # If `self.lower == 0`, we want to make sure that boxes with area 0 don't count, hence the ">" sign instead of the ">=" sign.
+                    # If `self.lower == 0`, we want to make sure that boxes with area 0 don't count, hence the ">" sign instead of the ">=" sign.
+                    mask_lower = intersection_areas > lower * box_areas
                 else:
-                    mask_lower = intersection_areas >= lower * box_areas # Especially for the case `self.lower == 1` we want the ">=" sign, otherwise no boxes would count at all.
+                    # Especially for the case `self.lower == 1` we want the ">=" sign, otherwise no boxes would count at all.
+                    mask_lower = intersection_areas >= lower * box_areas
                 mask_upper = intersection_areas <= upper * box_areas
                 requirements_met *= mask_lower * mask_upper
 
             elif self.overlap_criterion == 'center_point':
                 # Compute the center points of the boxes.
-                cy = (labels[:,ymin] + labels[:,ymax]) / 2
-                cx = (labels[:,xmin] + labels[:,xmax]) / 2
+                cy = (labels[:, ymin] + labels[:, ymax]) / 2
+                cx = (labels[:, xmin] + labels[:, xmax]) / 2
                 # Check which of the boxes have center points within the cropped patch remove those that don't.
-                requirements_met *= (cy >= 0.0) * (cy <= image_height-1) * (cx >= 0.0) * (cx <= image_width-1)
+                requirements_met *= (cy >= 0.0) * (cy <= image_height-1) * \
+                    (cx >= 0.0) * (cx <= image_width-1)
 
         return labels[requirements_met]
+
 
 class ImageValidator:
     '''
@@ -336,7 +371,8 @@ class ImageValidator:
                  overlap_criterion='center_point',
                  bounds=(0.3, 1.0),
                  n_boxes_min=1,
-                 labels_format={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4},
+                 labels_format={'class_id': 0, 'xmin': 1,
+                                'ymin': 2, 'xmax': 3, 'ymax': 4},
                  border_pixels='half'):
         '''
         Arguments:
@@ -364,7 +400,8 @@ class ImageValidator:
                 to the boxex, but not the other.
         '''
         if not ((isinstance(n_boxes_min, int) and n_boxes_min > 0) or n_boxes_min == 'all'):
-            raise ValueError("`n_boxes_min` must be a positive integer or 'all'.")
+            raise ValueError(
+                "`n_boxes_min` must be a positive integer or 'all'.")
         self.overlap_criterion = overlap_criterion
         self.bounds = bounds
         self.n_boxes_min = n_boxes_min
@@ -416,6 +453,7 @@ class ImageValidator:
             else:
                 return False
 
+
 class SSDInputEncoder:
     '''
     Transforms ground truth labels for object detection in images
@@ -428,10 +466,10 @@ class SSDInputEncoder:
     '''
 
     def __init__(self,
-                 img_height,
-                 img_width,
-                 n_classes,
-                 predictor_sizes,
+                 img_height=300,
+                 img_width=300,
+                 n_classes=20,
+                 predictor_sizes=None,
                  min_scale=0.1,
                  max_scale=0.9,
                  scales=None,
@@ -444,7 +482,7 @@ class SSDInputEncoder:
                  variances=[0.1, 0.1, 0.2, 0.2],
                  matching_type='multi',
                  pos_iou_threshold=0.5,
-                 neg_iou_limit=0.3,
+                 neg_iou_limit=0.5,
                  border_pixels='half',
                  coords='centroids',
                  normalize_coords=True,
@@ -525,53 +563,33 @@ class SSDInputEncoder:
                 This way learning becomes independent of the input image size.
             background_id (int, optional): Determines which class ID is for the background class.
         '''
-        predictor_sizes = np.array(predictor_sizes)
-        if predictor_sizes.ndim == 1:
-            predictor_sizes = np.expand_dims(predictor_sizes, axis=0)
-
         ##################################################################################
         # Handle exceptions.
         ##################################################################################
 
         if (min_scale is None or max_scale is None) and scales is None:
-            raise ValueError("Either `min_scale` and `max_scale` or `scales` need to be specified.")
-
-        if scales:
-            if (len(scales) != predictor_sizes.shape[0] + 1): # Must be two nested `if` statements since `list` and `bool` cannot be combined by `&`
-                raise ValueError("It must be either scales is None or len(scales) == len(predictor_sizes)+1, but len(scales) == {} and len(predictor_sizes)+1 == {}".format(len(scales), len(predictor_sizes)+1))
-            scales = np.array(scales)
-            if np.any(scales <= 0):
-                raise ValueError("All values in `scales` must be greater than 0, but the passed list of scales is {}".format(scales))
-        else: # If no list of scales was passed, we need to make sure that `min_scale` and `max_scale` are valid values.
-            if not 0 < min_scale <= max_scale:
-                raise ValueError("It must be 0 < min_scale <= max_scale, but it is min_scale = {} and max_scale = {}".format(min_scale, max_scale))
-
-        if not (aspect_ratios_per_layer is None):
-            if (len(aspect_ratios_per_layer) != predictor_sizes.shape[0]): # Must be two nested `if` statements since `list` and `bool` cannot be combined by `&`
-                raise ValueError("It must be either aspect_ratios_per_layer is None or len(aspect_ratios_per_layer) == len(predictor_sizes), but len(aspect_ratios_per_layer) == {} and len(predictor_sizes) == {}".format(len(aspect_ratios_per_layer), len(predictor_sizes)))
-            for aspect_ratios in aspect_ratios_per_layer:
-                if np.any(np.array(aspect_ratios) <= 0):
-                    raise ValueError("All aspect ratios must be greater than zero.")
-        else:
-            if (aspect_ratios_global is None):
-                raise ValueError("At least one of `aspect_ratios_global` and `aspect_ratios_per_layer` must not be `None`.")
-            if np.any(np.array(aspect_ratios_global) <= 0):
-                raise ValueError("All aspect ratios must be greater than zero.")
+            raise ValueError(
+                "Either `min_scale` and `max_scale` or `scales` need to be specified.")
 
         if len(variances) != 4:
-            raise ValueError("4 variance values must be pased, but {} values were received.".format(len(variances)))
+            raise ValueError(
+                "4 variance values must be pased, but {} values were received.".format(len(variances)))
         variances = np.array(variances)
         if np.any(variances <= 0):
-            raise ValueError("All variances must be >0, but the variances given are {}".format(variances))
+            raise ValueError(
+                "All variances must be >0, but the variances given are {}".format(variances))
 
         if not (coords == 'minmax' or coords == 'centroids' or coords == 'corners'):
-            raise ValueError("Unexpected value for `coords`. Supported values are 'minmax', 'corners' and 'centroids'.")
+            raise ValueError(
+                "Unexpected value for `coords`. Supported values are 'minmax', 'corners' and 'centroids'.")
 
         if (not (steps is None)) and (len(steps) != predictor_sizes.shape[0]):
-            raise ValueError("You must provide at least one step value per predictor layer.")
+            raise ValueError(
+                "You must provide at least one step value per predictor layer.")
 
         if (not (offsets is None)) and (len(offsets) != predictor_sizes.shape[0]):
-            raise ValueError("You must provide at least one offset value per predictor layer.")
+            raise ValueError(
+                "You must provide at least one offset value per predictor layer.")
 
         ##################################################################################
         # Set or compute members.
@@ -579,15 +597,23 @@ class SSDInputEncoder:
 
         self.img_height = img_height
         self.img_width = img_width
-        self.n_classes = n_classes + 1 # + 1 for the background class
-        self.predictor_sizes = predictor_sizes
+        self.n_classes = n_classes + 1  # + 1 for the background class
+
+        if predictor_sizes is None:
+            self.predictor_sizes = np.array([
+                (38, 38), (19, 19), (10, 10), (5, 5), (3, 3), (1, 1)])
+        else:
+            self.predictor_sizes = np.array(predictor_sizes)
+        if self.predictor_sizes.ndim == 1:
+            self.predictor_sizes = np.expand_dims(self.predictor_sizes, axis=0)
+
         self.min_scale = min_scale
         self.max_scale = max_scale
         # If `scales` is None, compute the scaling factors by linearly interpolating between
         # `min_scale` and `max_scale`. If an explicit list of `scales` is given, however,
         # then it takes precedent over `min_scale` and `max_scale`.
         if (scales is None):
-            self.scales = np.linspace(self.min_scale, self.max_scale, len(self.predictor_sizes)+1)
+            self.scales = [0.1, 0.2, 0.37, 0.54, 0.71, 0.88, 1.05]
         else:
             # If a list of scales is given explicitly, we'll use that instead of computing it from `min_scale` and `max_scale`.
             self.scales = scales
@@ -595,7 +621,12 @@ class SSDInputEncoder:
         # `aspect_ratios_global` for all predictor layers. If `aspect_ratios_per_layer` is given,
         # however, then it takes precedent over `aspect_ratios_global`.
         if (aspect_ratios_per_layer is None):
-            self.aspect_ratios = [aspect_ratios_global] * predictor_sizes.shape[0]
+            self.aspect_ratios = [[1.0, 2.0, 0.5],
+                                  [1.0, 2.0, 0.5, 3.0, 1.0/3.0],
+                                  [1.0, 2.0, 0.5, 3.0, 1.0/3.0],
+                                  [1.0, 2.0, 0.5, 3.0, 1.0/3.0],
+                                  [1.0, 2.0, 0.5],
+                                  [1.0, 2.0, 0.5]]
         else:
             # If aspect ratios are given per layer, we'll use those.
             self.aspect_ratios = aspect_ratios_per_layer
@@ -603,11 +634,11 @@ class SSDInputEncoder:
         if not (steps is None):
             self.steps = steps
         else:
-            self.steps = [None] * predictor_sizes.shape[0]
+            self.steps = [8, 16, 32, 64, 100, 300]
         if not (offsets is None):
             self.offsets = offsets
         else:
-            self.offsets = [None] * predictor_sizes.shape[0]
+            self.offsets = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
         self.clip_boxes = clip_boxes
         self.variances = variances
         self.matching_type = matching_type
@@ -644,14 +675,17 @@ class SSDInputEncoder:
         # For each predictor layer (i.e. for each scaling factor) the tensors for that layer's
         # anchor boxes will have the shape `(feature_map_height, feature_map_width, n_boxes, 4)`.
 
-        self.boxes_list = [] # This will store the anchor boxes for each predicotr layer.
+        # This will store the anchor boxes for each predicotr layer.
+        self.boxes_list = []
 
         # The following lists just store diagnostic information. Sometimes it's handy to have the
         # boxes' center points, heights, widths, etc. in a list.
-        self.wh_list_diag = [] # Box widths and heights for each predictor layer
-        self.steps_diag = [] # Horizontal and vertical distances between any two boxes for each predictor layer
-        self.offsets_diag = [] # Offsets for each predictor layer
-        self.centers_diag = [] # Anchor box center points as `(cy, cx)` for each predictor layer
+        self.wh_list_diag = []  # Box widths and heights for each predictor layer
+        # Horizontal and vertical distances between any two boxes for each predictor layer
+        self.steps_diag = []
+        self.offsets_diag = []  # Offsets for each predictor layer
+        # Anchor box center points as `(cy, cx)` for each predictor layer
+        self.centers_diag = []
 
         # Iterate over all predictor layers and compute the anchor boxes for each one.
         for i in range(len(self.predictor_sizes)):
@@ -704,7 +738,8 @@ class SSDInputEncoder:
         # Generate the template for y_encoded.
         ##################################################################################
 
-        y_encoded = self.generate_encoding_template(batch_size=batch_size, diagnostics=False)
+        y_encoded = self.generate_encoding_template(
+            batch_size=batch_size, diagnostics=False)
 
         ##################################################################################
         # Match ground truth boxes to anchor boxes.
@@ -714,44 +749,59 @@ class SSDInputEncoder:
         # a ground truth match and for which the maximal IoU overlap with any ground truth box is less
         # than or equal to `neg_iou_limit` will be a negative (background) box.
 
-        y_encoded[:, :, self.background_id] = 1 # All boxes are background boxes by default.
-        n_boxes = y_encoded.shape[1] # The total number of boxes that the model predicts per batch item
-        class_vectors = np.eye(self.n_classes) # An identity matrix that we'll use as one-hot class vectors
+        # All boxes are background boxes by default.
+        y_encoded[:, :, self.background_id] = 1
+        # The total number of boxes that the model predicts per batch item
+        n_boxes = y_encoded.shape[1]
+        # An identity matrix that we'll use as one-hot class vectors
+        class_vectors = np.eye(self.n_classes)
 
-        for i in range(batch_size): # For each batch item...
+        for i in range(batch_size):  # For each batch item...
 
-            if ground_truth_labels[i].size == 0: continue # If there is no ground truth for this batch item, there is nothing to match.
-            labels = ground_truth_labels[i].astype(np.float) # The labels for this batch item
+            if ground_truth_labels[i].size == 0:
+                # If there is no ground truth for this batch item, there is nothing to match.
+                continue
+            labels = ground_truth_labels[i].astype(
+                np.float)  # The labels for this batch item
 
             # Check for degenerate ground truth bounding boxes before attempting any computations.
-            if np.any(labels[:,[xmax]] - labels[:,[xmin]] <= 0) or np.any(labels[:,[ymax]] - labels[:,[ymin]] <= 0):
+            if np.any(labels[:, [xmax]] - labels[:, [xmin]] <= 0) or np.any(labels[:, [ymax]] - labels[:, [ymin]] <= 0):
                 raise DegenerateBoxError("SSDInputEncoder detected degenerate ground truth bounding boxes for batch item {} with bounding boxes {}, ".format(i, labels) +
                                          "i.e. bounding boxes where xmax <= xmin and/or ymax <= ymin. Degenerate ground truth " +
                                          "bounding boxes will lead to NaN errors during the training.")
 
             # Maybe normalize the box coordinates.
             if self.normalize_coords:
-                labels[:,[ymin,ymax]] /= self.img_height # Normalize ymin and ymax relative to the image height
-                labels[:,[xmin,xmax]] /= self.img_width # Normalize xmin and xmax relative to the image width
+                # Normalize ymin and ymax relative to the image height
+                labels[:, [ymin, ymax]] /= self.img_height
+                # Normalize xmin and xmax relative to the image width
+                labels[:, [xmin, xmax]] /= self.img_width
 
             # Maybe convert the box coordinate format.
             if self.coords == 'centroids':
-                labels = convert_coordinates(labels, start_index=xmin, conversion='corners2centroids', border_pixels=self.border_pixels)
+                labels = convert_coordinates(
+                    labels, start_index=xmin, conversion='corners2centroids', border_pixels=self.border_pixels)
             elif self.coords == 'minmax':
-                labels = convert_coordinates(labels, start_index=xmin, conversion='corners2minmax')
+                labels = convert_coordinates(
+                    labels, start_index=xmin, conversion='corners2minmax')
 
-            classes_one_hot = class_vectors[labels[:, class_id].astype(np.int)] # The one-hot class IDs for the ground truth boxes of this batch item
-            labels_one_hot = np.concatenate([classes_one_hot, labels[:, [xmin,ymin,xmax,ymax]]], axis=-1) # The one-hot version of the labels for this batch item
+            # The one-hot class IDs for the ground truth boxes of this batch item
+            classes_one_hot = class_vectors[labels[:, class_id].astype(np.int)]
+            # The one-hot version of the labels for this batch item
+            labels_one_hot = np.concatenate(
+                [classes_one_hot, labels[:, [xmin, ymin, xmax, ymax]]], axis=-1)
 
             # Compute the IoU similarities between all anchor boxes and all ground truth boxes for this batch item.
             # This is a matrix of shape `(num_ground_truth_boxes, num_anchor_boxes)`.
-            similarities = iou(labels[:,[xmin,ymin,xmax,ymax]], y_encoded[i,:,-12:-8], coords=self.coords, mode='outer_product', border_pixels=self.border_pixels)
+            similarities = iou(labels[:, [xmin, ymin, xmax, ymax]], y_encoded[i, :, -12:-8],
+                               coords=self.coords, mode='outer_product', border_pixels=self.border_pixels)
 
             # First: Do bipartite matching, i.e. match each ground truth box to the one anchor box with the highest IoU.
             #        This ensures that each ground truth box will have at least one good match.
 
             # For each ground truth box, get the anchor box to match with it.
-            bipartite_matches = match_bipartite_greedy(weight_matrix=similarities)
+            bipartite_matches = match_bipartite_greedy(
+                weight_matrix=similarities)
 
             # Write the ground truth data to the matched anchor boxes.
             y_encoded[i, bipartite_matches, :-8] = labels_one_hot
@@ -766,7 +816,8 @@ class SSDInputEncoder:
             if self.matching_type == 'multi':
 
                 # Get all matches that satisfy the IoU threshold.
-                matches = match_multi(weight_matrix=similarities, threshold=self.pos_iou_threshold)
+                matches = match_multi(
+                    weight_matrix=similarities, threshold=self.pos_iou_threshold)
 
                 # Write the ground truth data to the matched anchor boxes.
                 y_encoded[i, matches[1], :-8] = labels_one_hot[matches[0]]
@@ -780,7 +831,8 @@ class SSDInputEncoder:
             #        ground truth box to be valid background boxes.
 
             max_background_similarities = np.amax(similarities, axis=0)
-            neutral_boxes = np.nonzero(max_background_similarities >= self.neg_iou_limit)[0]
+            neutral_boxes = np.nonzero(
+                max_background_similarities >= self.neg_iou_limit)[0]
             y_encoded[i, neutral_boxes, self.background_id] = 0
 
         ##################################################################################
@@ -788,25 +840,44 @@ class SSDInputEncoder:
         ##################################################################################
 
         if self.coords == 'centroids':
-            y_encoded[:,:,[-12,-11]] -= y_encoded[:,:,[-8,-7]] # cx(gt) - cx(anchor), cy(gt) - cy(anchor)
-            y_encoded[:,:,[-12,-11]] /= y_encoded[:,:,[-6,-5]] * y_encoded[:,:,[-4,-3]] # (cx(gt) - cx(anchor)) / w(anchor) / cx_variance, (cy(gt) - cy(anchor)) / h(anchor) / cy_variance
-            y_encoded[:,:,[-10,-9]] /= y_encoded[:,:,[-6,-5]] # w(gt) / w(anchor), h(gt) / h(anchor)
-            y_encoded[:,:,[-10,-9]] = np.log(y_encoded[:,:,[-10,-9]]) / y_encoded[:,:,[-2,-1]] # ln(w(gt) / w(anchor)) / w_variance, ln(h(gt) / h(anchor)) / h_variance (ln == natural logarithm)
+            # cx(gt) - cx(anchor), cy(gt) - cy(anchor)
+            y_encoded[:, :, [-12, -11]] -= y_encoded[:, :, [-8, -7]]
+            # (cx(gt) - cx(anchor)) / w(anchor) / cx_variance, (cy(gt) - cy(anchor)) / h(anchor) / cy_variance
+            y_encoded[:, :, [-12, -11]] /= y_encoded[:,
+                                                     :, [-6, -5]] * y_encoded[:, :, [-4, -3]]
+            # w(gt) / w(anchor), h(gt) / h(anchor)
+            y_encoded[:, :, [-10, -9]] /= y_encoded[:, :, [-6, -5]]
+            # ln(w(gt) / w(anchor)) / w_variance, ln(h(gt) / h(anchor)) / h_variance (ln == natural logarithm)
+            y_encoded[:, :, [-10, -9]
+                      ] = np.log(y_encoded[:, :, [-10, -9]]) / y_encoded[:, :, [-2, -1]]
         elif self.coords == 'corners':
-            y_encoded[:,:,-12:-8] -= y_encoded[:,:,-8:-4] # (gt - anchor) for all four coordinates
-            y_encoded[:,:,[-12,-10]] /= np.expand_dims(y_encoded[:,:,-6] - y_encoded[:,:,-8], axis=-1) # (xmin(gt) - xmin(anchor)) / w(anchor), (xmax(gt) - xmax(anchor)) / w(anchor)
-            y_encoded[:,:,[-11,-9]] /= np.expand_dims(y_encoded[:,:,-5] - y_encoded[:,:,-7], axis=-1) # (ymin(gt) - ymin(anchor)) / h(anchor), (ymax(gt) - ymax(anchor)) / h(anchor)
-            y_encoded[:,:,-12:-8] /= y_encoded[:,:,-4:] # (gt - anchor) / size(anchor) / variance for all four coordinates, where 'size' refers to w and h respectively
+            # (gt - anchor) for all four coordinates
+            y_encoded[:, :, -12:-8] -= y_encoded[:, :, -8:-4]
+            # (xmin(gt) - xmin(anchor)) / w(anchor), (xmax(gt) - xmax(anchor)) / w(anchor)
+            y_encoded[:, :, [-12, -10]] /= np.expand_dims(
+                y_encoded[:, :, -6] - y_encoded[:, :, -8], axis=-1)
+            # (ymin(gt) - ymin(anchor)) / h(anchor), (ymax(gt) - ymax(anchor)) / h(anchor)
+            y_encoded[:, :, [-11, -9]] /= np.expand_dims(
+                y_encoded[:, :, -5] - y_encoded[:, :, -7], axis=-1)
+            # (gt - anchor) / size(anchor) / variance for all four coordinates, where 'size' refers to w and h respectively
+            y_encoded[:, :, -12:-8] /= y_encoded[:, :, -4:]
         elif self.coords == 'minmax':
-            y_encoded[:,:,-12:-8] -= y_encoded[:,:,-8:-4] # (gt - anchor) for all four coordinates
-            y_encoded[:,:,[-12,-11]] /= np.expand_dims(y_encoded[:,:,-7] - y_encoded[:,:,-8], axis=-1) # (xmin(gt) - xmin(anchor)) / w(anchor), (xmax(gt) - xmax(anchor)) / w(anchor)
-            y_encoded[:,:,[-10,-9]] /= np.expand_dims(y_encoded[:,:,-5] - y_encoded[:,:,-6], axis=-1) # (ymin(gt) - ymin(anchor)) / h(anchor), (ymax(gt) - ymax(anchor)) / h(anchor)
-            y_encoded[:,:,-12:-8] /= y_encoded[:,:,-4:] # (gt - anchor) / size(anchor) / variance for all four coordinates, where 'size' refers to w and h respectively
+            # (gt - anchor) for all four coordinates
+            y_encoded[:, :, -12:-8] -= y_encoded[:, :, -8:-4]
+            # (xmin(gt) - xmin(anchor)) / w(anchor), (xmax(gt) - xmax(anchor)) / w(anchor)
+            y_encoded[:, :, [-12, -11]] /= np.expand_dims(
+                y_encoded[:, :, -7] - y_encoded[:, :, -8], axis=-1)
+            # (ymin(gt) - ymin(anchor)) / h(anchor), (ymax(gt) - ymax(anchor)) / h(anchor)
+            y_encoded[:, :, [-10, -9]] /= np.expand_dims(
+                y_encoded[:, :, -5] - y_encoded[:, :, -6], axis=-1)
+            # (gt - anchor) / size(anchor) / variance for all four coordinates, where 'size' refers to w and h respectively
+            y_encoded[:, :, -12:-8] /= y_encoded[:, :, -4:]
 
         if diagnostics:
             # Here we'll save the matched anchor boxes (i.e. anchor boxes that were matched to a ground truth box, but keeping the anchor box coordinates).
             y_matched_anchors = np.copy(y_encoded)
-            y_matched_anchors[:,:,-12:-8] = 0 # Keeping the anchor box coordinates means setting the offsets to zero.
+            # Keeping the anchor box coordinates means setting the offsets to zero.
+            y_matched_anchors[:, :, -12:-8] = 0
             return y_encoded, y_matched_anchors
         else:
             return y_encoded
@@ -860,7 +931,8 @@ class SSDInputEncoder:
                 wh_list.append((box_width, box_height))
                 if self.two_boxes_for_ar1:
                     # Compute one slightly larger version using the geometric mean of this scale value and the next.
-                    box_height = box_width = np.sqrt(this_scale * next_scale) * size
+                    box_height = box_width = np.sqrt(
+                        this_scale * next_scale) * size
                     wh_list.append((box_width, box_height))
             else:
                 box_width = this_scale * size * np.sqrt(ar)
@@ -894,34 +966,40 @@ class SSDInputEncoder:
                 offset_height = this_offsets
                 offset_width = this_offsets
         # Now that we have the offsets and step sizes, compute the grid of anchor box center points.
-        cy = np.linspace(offset_height * step_height, (offset_height + feature_map_size[0] - 1) * step_height, feature_map_size[0])
-        cx = np.linspace(offset_width * step_width, (offset_width + feature_map_size[1] - 1) * step_width, feature_map_size[1])
+        cy = np.linspace(offset_height * step_height, (offset_height +
+                                                       feature_map_size[0] - 1) * step_height, feature_map_size[0])
+        cx = np.linspace(offset_width * step_width, (offset_width +
+                                                     feature_map_size[1] - 1) * step_width, feature_map_size[1])
         cx_grid, cy_grid = np.meshgrid(cx, cy)
-        cx_grid = np.expand_dims(cx_grid, -1) # This is necessary for np.tile() to do what we want further down
-        cy_grid = np.expand_dims(cy_grid, -1) # This is necessary for np.tile() to do what we want further down
+        # This is necessary for np.tile() to do what we want further down
+        cx_grid = np.expand_dims(cx_grid, -1)
+        # This is necessary for np.tile() to do what we want further down
+        cy_grid = np.expand_dims(cy_grid, -1)
 
         # Create a 4D tensor template of shape `(feature_map_height, feature_map_width, n_boxes, 4)`
         # where the last dimension will contain `(cx, cy, w, h)`
-        boxes_tensor = np.zeros((feature_map_size[0], feature_map_size[1], n_boxes, 4))
+        boxes_tensor = np.zeros(
+            (feature_map_size[0], feature_map_size[1], n_boxes, 4))
 
-        boxes_tensor[:, :, :, 0] = np.tile(cx_grid, (1, 1, n_boxes)) # Set cx
-        boxes_tensor[:, :, :, 1] = np.tile(cy_grid, (1, 1, n_boxes)) # Set cy
-        boxes_tensor[:, :, :, 2] = wh_list[:, 0] # Set w
-        boxes_tensor[:, :, :, 3] = wh_list[:, 1] # Set h
+        boxes_tensor[:, :, :, 0] = np.tile(cx_grid, (1, 1, n_boxes))  # Set cx
+        boxes_tensor[:, :, :, 1] = np.tile(cy_grid, (1, 1, n_boxes))  # Set cy
+        boxes_tensor[:, :, :, 2] = wh_list[:, 0]  # Set w
+        boxes_tensor[:, :, :, 3] = wh_list[:, 1]  # Set h
 
         # Convert `(cx, cy, w, h)` to `(xmin, ymin, xmax, ymax)`
-        boxes_tensor = convert_coordinates(boxes_tensor, start_index=0, conversion='centroids2corners')
+        boxes_tensor = convert_coordinates(
+            boxes_tensor, start_index=0, conversion='centroids2corners')
 
         # If `clip_boxes` is enabled, clip the coordinates to lie within the image boundaries
         if self.clip_boxes:
-            x_coords = boxes_tensor[:,:,:,[0, 2]]
+            x_coords = boxes_tensor[:, :, :, [0, 2]]
             x_coords[x_coords >= self.img_width] = self.img_width - 1
             x_coords[x_coords < 0] = 0
-            boxes_tensor[:,:,:,[0, 2]] = x_coords
-            y_coords = boxes_tensor[:,:,:,[1, 3]]
+            boxes_tensor[:, :, :, [0, 2]] = x_coords
+            y_coords = boxes_tensor[:, :, :, [1, 3]]
             y_coords[y_coords >= self.img_height] = self.img_height - 1
             y_coords[y_coords < 0] = 0
-            boxes_tensor[:,:,:,[1, 3]] = y_coords
+            boxes_tensor[:, :, :, [1, 3]] = y_coords
 
         # `normalize_coords` is enabled, normalize the coordinates to be within [0,1]
         if self.normalize_coords:
@@ -931,10 +1009,12 @@ class SSDInputEncoder:
         # TODO: Implement box limiting directly for `(cx, cy, w, h)` so that we don't have to unnecessarily convert back and forth.
         if self.coords == 'centroids':
             # Convert `(xmin, ymin, xmax, ymax)` back to `(cx, cy, w, h)`.
-            boxes_tensor = convert_coordinates(boxes_tensor, start_index=0, conversion='corners2centroids', border_pixels='half')
+            boxes_tensor = convert_coordinates(
+                boxes_tensor, start_index=0, conversion='corners2centroids', border_pixels='half')
         elif self.coords == 'minmax':
             # Convert `(xmin, ymin, xmax, ymax)` to `(xmin, xmax, ymin, ymax).
-            boxes_tensor = convert_coordinates(boxes_tensor, start_index=0, conversion='corners2minmax', border_pixels='half')
+            boxes_tensor = convert_coordinates(
+                boxes_tensor, start_index=0, conversion='corners2minmax', border_pixels='half')
 
         if diagnostics:
             return boxes_tensor, (cy, cx), wh_list, (step_height, step_width), (offset_height, offset_width)
@@ -986,23 +1066,26 @@ class SSDInputEncoder:
 
         # 3: Create a template tensor to hold the one-hot class encodings of shape `(batch, #boxes, #classes)`
         #    It will contain all zeros for now, the classes will be set in the matching process that follows
-        classes_tensor = np.zeros((batch_size, boxes_tensor.shape[1], self.n_classes))
+        classes_tensor = np.zeros(
+            (batch_size, boxes_tensor.shape[1], self.n_classes))
 
         # 4: Create a tensor to contain the variances. This tensor has the same shape as `boxes_tensor` and simply
         #    contains the same 4 variance values for every position in the last axis.
         variances_tensor = np.zeros_like(boxes_tensor)
-        variances_tensor += self.variances # Long live broadcasting
+        variances_tensor += self.variances  # Long live broadcasting
 
         # 4: Concatenate the classes, boxes and variances tensors to get our final template for y_encoded. We also need
         #    another tensor of the shape of `boxes_tensor` as a space filler so that `y_encoding_template` has the same
         #    shape as the SSD model output tensor. The content of this tensor is irrelevant, we'll just use
         #    `boxes_tensor` a second time.
-        y_encoding_template = np.concatenate((classes_tensor, boxes_tensor, boxes_tensor, variances_tensor), axis=2)
+        y_encoding_template = np.concatenate(
+            (classes_tensor, boxes_tensor, boxes_tensor, variances_tensor), axis=2)
 
         if diagnostics:
             return y_encoding_template, self.centers_diag, self.wh_list_diag, self.steps_diag, self.offsets_diag
         else:
             return y_encoding_template
+
 
 class DegenerateBoxError(Exception):
     '''

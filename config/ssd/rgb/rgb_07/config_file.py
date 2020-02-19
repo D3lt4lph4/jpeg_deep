@@ -99,21 +99,7 @@ class TrainingConfiguration(object):
         predictor_sizes = [(38, 38), (19, 19), (10, 10),
                            (5, 5), (3, 3), (1, 1)]
 
-        self.input_encoder = SSDInputEncoder(img_height=img_height,
-                                             img_width=img_width,
-                                             n_classes=n_classes,
-                                             predictor_sizes=predictor_sizes,
-                                             scales=scales,
-                                             aspect_ratios_per_layer=aspect_ratios,
-                                             two_boxes_for_ar1=two_boxes_for_ar1,
-                                             steps=steps,
-                                             offsets=offsets,
-                                             clip_boxes=clip_boxes,
-                                             variances=variances,
-                                             matching_type='multi',
-                                             pos_iou_threshold=0.5,
-                                             neg_iou_limit=0.5,
-                                             normalize_coords=normalize_coords)
+        self.input_encoder = SSDInputEncoder()
 
         self.train_tranformations = [SSDDataAugmentation()]
         self.validation_transformations = [
