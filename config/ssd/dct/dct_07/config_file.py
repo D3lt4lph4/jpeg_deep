@@ -33,7 +33,7 @@ class TrainingConfiguration(object):
         self._workspace = "ssd"
 
         # Network variables
-        self._weights = "/d2/thesis/weights/keras/vgg/epoch-86_loss-1.4413_val_loss-1.9857.h5"
+        self._weights = None
         self._network = SSD300(dct=True)
 
         # Training variables
@@ -41,7 +41,7 @@ class TrainingConfiguration(object):
         self._batch_size = 32
         self._steps_per_epoch = 1000
         self.optimizer_params = {
-            "lr": 0.001, "momentum": 0.9, "decay": 0.0, "nesterov": False}
+            "lr": 0.001, "momentum": 0.9}
         self._optimizer = SGD(**self.optimizer_params)
         self._loss = SSDLoss(neg_pos_ratio=3, alpha=1.0).compute_loss
         self._metrics = None
@@ -91,7 +91,6 @@ class TrainingConfiguration(object):
             TensorBoard(log_dir))
 
     def prepare_horovod(self, hvd):
-        print("setting hvd...........")
         self._horovod = hvd
         self.optimizer_parameters["lr"] = self.optimizer_parameters["lr"] * hvd.size()
         self._optimizer = SGD(**self.optimizer_parameters)
