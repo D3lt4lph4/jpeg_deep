@@ -50,7 +50,7 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
     def __init__(self,
                  data_directory,
                  index_file,
-                 input_size=(224, 224),
+                 input_size=(28, 28),
                  batch_size=32,
                  shuffle=True,
                  seed=333,
@@ -151,8 +151,11 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
         'Generates data containing batch_size samples'
 
         # Two inputs for the data of one image.
-        X_y = np.empty((self._batch_size, 28, 28, 64), dtype=np.int32)
-        X_cbcr = np.empty((self._batch_size, 14, 14, 128), dtype=np.int32)
+        if self.input_size is not None:
+            X_y = np.empty(
+                (self._batch_size, *self.input_size, 64), dtype=np.int32)
+            X_cbcr = np.empty(
+                (self._batch_size, self.input_size[0] // 2, self.input_size[1] // 2, 128), dtype=np.int32)
         y = np.zeros((self._batch_size, self.number_of_classes),
                      dtype=np.int32)
 
@@ -175,6 +178,15 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
             io_buf = BytesIO(buffer)
 
             dct_y, dct_cb, dct_cr = loads(io_buf.getvalue())
+
+            if self.input_size is None:
+                X_cbcr = np.empty(
+                    (self._batch_size, dct_cb[0], dct_cb[1], dct_cb[2] * 2), dtype=np.int32)
+                X_cbcr[i] = np.concatenate([dct_cb, dct_cr], axis=-1)
+
+                X_y = np.empty(
+                    (self._batch_size, dct_cb[0] * 2, dct_cb[1] * 2, dct_cb[2]), dtype=np.int32)
+                X_y[i, :dct_y.shape[0], :dct_y.shape[1], :] = dct_y
 
             try:
                 X_y[i] = dct_y
@@ -366,7 +378,7 @@ class RGBGenerator(TemplateGenerator):
                 for transform in self.transforms:
                     img = transform(image=img)['image']
 
-            # If no input size is provided, we keep the size of the image.
+            # If no input size is provided, we keep the size of the image (we have a batch size of one then).
             if self.input_size is None:
                 X = np.empty((self._batch_size, *img.shape), dtype=np.int32)
 
