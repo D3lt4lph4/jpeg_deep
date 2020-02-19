@@ -1,5 +1,8 @@
 """ Credit to https://stackoverflow.com/questions/41161021/how-to-convert-a-dense-layer-to-an-equivalent-convolutional-layer-in-keras """
 import h5py
+
+from os.path import split, join, splitext
+
 from argparse import ArgumentParser
 
 from keras.models import Sequential
@@ -11,6 +14,8 @@ import numpy as np
 from scipy.ndimage import zoom
 
 from jpeg_deep.networks import vgga, vggd
+from jpeg_deep.networks import vgga_dct, vggd_dct
+from jpeg_deep.networks import vgga_dct_conv, vggd_dct_conv
 
 
 def to_fully_conv(model):
@@ -62,42 +67,97 @@ def to_fully_conv(model):
     return new_model
 
 
+def to_fully_conv_dct(model, model_type):
+
+    if model_type == "vgga":
+        new_model = vgga_dct_conv()
+    else:
+        new_model = vggd_dct_conv()
+
+    for layer in model.layers:
+
+        if str(layer) not in ["Flatten", "Dense"]:
+            for layer_new in new_model.layers:
+                if layer_new.name == layer.name:
+                    print("Setting layer : {}".format(layer_new.name))
+                    layer_new.set_weights(layer.get_weights())
+                    break
+        elif "Dense" in str(layer):
+            for layer_new in new_model.layers:
+                if layer_new.name == "conv2d_1" and layer.name == "fc1":
+                    print("Setting layer : {}".format(layer_new.name))
+                    layer_new.set_weights(layer.get_weights())
+                    break
+                elif layer_new.name == "conv2d_2" and layer.name == "fc2":
+                    print("Setting layer : {}".format(layer_new.name))
+                    layer_new.set_weights(layer.get_weights())
+                    break
+                elif layer_new.name == "conv2d_3" and layer.name == "predictions":
+                    print("Setting layer : {}".format(layer_new.name))
+                    layer_new.set_weights(layer.get_weights())
+                    break
+
+    return new_model
+
+
 parser = ArgumentParser()
 parser.add_argument(
     "mt", help="The type of the model to convert, for now one of vgga/vggd.", type=str)
 parser.add_argument("wp", help="The weights to be converted", type=str)
+parser.add_argument("-dct", action="store_true")
 args = parser.parse_args()
 
 if args.mt == "vgga":
-    model = vgga(1000)
+    if args.dct:
+        model = vgga_dct(1000)
+    else:
+        model = vgga(1000)
 else:
-    model = vggd(1000)
+    if args.dct:
+        model = vggd_dct(1000)
+    else:
+        model = vggd(1000)
 
 model.load_weights(args.wp)
 
-new_model = to_fully_conv(model)
+if args.dct:
+    new_model = to_fully_conv_dct(model, args.mt)
+else:
+    new_model = to_fully_conv(model)
 
-new_model.save("converted.h5")
+# Extract saved name and resave a fully conv
+path, file_name = split(args.wp)
 
+file_name_conv = join(path, splitext(file_name)[0] + "_conv.h5")
+file_name_ssd = join(path, splitext(file_name)[0] + "_ssd.h5")
 
-with h5py.File("converted.h5", 'a') as f:
+new_model.save(file_name_conv)
 
-    del f['model_weights']['dropout_1']
-    del f['model_weights']['dropout_2']
+# Also save as SSD ready
+new_model.save(file_name_ssd)
+
+with h5py.File(file_name_ssd, 'a') as f:
+
+    if not args.dct:
+        del f['model_weights']['dropout_1']
+        del f['model_weights']['dropout_2']
     del f['model_weights']['conv2d_3']
 
     # Removing old names
     names = f['model_weights'].attrs["layer_names"]
-    names = np.delete(names, -1)
-    names = np.delete(names, -1)
-    names = np.delete(names, -1)
-    names[-2] = b'fc6'
-    names[-1] = b'fc7'
-    f['model_weights'].attrs["layer_names"] = names
+    if not args.dct:
+        idx = np.where(names == b'dropout_1')
+        names = np.delete(names, idx[0])
+        idx = np.where(names == b'dropout_2')
+        names = np.delete(names, idx[0])
+    idx = np.where(names == b'conv2d_3')
+    names = np.delete(names, idx[0])
 
-    # full_idx = np.arange(4096)
-    # np.random.shuffle(full_idx)
-    # idx = full_idx[:1024]
+    idx = np.where(names == b'conv2d_1')
+    names[idx] = b'fc6'
+    idx = np.where(names == b'conv2d_2')
+    names[idx] = b'fc7'
+    f['model_weights'].attrs["layer_names"] = names
 
     # Rename the groups
     f['model_weights']['fc6'] = f['model_weights']['conv2d_1']
