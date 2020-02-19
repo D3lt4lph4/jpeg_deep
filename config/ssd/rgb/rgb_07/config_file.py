@@ -38,7 +38,7 @@ class TrainingConfiguration(object):
 
         # Training variables
         self._epochs = 240
-        self._batch_size = 16
+        self._batch_size = 26
         self._steps_per_epoch = 1000
         self._validation_steps = 100
         self.optimizer_parameters = {
@@ -48,10 +48,12 @@ class TrainingConfiguration(object):
         self._metrics = None
         dataset_path = environ["DATASET_PATH"]
         images_2007_path = join(dataset_path, "VOC2007/JPEGImages")
+        images_2012_path = join(dataset_path, "VOC2012/JPEGImages")
         self.train_sets = [(images_2007_path, join(
-            dataset_path, "VOC2007/ImageSets/Main/train.txt"))]
+            dataset_path, "VOC2007/ImageSets/Main/trainval.txt")), (images_2012_path, join(
+                dataset_path, "VOC2012/ImageSets/Main/trainval.txt"))]
         self.validation_sets = [(images_2007_path, join(
-            dataset_path, "VOC2007/ImageSets/Main/val.txt"))]
+            dataset_path, "VOC2007/ImageSets/Main/test.txt"))]
         self.test_sets = [(images_2007_path, join(
             dataset_path, "VOC2007/ImageSets/Main/test.txt"))]
 
