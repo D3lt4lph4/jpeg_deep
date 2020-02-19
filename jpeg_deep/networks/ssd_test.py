@@ -10,8 +10,8 @@ from keras.regularizers import l2
 
 from jpeg_deep.layers.ssd_layers import AnchorBoxes, L2Normalization, DecodeDetections
 
-from .ssd_backbones import feature_map_dct, feature_map_resnet_dct
-from .ssd_backbones import feature_map_rgb, feature_map_resnet_rgb
+from .ssd_backbones_test import feature_map_dct, feature_map_resnet_dct
+from .ssd_backbones_test import feature_map_rgb, feature_map_resnet_rgb
 
 
 def SSD300(n_classes: int = 20,
@@ -101,11 +101,11 @@ def SSD300(n_classes: int = 20,
         name = 'conv5_1_dct'
 
     conv5_1 = Conv2D(512, (3, 3), activation='relu', padding='same', kernel_regularizer=l2(l2_regularizer), bias_regularizer=l2(l2_regularizer),
-                          kernel_initializer=kernel_initializer, name=name)(conv4_pool)
+                     kernel_initializer=kernel_initializer, name=name)(conv4_pool)
     conv5_2 = Conv2D(512, (3, 3), activation='relu', padding='same', kernel_regularizer=l2(l2_regularizer), bias_regularizer=l2(l2_regularizer),
-                          kernel_initializer=kernel_initializer, name='conv5_2')(conv5_1)
+                     kernel_initializer=kernel_initializer, name='conv5_2')(conv5_1)
     conv5_3 = Conv2D(512, (3, 3), activation='relu', padding='same',
-                          kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularizer), bias_regularizer=l2(l2_regularizer), name='conv5_3')(conv5_2)
+                     kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularizer), bias_regularizer=l2(l2_regularizer), name='conv5_3')(conv5_2)
     conv5_pool = MaxPooling2D(pool_size=(3, 3), strides=(
         1, 1), padding='same', name='conv5_pool')(conv5_3)
     fc6 = Conv2D(1024, (3, 3), dilation_rate=(6, 6), kernel_regularizer=l2(l2_regularizer), bias_regularizer=l2(l2_regularizer), activation='relu', padding='same',
@@ -146,7 +146,7 @@ def SSD300(n_classes: int = 20,
     # We predict `n_classes` confidence values for each box, hence the confidence predictors have depth `n_boxes * n_classes`
     # Output shape of the confidence layers: `(batch, height, width, n_boxes * n_classes)`
     conv4_3_norm_mbox_conf = Conv2D(n_boxes[0] * n_classes, (3, 3), padding='same', kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularizer), bias_regularizer=l2(l2_regularizer),
-                                         name='conv4_3_norm_mbox_conf')(conv4_3_norm)
+                                    name='conv4_3_norm_mbox_conf')(conv4_3_norm)
     fc7_mbox_conf = Conv2D(n_boxes[1] * n_classes, (3, 3), padding='same', kernel_regularizer=l2(l2_regularizer), bias_regularizer=l2(l2_regularizer),
                            kernel_initializer=kernel_initializer, name='fc7_mbox_conf')(fc7)
     conv6_2_mbox_conf = Conv2D(n_boxes[2] * n_classes, (3, 3), padding='same', kernel_regularizer=l2(l2_regularizer), bias_regularizer=l2(l2_regularizer),
@@ -161,7 +161,7 @@ def SSD300(n_classes: int = 20,
     # We predict 4 box coordinates for each box, hence the localization predictors have depth `n_boxes * 4`
     # Output shape of the localization layers: `(batch, height, width, n_boxes * 4)`
     conv4_3_norm_mbox_loc = Conv2D(n_boxes[0] * 4, (3, 3), padding='same', kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularizer), bias_regularizer=l2(l2_regularizer),
-                                        name='conv4_3_norm_mbox_loc')(conv4_3_norm)
+                                   name='conv4_3_norm_mbox_loc')(conv4_3_norm)
     fc7_mbox_loc = Conv2D(n_boxes[1] * 4, (3, 3), padding='same', kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularizer), bias_regularizer=l2(l2_regularizer),
                           name='fc7_mbox_loc')(fc7)
     conv6_2_mbox_loc = Conv2D(n_boxes[2] * 4, (3, 3), padding='same', kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularizer), bias_regularizer=l2(l2_regularizer),
@@ -191,7 +191,7 @@ def SSD300(n_classes: int = 20,
         #     this_scale=scales[5], next_scale=scales[6], step=steps[5], aspect_ratios=aspect_ratios[5], name='conv9_2_mbox_priorbox')(conv9_2_mbox_loc)
     else:
         conv4_3_norm_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[0], next_scale=scales[1], aspect_ratios=aspect_ratios[0],
-                                                      two_boxes_for_ar1=two_boxes_for_ar1, this_steps=steps[
+                                                 two_boxes_for_ar1=two_boxes_for_ar1, this_steps=steps[
             0], this_offsets=offsets[0], clip_boxes=clip_boxes,
             variances=variances, coords=coords, normalize_coords=normalize_coords, name='conv4_3_norm_mbox_priorbox')(conv4_3_norm_mbox_loc)
         fc7_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[1], next_scale=scales[2], aspect_ratios=aspect_ratios[1],

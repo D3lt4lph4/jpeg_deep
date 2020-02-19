@@ -5,4 +5,4 @@ from .networks_dct import vgga_dct_8x8, vggd_dct_8x8
 from .resnet import ResNet50
 from .resnet_dct import late_concat_rfa, late_concat_rfa_thinner
 
-from .ssd import SSD300
+from .ssd_test import SSD300
