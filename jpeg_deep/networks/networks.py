@@ -197,7 +197,7 @@ def vggd(classes=1000):
     return model
 
 
-def vgga_conv(classes=1000):
+def vgga_conv(classes=1000, input_dims=(None, None)):
     """Instantiates the VGG16 architecture.
         classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True, and
@@ -206,9 +206,9 @@ def vgga_conv(classes=1000):
         A Keras model instance.
     """
     if K.image_data_format() == 'channels_last':
-        input_shape = (224, 224, 3)
+        input_shape = (*input_dims, 3)
     else:
-        input_shape = (3, 224, 224)
+        input_shape = (3, *input_dims)
 
     model = Sequential()
     # Block 1
@@ -267,7 +267,7 @@ def vgga_conv(classes=1000):
     return model
 
 
-def vggd_conv(classes=1000, input_shape=(None, None)):
+def vggd_conv(classes=1000, input_dims=(None, None)):
     """Instantiates the VGG16 architecture.
         classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True, and
@@ -276,9 +276,9 @@ def vggd_conv(classes=1000, input_shape=(None, None)):
         A Keras model instance.
     """
     if K.image_data_format() == 'channels_last':
-        input_shape = (*input_shape, 3)
+        input_shape = (*input_dims, 3)
     else:
-        input_shape = (3, *input_shape)
+        input_shape = (3, *input_dims)
 
     model = Sequential()
     # Block 1

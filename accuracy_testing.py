@@ -63,5 +63,7 @@ else:
     generator = RGBGenerator(args.dp, args.jf, input_size=(
         None), batch_size=1, transforms=transformations)
 
+print(len(generator))
+
 # Evaluating the network
-print(model.evaluate_generator(generator, verbose=1))
+print(model.evaluate_generator(generator, verbose=0))
