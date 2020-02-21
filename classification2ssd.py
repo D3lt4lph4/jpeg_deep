@@ -75,8 +75,7 @@ def to_fully_conv_dct(model, model_type):
         new_model = vggd_dct_conv()
 
     for layer in model.layers:
-
-        if str(layer) not in ["Flatten", "Dense"]:
+        if "Dense" not in str(layer) and "Flatten" not in str(layer):
             for layer_new in new_model.layers:
                 if layer_new.name == layer.name:
                     print("Setting layer : {}".format(layer_new.name))
@@ -86,15 +85,21 @@ def to_fully_conv_dct(model, model_type):
             for layer_new in new_model.layers:
                 if layer_new.name == "conv2d_1" and layer.name == "fc1":
                     print("Setting layer : {}".format(layer_new.name))
-                    layer_new.set_weights(layer.get_weights())
+                    W, b = layer.get_weights()
+                    new_W = W.reshape((7, 7, 512, 4096))
+                    layer_new.set_weights([new_W, b])
                     break
                 elif layer_new.name == "conv2d_2" and layer.name == "fc2":
                     print("Setting layer : {}".format(layer_new.name))
-                    layer_new.set_weights(layer.get_weights())
+                    W, b = layer.get_weights()
+                    new_W = W.reshape((1, 1, 4096, 4096))
+                    layer_new.set_weights([new_W, b])
                     break
                 elif layer_new.name == "conv2d_3" and layer.name == "predictions":
                     print("Setting layer : {}".format(layer_new.name))
-                    layer_new.set_weights(layer.get_weights())
+                    W, b = layer.get_weights()
+                    new_W = W.reshape((1, 1, 4096, 1000))
+                    layer_new.set_weights([new_W, b])
                     break
 
     return new_model
