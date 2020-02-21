@@ -271,9 +271,12 @@ def vggd_dct_conv(classes=1000, input_shape=None):
     x = MaxPooling2D((2, 2), strides=(2, 2), name='block5_pool')(x)
 
     # Classification block
-    x = Conv2D(4096, (7, 7), activation='relu', name='conv2d_1')(x)
-    x = Conv2D(4096, (1, 1), activation='relu', name='conv2d_2')(x)
-    x = Conv2D(classes, (1, 1), activation='softmax', name='conv2d_3')(x)
+    x = Conv2D(4096, (7, 7), activation='relu',
+               name='conv2d_1')(x)
+    x = Conv2D(4096, (1, 1), activation='relu',
+               name='conv2d_2')(x)
+    x = Conv2D(classes, (1, 1), activation='softmax',
+               name='conv2d_3')(x)
     x = GlobalAveragePooling2D()(x)
 
     return Model(inputs=[input_y, input_cbcr], outputs=x)
