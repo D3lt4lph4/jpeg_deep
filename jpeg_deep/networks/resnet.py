@@ -15,7 +15,7 @@ from keras import models
 from .resnet_blocks import identity_block, conv_block
 
 
-def ResNet50(classes=1000):
+def ResNet50(classes=1000, input_shape=(224, 224)):
     """Instantiates the ResNet50 architecture.
     Optionally loads weights pre-trained on ImageNet.
     Note that the data format convention used by the model is
@@ -27,7 +27,7 @@ def ResNet50(classes=1000):
     # Returns
         A Keras model instance.
     """
-    img_input = layers.Input(shape=(224, 224, 3))
+    img_input = layers.Input(shape=(*input_shape, 3))
 
     if backend.image_data_format() == 'channels_last':
         bn_axis = 3
