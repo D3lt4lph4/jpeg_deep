@@ -65,7 +65,6 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
         self.association, self.classes, self.images_path = prepare_imagenet(
             index_file, data_directory)
 
-        # self.classes = self.classes[:1000]
         # self.images_path = self.images_path[:1000]
 
         # External data
@@ -184,12 +183,14 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
                     (self._batch_size, dct_cb.shape[0], dct_cb.shape[1], dct_cb.shape[2] * 2), dtype=np.int32)
                 X_cbcr[i] = np.concatenate([dct_cb, dct_cr], axis=-1)
 
-                X_y = np.empty(
+                X_y = np.zeros(
                     (self._batch_size, dct_cb.shape[0] * 2, dct_cb.shape[1] * 2, dct_cb.shape[2]), dtype=np.int32)
                 X_y[i, :dct_y.shape[0], :dct_y.shape[1], :] = dct_y
 
             else:
                 try:
+                    print(dct_y.shape)
+                    print(X_y.shape)
                     X_y[i] = dct_y
                     X_cbcr[i] = np.concatenate([dct_cb, dct_cr], axis=-1)
                 except Exception as e:
