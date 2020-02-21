@@ -3,10 +3,6 @@ from argparse import ArgumentParser
 from keras.losses import categorical_crossentropy
 from keras.optimizers import SGD
 
-from keras.metrics import top_k_categorical_accuracy
-
-from keras.metrics import top_k_categorical_accuracy
-
 from albumentations import SmallestMaxSize
 
 from jpeg_deep.generators import RGBGenerator
@@ -15,13 +11,6 @@ from jpeg_deep.generators import DCTGeneratorJPEG2DCT
 from jpeg_deep.networks import vgga_conv, vggd_conv
 from jpeg_deep.networks import vgga_dct_conv, vggd_dct_conv
 from jpeg_deep.networks import ResNet50, late_concat_rfa, late_concat_rfa_thinner
-
-
-def _top_k_accuracy(k):
-    def _func(y_true, y_pred):
-        return top_k_categorical_accuracy(y_true, y_pred, k)
-    _func.__name__ = "_func_{}".format(k)
-    return _func
 
 
 parser = ArgumentParser()
@@ -47,7 +36,7 @@ elif args.n == "vggadct":
 elif args.n == "vggddct":
     model = vggd_dct_conv(1000)
 elif args.n == "resnet":
-    model = ResNet50(1000)
+    model = ResNet50(1000, (None, None))
 elif args.n == "lcraf":
     model = late_concat_rfa(input_shape=None)
 elif args.n == "lcraft":
@@ -57,10 +46,10 @@ model.load_weights(args.wp, by_name=True)
 
 # Compiling the model
 model.compile(optimizer=SGD(), loss=categorical_crossentropy,
-              metrics=[_top_k_accuracy(1), _top_k_accuracy(5)])
+              metrics=['accuracy', 'top_k_categorical_accuracy'])
 
 # Creating the generator for the testing
-if args.n in ["vggadct", "vggddct"]:
+if args.n in ["vggadct", "vggddct", "lcraf", "lcraft"]:
     generator = DCTGeneratorJPEG2DCT(args.dp, args.jf, input_size=(
         None), batch_size=1, transforms=transformations)
 else:
@@ -70,4 +59,4 @@ else:
 print(len(generator))
 
 # Evaluating the network
-print(model.evaluate_generator(generator, verbose=0))
+print(model.evaluate_generator(generator, verbose=1))
