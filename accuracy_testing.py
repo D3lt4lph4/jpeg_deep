@@ -59,4 +59,4 @@ else:
 print(len(generator))
 
 # Evaluating the network
-print(model.evaluate_generator(generator, verbose=1))
+print(model.evaluate_generator(generator, verbose=0))
