@@ -130,7 +130,7 @@ The table below shows the results obtained compared with the state of the art. F
 |:-:|:-:|:-:|
 | VGG A (official) | 29.6 | 10.4 |
 | VGG D (official) | 27.0 | 8.8 |
-| VGG A (retrained) | 32.2 | 12.1 |
+| VGG A (retrained) | 29.9 | 10.7 |
 | VGG D (retrained) | 30.1 | 10.4 |
 | VGG A DCT | 39.6 | 17.2 |
 | VGG D DCT | 36.74 | 15.2 |

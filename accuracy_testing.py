@@ -14,7 +14,7 @@ from jpeg_deep.generators import DCTGeneratorJPEG2DCT
 
 from jpeg_deep.networks import vgga_conv, vggd_conv
 from jpeg_deep.networks import vgga_dct_conv, vggd_dct_conv
-from jpeg_deep.networks import ResNet50
+from jpeg_deep.networks import ResNet50, late_concat_rfa, late_concat_rfa_thinner
 
 
 def _top_k_accuracy(k):
@@ -48,6 +48,10 @@ elif args.n == "vggddct":
     model = vggd_dct_conv(1000)
 elif args.n == "resnet":
     model = ResNet50(1000)
+elif args.n == "lcraf":
+    model = late_concat_rfa(input_shape=None)
+elif args.n == "lcraft":
+    model = late_concat_rfa_thinner(input_shape=None)
 
 model.load_weights(args.wp, by_name=True)
 
