@@ -25,15 +25,15 @@ class TrainingConfiguration(object):
         self.config_description = "This is the template config file."
 
         # System dependent variable
-        self._workers = 1
-        self._multiprocessing = False
+        self._workers = 5
+        self._multiprocessing = True
 
         # Variables for comet.ml
         self._project_name = "jpeg_deep"
         self._workspace = "ssd"
 
         # Network variables
-        self._weights = None
+        self._weights = "/dlocal/home/2017018/bdegue01/weights/jpeg_deep/classification_dct/vggd/epoch-123_loss-1.8214_val_loss-2.2425_ssd.h5"
         self._network = SSD300(
             backbone="VGGDCT", dct=True, image_shape=(38, 38))
 
