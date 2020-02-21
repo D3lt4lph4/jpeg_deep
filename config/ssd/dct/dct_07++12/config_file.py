@@ -34,12 +34,14 @@ class TrainingConfiguration(object):
 
         # Network variables
         self._weights = None
-        self._network = SSD300(dct=True)
+        self._network = SSD300(
+            backbone="VGGDCT", dct=True, image_shape=(38, 38))
 
         # Training variables
         self._epochs = 240
         self._batch_size = 32
         self._steps_per_epoch = 1000
+        self._validation_steps = 100
         self.optimizer_params = {
             "lr": 0.001, "momentum": 0.9}
         self._optimizer = SGD(**self.optimizer_params)
