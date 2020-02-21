@@ -39,13 +39,13 @@ class TrainingConfiguration(TemplateConfiguration):
         self._epochs = 120
         self._batch_size = 4
         self._batch_per_epoch = 5000
-        self.optimizer_params = {
+        self.optimizer_parameters = {
             "lr": 0.01,
             "momentum": 0.9,
             "decay": 0.0005,
             "nesterov": True
         }
-        self._optimizer = SGD(**self.optimizer_params)
+        self._optimizer = SGD(**self.optimizer_parameters)
         self._loss = categorical_crossentropy
         self._metrics = ['accuracy']
         self.train_directory = "/save/2017018/bdegue01/imagenet/training"
@@ -100,8 +100,8 @@ class TrainingConfiguration(TemplateConfiguration):
         self.model_checkpoint = ModelCheckpoint(filepath=join(
             output_path,
             "epoch-{epoch:02d}_loss-{loss:.4f}_val_loss-{val_loss:.4f}.h5"),
-                                                verbose=verbose,
-                                                save_best_only=save_best_only)
+            verbose=verbose,
+            save_best_only=save_best_only)
         self.callbacks.append(self.model_checkpoint)
 
     def prepare_for_inference(self):
