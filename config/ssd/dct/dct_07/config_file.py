@@ -42,9 +42,9 @@ class TrainingConfiguration(object):
         self._batch_size = 32
         self._steps_per_epoch = 1000
         self._validation_steps = 100
-        self.optimizer_params = {
+        self.optimizer_parameters = {
             "lr": 0.001, "momentum": 0.9}
-        self._optimizer = SGD(**self.optimizer_params)
+        self._optimizer = SGD(**self.optimizer_parameters)
         self._loss = SSDLoss(neg_pos_ratio=3, alpha=1.0).compute_loss
         self._metrics = None
         dataset_path = environ["DATASET_PATH"]
