@@ -33,21 +33,25 @@ transformations = [SmallestMaxSize(256)]
 # Creation of the model
 if args.n == "vgga":
     if args.r:
+        print("Selecting with resize layer.")
         model = vgga_resize(1000)
     else:
         model = vgga_conv(1000)
 elif args.n == "vggd":
     if args.r:
+        print("Selecting with resize layer.")
         model = vggd_resize(1000)
     else:
         model = vggd_conv(1000)
 elif args.n == "vggadct":
     if args.r:
+        print("Selecting with resize layer.")
         model = vgga_dct_resize(1000)
     else:
         model = vgga_dct_conv(1000)
 elif args.n == "vggddct":
     if args.r:
+        print("Selecting with resize layer.")
         model = vggd_dct_resize(1000)
     else:
         model = vggd_dct_conv(1000)
