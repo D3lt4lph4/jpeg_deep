@@ -8,6 +8,8 @@ from albumentations import SmallestMaxSize
 from jpeg_deep.generators import RGBGenerator
 from jpeg_deep.generators import DCTGeneratorJPEG2DCT
 
+from jpeg_deep.networks import vgga_resize, vggd_resize
+from jpeg_deep.networks import vgga_dct_resize, vggd_dct_resize
 from jpeg_deep.networks import vgga_conv, vggd_conv
 from jpeg_deep.networks import vgga_dct_conv, vggd_dct_conv
 from jpeg_deep.networks import ResNet50, late_concat_rfa, late_concat_rfa_thinner
@@ -22,19 +24,33 @@ parser.add_argument(
     "-jf", help="The json file containing the matching for the different classes/index.")
 parser.add_argument(
     "-n", help="The type of network to load, one of vgga, vggd, vggadct, vggddct, resnet.")
+parser.add_argument(
+    "-r", help="Whether to use the resize model or not.", action="store_true")
 args = parser.parse_args()
 
 transformations = [SmallestMaxSize(256)]
 
 # Creation of the model
 if args.n == "vgga":
-    model = vgga_conv(1000)
+    if args.r:
+        model = vgga_resize(1000)
+    else:
+        model = vgga_conv(1000)
 elif args.n == "vggd":
-    model = vggd_conv(1000)
+    if args.r:
+        model = vggd_resize(1000)
+    else:
+        model = vggd_conv(1000)
 elif args.n == "vggadct":
-    model = vgga_dct_conv(1000)
+    if args.r:
+        model = vgga_dct_resize(1000)
+    else:
+        model = vgga_dct_conv(1000)
 elif args.n == "vggddct":
-    model = vggd_dct_conv(1000)
+    if args.r:
+        model = vggd_dct_resize(1000)
+    else:
+        model = vggd_dct_conv(1000)
 elif args.n == "resnet":
     model = ResNet50(1000, (None, None))
 elif args.n == "lcraf":
