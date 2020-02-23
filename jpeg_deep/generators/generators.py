@@ -189,8 +189,6 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
 
             else:
                 try:
-                    print(dct_y.shape)
-                    print(X_y.shape)
                     X_y[i] = dct_y
                     X_cbcr[i] = np.concatenate([dct_cb, dct_cr], axis=-1)
                 except Exception as e:
@@ -202,7 +200,7 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
         return [X_y, X_cbcr], y
 
 
-class DummyGenerator(TemplateGenerator):
+class DummyGeneratorRGB(TemplateGenerator):
     'Generates data in the DCT space for Keras.'
 
     def __init__(self,
@@ -234,6 +232,45 @@ class DummyGenerator(TemplateGenerator):
         'Generates data containing batch_size samples'
         # Initialization
         X = np.empty((self.batch_size, *self.image_shape))
+        y = np.empty((self.batch_size, self.number_of_classes))
+
+        return X, y
+
+
+class DummyGeneratorDCT(TemplateGenerator):
+    'Generates data in the DCT space for Keras.'
+
+    def __init__(self,
+                 num_batches,
+                 batch_size=32,
+                 number_of_classes=1000,
+                 image_shape=(28, 28),
+                 shuffle=True):
+        'Initialization'
+        self.image_shape = image_shape
+        self.batch_size = batch_size
+        self.batches_per_epoch = num_batches
+        self.number_of_classes = number_of_classes
+        self.shuffle = shuffle
+
+    def __len__(self):
+        'Denotes the number of batches per epoch'
+        return self.batches_per_epoch
+
+    def __getitem__(self, index):
+        'Generate one batch of data'
+        # Generate data
+        X, y = self.__data_generation()
+
+        return X, y
+
+    def __data_generation(self):
+        # X : (n_samples, *dim, n_channels)
+        'Generates data containing batch_size samples'
+        # Initialization
+        x_y = np.empty((self.batch_size, *self.image_shape, 64))
+        x_cbcr = np.empty((self.batch_size, *self.image_shape, 128))
+        X = [x_y, x_cbcr]
         y = np.empty((self.batch_size, self.number_of_classes))
 
         return X, y

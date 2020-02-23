@@ -1,6 +1,10 @@
 from template_keras.evaluators import TemplateEvaluator
 
 import numpy as np
+import time
+from statistics import mean, stdev
+
+from tqdm import tqdm
 
 
 class Evaluator(TemplateEvaluator):
@@ -20,6 +24,30 @@ class Evaluator(TemplateEvaluator):
             self._generator = test_generator
 
         self.score = model.evaluate_generator(self._generator, verbose=1)
+
+    def model_speed(self, model, test_generator=None, number_of_runs=10, iteration_per_run=100):
+
+        if self._generator is None and test_generator is None:
+            raise RuntimeError(
+                "A generator should be specified using the init or parameters."
+            )
+        if test_generator is not None:
+            self._generator = test_generator
+
+        times = []
+
+        X, _ = self._generator.__getitem__(0)
+
+        for _ in tqdm(range(number_of_runs)):
+            start_time = time.time()
+            for _ in range(iteration_per_run):
+                _ = model.predict(X)
+            times.append(time.time() - start_time)
+
+        print("It took {} seconds on average of {} runs to run {} iteration of prediction with bacth size {}.".format(
+            mean(times), number_of_runs, iteration_per_run, self._generator.batch_size))
+        print("The number of FPS for the tested network was {}.".format(
+            self._generator.batch_size * iteration_per_run / mean(times)))
 
     def make_runs(self, model, test_generator=None, number_of_runs=10):
 
@@ -56,4 +84,4 @@ class Evaluator(TemplateEvaluator):
         return self._generator
 
     def display_results(self):
-       print("The evaluated score is {}.".format(self.score)) 
+        print("The evaluated score is {}.".format(self.score))
