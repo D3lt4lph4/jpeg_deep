@@ -139,13 +139,12 @@ def deconvolution_rfa(input_shape=(28, 28), classes: int = 1000):
     input_cb = Input(shape=input_shape_cb)
     input_cr = Input(shape=input_shape_cr)
 
-    cb = Conv2DTranspose(64, kernel_size=(2, 2), stride=2)(input_cb)
-    cr = Conv2DTranspose(64, kernel_size=(2, 2), stride=2)(input_cr)
+    cb = Conv2DTranspose(64, kernel_size=(2, 2), strides=2)(input_cb)
+    cr = Conv2DTranspose(64, kernel_size=(2, 2), strides=2)(input_cr)
 
-    input_cbcr = Concatenate([input_cb, input_cr])
+    x = Concatenate(axis=-1)([input_y, cb, cr])
 
-    x = Concatenate([input_y, input_cbcr])
-
+    x = conv_block(x, 3, [64, 64, 256], stage=2, block='a', strides=(1, 1))
     x = identity_block(x, 3, [64, 64, 256], stage=2, block="b")
     x = identity_block(x, 3, [64, 64, 256], stage=2, block="c")
 
@@ -154,7 +153,7 @@ def deconvolution_rfa(input_shape=(28, 28), classes: int = 1000):
     x = identity_block(x, 3, [128, 128, 512], stage=3, block='c')
     x = identity_block(x, 3, [128, 128, 512], stage=3, block='d')
 
-    x = conv_block(x, 3, [256, 256, 1024], stage=3, block='a')
+    x = conv_block(x, 3, [256, 256, 1024], stage=4, block='a')
     x = identity_block(x, 3, [256, 256, 1024], stage=4, block='b')
     x = identity_block(x, 3, [256, 256, 1024], stage=4, block='c')
     x = identity_block(x, 3, [256, 256, 1024], stage=4, block='d')
@@ -169,7 +168,7 @@ def deconvolution_rfa(input_shape=(28, 28), classes: int = 1000):
     x = Dense(classes, activation='softmax',
               kernel_regularizer=l2(0.00005), name='fc1000')(x)
 
-    model = Model([input_y, input_cbcr], x,
+    model = Model([input_y, input_cb, input_cr], x,
                   name='resnet50_late_concat_rfa')
 
     return model
