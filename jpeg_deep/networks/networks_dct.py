@@ -433,15 +433,17 @@ def vggd_dct_deconv(classes=1000, input_shape=(28, 28)):
         A Keras model instance.
     """
     input_shape_y = (*input_shape, 64)
-    input_shape_cbcr = (input_shape[0] // 2, input_shape[1] // 2, 128)
+    input_shape_cb = (input_shape[0] // 2, input_shape[1] // 2, 64)
+    input_shape_cr = (input_shape[0] // 2, input_shape[1] // 2, 64)
 
     input_y = Input(input_shape_y)
-    input_cbcr = Input(input_shape_cbcr)
+    input_cb = Input(shape=input_shape_cb)
+    input_cr = Input(shape=input_shape_cr)
 
-    cbcr = Conv2DTranspose(128, kernel_size=(
-        2, 2), stride=2, kernel_regularizer=l2(0.0005))(input_cbcr)
+    cb = Conv2DTranspose(64, kernel_size=(2, 2), strides=2)(input_cb)
+    cr = Conv2DTranspose(64, kernel_size=(2, 2), strides=2)(input_cr)
 
-    x = Concatenate([input_y, cbcr])
+    x = Concatenate(axis=-1)([input_y, cb, cr])
 
     # Block 4
     x = Conv2D(512, (3, 3),
@@ -466,7 +468,7 @@ def vggd_dct_deconv(classes=1000, input_shape=(28, 28)):
                activation='relu',
                padding='same',
                kernel_regularizer=l2(0.0005),
-               name='block5_conv1_dct')(concat)
+               name='block5_conv1_dct')(x)
     x = Conv2D(512, (3, 3),
                activation='relu',
                padding='same',
@@ -489,7 +491,7 @@ def vggd_dct_deconv(classes=1000, input_shape=(28, 28)):
     x = Dropout(0.5)(x)
     x = Dense(classes, activation='softmax', name='predictions')(x)
 
-    return Model(inputs=[input_y, input_cbcr], outputs=x)
+    return Model(inputs=[input_y, input_cb, input_cr], outputs=x)
 
 
 def vggd_dct_deconv_conv(classes=1000, input_shape=(28, 28)):
