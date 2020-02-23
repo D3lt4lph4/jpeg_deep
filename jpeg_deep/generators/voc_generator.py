@@ -86,6 +86,7 @@ class VOCGenerator(TemplateGenerator):
                     self.images_path.append(
                         join(image_dir, filename + ".jpg"))
 
+            self.images_path = self.images_path
             self.dataset_size = len(self.images_path)
         else:
             self.images_path = None
@@ -99,7 +100,7 @@ class VOCGenerator(TemplateGenerator):
 
         self.labels = []
         self.image_ids = None
-        self.difficult = None
+        self.flagged_boxes = []
         self.dct = dct
 
         self.box_filter = BoxFilter(check_overlap=False, check_min_area=False,
@@ -110,6 +111,11 @@ class VOCGenerator(TemplateGenerator):
     @property
     def batch_size(self):
         return self._batch_size
+
+    @batch_size.setter
+    def batch_size(self, value):
+        self._batch_size = value
+        self.batch_per_epoch = len(self.images_path) // self._batch_size
 
     @property
     def number_of_data_samples(self):
@@ -122,6 +128,10 @@ class VOCGenerator(TemplateGenerator):
     @shuffle.setter
     def shuffle(self, value):
         self._shuffle = value
+        if self.shuffle == False:
+            self.indexes = np.arange(len(self.indexes))
+        else:
+            self.on_epoch_end()
 
     def __len__(self):
         """ Should return the number of batch per epoch."""
@@ -259,9 +269,10 @@ class VOCGenerator(TemplateGenerator):
             if self.load_images_into_memory:
                 with Image.open(filename) as image:
                     self.images.append(np.array(image, dtype=np.uint8))
-            boxes, _ = parse_xml_voc(filename.replace(
+            boxes, flagged_boxes = parse_xml_voc(filename.replace(
                 "JPEGImages", "Annotations").replace("jpg", "xml"))
             self.labels.append(boxes)
+            self.flagged_boxes.append(flagged_boxes)
 
     def get_raw_input_label(self, index):
         """ Should return the raw input at a given batch index, i.e something displayable.

@@ -58,7 +58,7 @@ def parse_xml_voc(data_path: str, classes: List[str] = None):
                    'horse', 'motorbike', 'person', 'pottedplant',
                    'sheep', 'sofa', 'train', 'tvmonitor']
     boxes = []
-    eval_difficult = []
+    flagged_boxes = []
 
     with open(data_path) as f:
         soup = BeautifulSoup(f, 'xml')
@@ -86,8 +86,8 @@ def parse_xml_voc(data_path: str, classes: List[str] = None):
 
         boxes.append([class_id, xmin, ymin, xmax, ymax])
         if difficult:
-            eval_difficult.append(True)
+            flagged_boxes.append(True)
         else:
-            eval_difficult.append(False)
+            flagged_boxes.append(False)
 
-    return boxes, eval_difficult
+    return boxes, flagged_boxes

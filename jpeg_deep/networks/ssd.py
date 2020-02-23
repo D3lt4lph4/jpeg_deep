@@ -92,7 +92,7 @@ def SSD300(n_classes: int = 20,
             image_shape, kernel_initializer=kernel_initializer)
     else:
         input_layer, block4_pool, block4_conv3 = feature_map_dct(
-            image_shape, kernel_initializer=kernel_initializer)
+            (38, 38), kernel_initializer=kernel_initializer)
 
     # Create the network.
     if backbone == "VGG16":
@@ -314,12 +314,11 @@ def SSD300(n_classes: int = 20,
     if mode == 'training':
         model = Model(inputs=input_layer, outputs=predictions)
     elif mode == 'inference':
-        decoded_predictions = DecodeDetections(confidence_thresh=confidence_thresh,
+        decoded_predictions = DecodeDetections(img_height=300, img_width=300, confidence_thresh=confidence_thresh,
                                                iou_threshold=iou_threshold,
                                                top_k=top_k,
                                                nms_max_output_size=nms_max_output_size,
-                                               name='decoded_predictions',
-                                               dct=dct)([predictions, input_layer])
+                                               name='decoded_predictions')(predictions)
         model = Model(inputs=input_layer, outputs=decoded_predictions)
     else:
         raise ValueError(
