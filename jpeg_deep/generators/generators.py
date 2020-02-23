@@ -55,6 +55,7 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
                  shuffle=True,
                  seed=333,
                  validation_split=0.0,
+                 split_cbcr=False,
                  validation=False,
                  transforms=None):
 
@@ -74,6 +75,7 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
 
         # Internal data
         self.input_size = input_size
+        self.split_cbcr = split_cbcr
 
         # If no validation split, all in test
         if validation_split == 0 or validation_split == 1:
@@ -106,6 +108,7 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
     @batch_size.setter
     def batch_size(self, value):
         self._batch_size = value
+        self.batches_per_epoch = len(self.indexes) // self._batch_size
 
     @property
     def number_of_data_samples(self):
@@ -122,6 +125,10 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
     @shuffle.setter
     def shuffle(self, value):
         self._shuffle = value
+        if self.shuffle == False:
+            self.indexes = np.arange(len(self.indexes))
+        else:
+            self.on_epoch_end()
 
     def __len__(self):
         'Denotes the number of batches per epoch'
@@ -153,8 +160,14 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
         if self.input_size is not None:
             X_y = np.empty(
                 (self._batch_size, *self.input_size, 64), dtype=np.int32)
-            X_cbcr = np.empty(
-                (self._batch_size, self.input_size[0] // 2, self.input_size[1] // 2, 128), dtype=np.int32)
+            if not self.split_cbcr:
+                X_cbcr = np.empty(
+                    (self._batch_size, self.input_size[0] // 2, self.input_size[1] // 2, 128), dtype=np.int32)
+            else:
+                X_cb = np.empty(
+                    (self._batch_size, self.input_size[0] // 2, self.input_size[1] // 2, 64), dtype=np.int32)
+                X_cr = np.empty(
+                    (self._batch_size, self.input_size[0] // 2, self.input_size[1] // 2, 64), dtype=np.int32)
         y = np.zeros((self._batch_size, self.number_of_classes),
                      dtype=np.int32)
 
@@ -179,9 +192,17 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
             dct_y, dct_cb, dct_cr = loads(io_buf.getvalue())
 
             if self.input_size is None:
-                X_cbcr = np.empty(
-                    (self._batch_size, dct_cb.shape[0], dct_cb.shape[1], dct_cb.shape[2] * 2), dtype=np.int32)
-                X_cbcr[i] = np.concatenate([dct_cb, dct_cr], axis=-1)
+                if not self.split_cbcr:
+                    X_cbcr = np.empty(
+                        (self._batch_size, dct_cb.shape[0], dct_cb.shape[1], dct_cb.shape[2] * 2), dtype=np.int32)
+                    X_cbcr[i] = np.concatenate([dct_cb, dct_cr], axis=-1)
+                else:
+                    X_cb = np.empty(
+                        (self._batch_size, dct_cb.shape[0], dct_cb.shape[1], dct_cb.shape[2]), dtype=np.int32)
+                    X_cr = np.empty(
+                        (self._batch_size, dct_cb.shape[0], dct_cb.shape[1], dct_cb.shape[2]), dtype=np.int32)
+                    X_cb[i] = dct_cb
+                    X_cr[i] = dct_cr
 
                 X_y = np.zeros(
                     (self._batch_size, dct_cb.shape[0] * 2, dct_cb.shape[1] * 2, dct_cb.shape[2]), dtype=np.int32)
@@ -190,14 +211,20 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
             else:
                 try:
                     X_y[i] = dct_y
-                    X_cbcr[i] = np.concatenate([dct_cb, dct_cr], axis=-1)
+                    if not self.split_cbcr:
+                        X_cbcr[i] = np.concatenate([dct_cb, dct_cr], axis=-1)
+                    else:
+                        X_cb[i] = dct_cb
+                        X_cr[i] = dct_cr
                 except Exception as e:
                     raise Exception(str(e) + str(self.images_path[k]))
 
             # Setting the target class to 1
             y[i, int(self.association[index_class])] = 1
-
-        return [X_y, X_cbcr], y
+        if not self.split_cbcr:
+            return [X_y, X_cbcr], y
+        else:
+            return [X_y, X_cb, X_cr], y
 
 
 class DummyGeneratorRGB(TemplateGenerator):

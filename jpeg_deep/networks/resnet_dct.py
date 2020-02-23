@@ -128,15 +128,21 @@ def late_concat_rfa_thinner(input_shape=(28, 28), classes=1000):
 def deconvolution_rfa(input_shape=(28, 28), classes: int = 1000):
     if input_shape is None:
         input_shape_y = (None, None, 64)
-        input_shape_cbcr = (None, None, 128)
+        input_shape_cb = (None, None, 64)
+        input_shape_cr = (None, None, 64)
     else:
         input_shape_y = (*input_shape, 64)
-        input_shape_cbcr = (input_shape[0] // 2, input_shape[1] // 2, 128)
+        input_shape_cb = (input_shape[0] // 2, input_shape[1] // 2, 64)
+        input_shape_cr = (input_shape[0] // 2, input_shape[1] // 2, 64)
 
     input_y = Input(shape=input_shape_y)
-    input_cbcr = Input(shape=input_shape_cbcr)
+    input_cb = Input(shape=input_shape_cb)
+    input_cr = Input(shape=input_shape_cr)
 
-    cbcr = Conv2DTranspose(128, kernel_size=(2, 2), stride=2)(input_cbcr)
+    cb = Conv2DTranspose(64, kernel_size=(2, 2), stride=2)(input_cb)
+    cr = Conv2DTranspose(64, kernel_size=(2, 2), stride=2)(input_cr)
+
+    input_cbcr = Concatenate([input_cb, input_cr])
 
     x = Concatenate([input_y, input_cbcr])
 
