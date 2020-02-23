@@ -169,6 +169,6 @@ def deconvolution_rfa(input_shape=(28, 28), classes: int = 1000):
               kernel_regularizer=l2(0.00005), name='fc1000')(x)
 
     model = Model([input_y, input_cb, input_cr], x,
-                  name='resnet50_late_concat_rfa')
+                  name='resnet50_deconv_rfa')
 
     return model
