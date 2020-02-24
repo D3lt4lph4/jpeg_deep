@@ -145,12 +145,13 @@ def deconvolution_rfa(input_shape=(28, 28), classes: int = 1000):
                          kernel_regularizer=l2(0.00005))(input_cr)
 
     x = Concatenate(axis=-1)([input_y, cb, cr])
+    x = BatchNormalization(axis=3, momentum=0.9,
+                           epsilon=1e-5, name='bn_cbcr')(x)
+    x = conv_block(x, 1, [256, 256, 1024], stage=2, block='a', strides=(1, 1))
+    x = identity_block(x, 2, [256, 256, 1024], stage=2, block="b")
+    x = identity_block(x, 3, [256, 256, 1024], stage=2, block="c")
 
-    x = conv_block(x, 3, [64, 64, 256], stage=2, block='a', strides=(1, 1))
-    x = identity_block(x, 3, [64, 64, 256], stage=2, block="b")
-    x = identity_block(x, 3, [64, 64, 256], stage=2, block="c")
-
-    x = conv_block(x, 3, [128, 128, 512], stage=3, block='a')
+    x = conv_block(x, 3, [128, 128, 512], stage=3, block='a', strides=(1, 1))
     x = identity_block(x, 3, [128, 128, 512], stage=3, block='b')
     x = identity_block(x, 3, [128, 128, 512], stage=3, block='c')
     x = identity_block(x, 3, [128, 128, 512], stage=3, block='d')
