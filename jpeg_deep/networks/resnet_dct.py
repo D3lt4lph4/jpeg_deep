@@ -139,8 +139,10 @@ def deconvolution_rfa(input_shape=(28, 28), classes: int = 1000):
     input_cb = Input(shape=input_shape_cb)
     input_cr = Input(shape=input_shape_cr)
 
-    cb = Conv2DTranspose(64, kernel_size=(2, 2), strides=2)(input_cb)
-    cr = Conv2DTranspose(64, kernel_size=(2, 2), strides=2)(input_cr)
+    cb = Conv2DTranspose(64, kernel_size=(2, 2), strides=2,
+                         kernel_regularizer=l2(0.00005))(input_cb)
+    cr = Conv2DTranspose(64, kernel_size=(2, 2), strides=2,
+                         kernel_regularizer=l2(0.00005))(input_cr)
 
     x = Concatenate(axis=-1)([input_y, cb, cr])
 
