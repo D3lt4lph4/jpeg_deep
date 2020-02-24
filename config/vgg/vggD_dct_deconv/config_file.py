@@ -135,7 +135,7 @@ class TrainingConfiguration(object):
 
     def prepare_testing_generator(self):
         self._test_generator = DCTGeneratorJPEG2DCT(
-            self.test_directory, self.index_file, None, 1)
+            self.test_directory, self.index_file, batch_size=self.batch_size, transforms=self.train_transformations, split_cbcr=True)
 
     def prepare_training_generators(self):
         self._train_generator = DCTGeneratorJPEG2DCT(

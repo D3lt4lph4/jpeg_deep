@@ -32,7 +32,7 @@ class Evaluator(TemplateEvaluator):
 
         self.score = model.evaluate_generator(self._generator, verbose=1)
 
-    def model_speed(self, model, test_generator=None, number_of_runs=10, iteration_per_run=100):
+    def model_speed(self, model, test_generator=None, number_of_runs=10, iteration_per_run=200):
 
         if self._generator is None and test_generator is None:
             raise RuntimeError(
