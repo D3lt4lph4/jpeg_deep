@@ -447,6 +447,9 @@ def vggd_dct_deconv(classes=1000, input_shape=(28, 28)):
 
     x = Concatenate(axis=-1)([input_y, cb, cr])
 
+    x = BatchNormalization(
+        name="b_norm", input_shape=input_shape_y)(x)
+
     # Block 4
     x = Conv2D(512, (3, 3),
                activation='relu',
@@ -514,6 +517,9 @@ def vggd_dct_deconv_conv(classes=1000, input_shape=(28, 28)):
         2, 2), stride=2, kernel_regularizer=l2(0.0005))(input_cbcr)
 
     x = Concatenate([input_y, cbcr])
+
+    x = BatchNormalization(
+        name="b_norm", input_shape=input_shape_y)(x)
 
     # Block 4
     x = Conv2D(512, (3, 3),
