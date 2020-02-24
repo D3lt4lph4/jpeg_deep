@@ -189,7 +189,7 @@ class PascalEvaluator(TemplateEvaluator):
         print(average_precisions)
         print(mean_average_precision)
 
-    def model_speed(self, model, test_generator=None, number_of_runs=10, iteration_per_run=100):
+    def model_speed(self, model, test_generator=None, number_of_runs=10, iteration_per_run=1000):
 
         if self._generator is None and test_generator is None:
             raise RuntimeError(
