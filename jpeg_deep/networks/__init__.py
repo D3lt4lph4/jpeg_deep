@@ -10,3 +10,4 @@ from .resnet_dct import late_concat_rfa, late_concat_rfa_thinner
 from .resnet_dct import deconvolution_rfa
 
 from .ssd import SSD300
+from .ssd_resnet import SSD300_resnet

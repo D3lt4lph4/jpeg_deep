@@ -10,6 +10,8 @@ from keras.regularizers import l2
 
 from jpeg_deep.layers.ssd_layers import AnchorBoxes, L2Normalization, DecodeDetections
 
+from .resnet_blocks import conv_block, identity_block
+
 
 def feature_map_rgb(image_shape: Tuple[int, int], kernel_initializer: str = 'he_normal', l2_reg=0.00025):
     """ Helper function that generates the first layers of the SSD. This function generates the layers for the RGB network.
@@ -129,18 +131,18 @@ def feature_map_resnet_rgb(image_shape: Tuple[int, int], kernel_initializer: str
     input_layer = Input(shape=(img_h, img_w, 3))
 
     # 1
-    x = layers.ZeroPadding2D(padding=(3, 3), name='conv1_pad')(input_layer)
-    x = layers.Conv2D(64, (7, 7),
-                      strides=(2, 2),
-                      padding='valid',
-                      kernel_initializer='he_normal',
-                      kernel_regularizer=l2(l2_reg),
-                      name='conv1')(x)
-    x = layers.BatchNormalization(
-        axis=bn_axis, momentum=0.9, epsilon=1e-5, name='bn_conv1')(x)
-    x = layers.Activation('relu')(x)
-    x = layers.ZeroPadding2D(padding=(1, 1), name='pool1_pad')(x)
-    x = layers.MaxPooling2D((3, 3), strides=(2, 2))(x)
+    x = ZeroPadding2D(padding=(3, 3), name='conv1_pad')(input_layer)
+    x = Conv2D(64, (7, 7),
+               strides=(2, 2),
+               padding='valid',
+               kernel_initializer='he_normal',
+               kernel_regularizer=l2(l2_reg),
+               name='conv1')(x)
+    x = BatchNormalization(
+        axis=3, momentum=0.9, epsilon=1e-5, name='bn_conv1')(x)
+    x = Activation('relu')(x)
+    x = ZeroPadding2D(padding=(1, 1), name='pool1_pad')(x)
+    x = MaxPooling2D((3, 3), strides=(2, 2))(x)
 
     # 2
     x = conv_block(x, 3, [64, 64, 256], stage=2, block='a', strides=(1, 1))
@@ -151,12 +153,20 @@ def feature_map_resnet_rgb(image_shape: Tuple[int, int], kernel_initializer: str
     x = conv_block(block4_conv3, 3, [128, 128, 512], stage=3, block='a')
     x = identity_block(x, 3, [128, 128, 512], stage=3, block='b')
     x = identity_block(x, 3, [128, 128, 512], stage=3, block='c')
-    block4_pool = identity_block(x, 3, [128, 128, 512], stage=3, block='d')
+    x = identity_block(x, 3, [128, 128, 512], stage=3, block='d')
 
-    return input_layer, block4_pool, block4_conv3
+    # 4
+    x = conv_block(x, 3, [256, 256, 1024], stage=4, block='a')
+    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='b')
+    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='c')
+    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='d')
+    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='e')
+    last = identity_block(x, 3, [256, 256, 1024], stage=4, block='f')
+
+    return input_layer, last, block4_conv3
 
 
-def feature_map_resnet_dct(image_shape: Tuple[int, int],  kernel_initializer: str = 'glorot_uniform'):
+def feature_map_lcrfa(image_shape: Tuple[int, int],  kernel_initializer: str = 'glorot_uniform'):
     """ Helper function that generates the first layers of the SSD. This function generates the layers for the DCT network.
 
     # Arguments:
@@ -167,37 +177,86 @@ def feature_map_resnet_dct(image_shape: Tuple[int, int],  kernel_initializer: st
     # Returns:
         Three layers: input_layer, block4_pool, block4_conv3. These layers are used to intantiate the network.
     """
-    input_shape_y = (28, 28, 64)
-    input_shape_cbcr = (14, 14, 128)
+    input_shape_y = (38, 38, 64)
+    input_shape_cbcr = (19, 19, 128)
 
-    Y = layers.Input(shape=input_shape_y)
-    CbCr = layers.Input(shape=input_shape_cbcr)
+    input_y = Input(shape=input_shape_y)
+    input_cbcr = Input(shape=input_shape_cbcr)
 
-    if backend.image_data_format() == 'channels_last':
-        bn_axis = 3
-    else:
-        bn_axis = 1
+    bn_y = BatchNormalization(
+        axis=3, momentum=0.9, epsilon=1e-5, name='bn_y')(input_y)
 
-    bn_Y = layers.BatchNormalization(
-        axis=bn_axis, momentum=0.9, epsilon=1e-5, name='bn_y')(Y)
+    y = conv_block(bn_y, 1, [256, 256, 1024],
+                   stage=1, block="a_y", strides=(1, 1))
+    y = identity_block(y, 2, [256, 256, 1024], stage=1, block="b_y")
+    y = identity_block(y, 3, [256, 256, 1024], stage=1, block="c_y")
 
-    y = conv_block(bn_Y, 1, [256, 256, 1024],
-                   stage=1, block="a", strides=(1, 1))
-    y = identity_block(y, 2, [256, 256, 1024], stage=1, block="b")
-    y = identity_block(y, 3, [256, 256, 1024], stage=1, block="c")
+    y = conv_block(y, 3, [128, 128, 512], stage=2, block='a_y', strides=(1, 1))
+    y = identity_block(y, 3, [128, 128, 512], stage=2, block='b_y')
+    y = identity_block(y, 3, [128, 128, 512], stage=2, block='c_y')
+    block4_conv3 = identity_block(y, 3, [128, 128, 512], stage=2, block='d_y')
 
-    y = conv_block(y, 3, [128, 128, 512], stage=2, block='a', strides=(1, 1))
-    y = identity_block(y, 3, [128, 128, 512], stage=2, block='b')
-    y = identity_block(y, 3, [128, 128, 512], stage=2, block='c')
-    block4_conv3 = identity_block(y, 3, [128, 128, 512], stage=2, block='d')
+    y = conv_block(block4_conv3, 3, [128, 128, 512], stage=3, block='a_y')
 
-    y = conv_block(block4_conv3, 3, [256, 256, 512], stage=2, block='a4')
+    bn_cbcr = BatchNormalization(
+        axis=3, momentum=0.9, epsilon=1e-5, name='bn_cbcr')(input_cbcr)
+    cbcr = conv_block(bn_cbcr, 1, [128, 128, 512],
+                      stage=1, block='a_cbcr', strides=(1, 1))
 
-    bn_CbCr = layers.BatchNormalization(
-        axis=bn_axis, momentum=0.9, epsilon=1e-5, name='bn_cbcr')(CbCr)
-    cbcr = conv_block(bn_CbCr, 1, [256, 256, 1024],
-                      stage=2, block='a5', strides=(1, 1))
+    x = Concatenate(axis=-1)([y, cbcr])
 
-    concat = Concatenate(axis=-1)([y, cbcr])
+    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='b')
+    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='c')
+    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='d')
+    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='e')
+    last = identity_block(x, 3, [256, 256, 1024], stage=4, block='f')
 
-    return [Y, CbCr], concat, block4_conv3
+    return [input_y, input_cbcr], last, block4_conv3
+
+
+def feature_map_lcrfat(image_shape: Tuple[int, int],  kernel_initializer: str = 'glorot_uniform'):
+    """ Helper function that generates the first layers of the SSD. This function generates the layers for the DCT network.
+
+    # Arguments:
+        - image_shape: A tuple containing the shape of the image.
+        - l2_regularization: The float value for the l2 normalization.
+        - kernel_initializer: The type of initializer for the convolution kernels.
+
+    # Returns:
+        Three layers: input_layer, block4_pool, block4_conv3. These layers are used to intantiate the network.
+    """
+    input_shape_y = (38, 38, 64)
+    input_shape_cbcr = (19, 19, 128)
+
+    input_y = Input(shape=input_shape_y)
+    input_cbcr = Input(shape=input_shape_cbcr)
+
+    bn_y = BatchNormalization(
+        axis=3, momentum=0.9, epsilon=1e-5, name='bn_y')(input_y)
+
+    y = conv_block(bn_y, 1, [256, 256, 384],
+                   stage=1, block="a_y", strides=(1, 1))
+    y = identity_block(y, 2, [256, 256, 384], stage=1, block="b_y")
+    y = identity_block(y, 3, [256, 256, 384], stage=1, block="c_y")
+
+    y = conv_block(y, 3, [128, 128, 384], stage=2, block='a_y', strides=(1, 1))
+    y = identity_block(y, 3, [128, 128, 384], stage=2, block='b_y')
+    y = identity_block(y, 3, [128, 128, 384], stage=2, block='c_y')
+    block4_conv3 = identity_block(y, 3, [128, 128, 384], stage=2, block='d_y')
+
+    y = conv_block(block4_conv3, 3, [128, 128, 768], stage=3, block='a_y')
+
+    bn_cbcr = BatchNormalization(
+        axis=3, momentum=0.9, epsilon=1e-5, name='bn_cbcr')(input_cbcr)
+    cbcr = conv_block(bn_cbcr, 1, [128, 128, 256],
+                      stage=1, block='a_cbcr', strides=(1, 1))
+
+    x = Concatenate(axis=-1)([y, cbcr])
+
+    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='b')
+    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='c')
+    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='d')
+    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='e')
+    last = identity_block(x, 3, [256, 256, 1024], stage=4, block='f')
+
+    return [input_y, input_cbcr], last, block4_conv3
