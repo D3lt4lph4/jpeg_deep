@@ -14,8 +14,13 @@ parser.add_argument("-w", "--weights", help="The weights to load.", default=None
 args = parser.parse_args()
 
 sys.path.append(join(args.experiment, "config"))
-from temp_config import TrainingConfiguration
-config = TrainingConfiguration()
+try:
+    from temp_config import TrainingConfiguration
+    config = TrainingConfiguration()
+except ModuleNotFoundError:
+    sys.path.append(args.experiment)
+    from config_file import TrainingConfiguration
+    config = TrainingConfiguration()
 
 config.prepare_for_inference()
 config.prepare_evaluator()
