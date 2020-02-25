@@ -11,7 +11,7 @@ from keras.regularizers import l2
 from jpeg_deep.layers.ssd_layers import AnchorBoxes, L2Normalization, DecodeDetections
 
 from .ssd_backbones import feature_map_dct
-from .ssd_backbones import feature_map_rgb 
+from .ssd_backbones import feature_map_rgb
 
 
 def SSD300(n_classes: int = 20,
@@ -81,7 +81,7 @@ def SSD300(n_classes: int = 20,
     elif image_shape is None:
         img_h, img_w = None, None
     else:
-        img_h, img_w = image_shape
+        img_h, img_w = 300, 300
 
     # Prepare the feature extractor.
     if backbone not in ["VGG16", "VGGDCT"]:
