@@ -1,4 +1,3 @@
-from temp_config import TrainingConfiguration
 import argparse
 import sys
 from os.path import join
@@ -14,6 +13,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 sys.path.append(join(args.experiment, "config"))
+from temp_config import TrainingConfiguration
 config = TrainingConfiguration()
 
 config.prepare_for_inference()
