@@ -186,22 +186,6 @@ class VOCGenerator(TemplateGenerator):
                 else:
                     batch_y.append([[0, 0, 0, 0, 0]])
 
-        # elif not (self.hdf5_dataset is None):
-        #     for i in batch_indices:
-        #         batch_X.append(self.hdf5_dataset['images'][i].reshape(
-        #             self.hdf5_dataset['image_shapes'][i]))
-
-        # if not (self.eval_neutral is None):
-        #     batch_eval_neutral = self.eval_neutral[current:current+batch_size]
-        # else:
-        #     batch_eval_neutral = None
-
-        # # Get the image IDs for this batch (if there are any).
-        # if not (self.image_ids is None):
-        #     batch_image_ids = self.image_ids[current:current+batch_size]
-        # else:
-        #     batch_image_ids = None
-
         # In case we need to remove any images from the batch, store their indices in this list.
         batch_items_to_remove = []
         batch_inverse_transforms = []
@@ -267,6 +251,10 @@ class VOCGenerator(TemplateGenerator):
     def prepare_dataset(self):
         """ We load all the labels when preparing the data. If there is the load in memory option activated, we pre-load the images as well. """
 
+        if self._mode == "test":
+            print("Skipping the loading of the parameters as we are in test mode.")
+            return None
+
         if self.load_images_into_memory:
             print("The images will be loaded into memory.")
 
@@ -276,11 +264,11 @@ class VOCGenerator(TemplateGenerator):
             if self.load_images_into_memory:
                 with Image.open(filename) as image:
                     self.images.append(np.array(image, dtype=np.uint8))
-            if not self._mode == "test":
-                boxes, flagged_boxes = parse_xml_voc(filename.replace(
-                    "JPEGImages", "Annotations").replace("jpg", "xml"))
-                self.labels.append(boxes)
-                self.flagged_boxes.append(flagged_boxes)
+
+            boxes, flagged_boxes = parse_xml_voc(filename.replace(
+                "JPEGImages", "Annotations").replace("jpg", "xml"))
+            self.labels.append(boxes)
+            self.flagged_boxes.append(flagged_boxes)
 
     def get_raw_input_label(self, index):
         """ Should return the raw input at a given batch index, i.e something displayable.
