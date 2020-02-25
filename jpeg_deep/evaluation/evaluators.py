@@ -5,6 +5,7 @@ import time
 from statistics import mean, stdev
 from PIL import Image
 
+from os import makedirs
 from os.path import splitext, split
 
 from tqdm import tqdm
@@ -95,10 +96,11 @@ class Evaluator(TemplateEvaluator):
 
 
 class PascalEvaluator(TemplateEvaluator):
-    def __init__(self, generator=None, n_classes=20, ignore_flagged_boxes=True):
+    def __init__(self, generator=None, n_classes=20, ignore_flagged_boxes=True, challenge="VOC2007"):
         self.score = None
         self._generator = generator
         self.n_classes = n_classes
+        self.challenge = challenge
         self.ignore_flagged_boxes = ignore_flagged_boxes
         self.runs = False
         self.number_of_runs = None
@@ -188,6 +190,60 @@ class PascalEvaluator(TemplateEvaluator):
 
         print(average_precisions)
         print(mean_average_precision)
+
+    def predict_for_submission(self, model, generator=None, output_dir="."):
+        if self._generator is None and generator is None:
+            raise RuntimeError(
+                "A generator should be specified using the init or parameters."
+            )
+        if test_generator is not None:
+            self._generator = generator
+
+        # First create the folders that are to hold the results
+        full_output_dir = join(output_dir, "results", self.challenge, "Main")
+        makedirs(full_output_dir)
+
+        # Predicting for all the classes
+        self._generator.batch_size = 1
+        self.shuffle = False
+
+        generator_len = self._generator.number_of_data_samples
+
+        images_path = self._generator.images_path
+
+        classes = ['background', 'aeroplane', 'bicycle', 'bird', 'boat',
+                   'bottle', 'bus', 'car', 'cat',
+                   'chair', 'cow', 'diningtable', 'dog',
+                            'horse', 'motorbike', 'person', 'pottedplant',
+                            'sheep', 'sofa', 'train', 'tvmonitor']
+
+        results = [list() for _ in range(self.n_classes + 1)]
+
+        for i in tqdm(range(generator_len)):
+            X, y = self._generator.__getitem__(i)
+            predictions = model.predict(X)
+            image_id = splitext(split(images_path[i])[1])[0]
+
+            for box in predictions[0]:
+                class_id, confidence, xmin, ymin, xmax, ymax = box
+                with Image.open(images_path[i]) as img:
+                    width, height = img.size
+                xmin = xmin * width / 300
+                xmax = xmax * width / 300
+                ymin = ymin * height / 300
+                ymax = ymax * height / 300
+
+                prediction = (image_id, confidence, xmin, ymin, xmax, ymax)
+
+                results[int(class_id)].append(prediction)
+
+        # writing the predictions to the output folder
+        for class_id in range(1, len(results)):
+            output_file = join(
+                full_output_dir, "comp3_det_test_{}.txt".format(classes[class_id]))
+            with open(output_file, "w") as class_file:
+                for prediction in results[class_id]:
+                    class_file.write("{} {} {} {} {} {}\n".format(*prediction))
 
     def model_speed(self, model, test_generator=None, number_of_runs=10, iteration_per_run=1000):
 
