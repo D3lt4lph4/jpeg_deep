@@ -6,7 +6,7 @@ from statistics import mean, stdev
 from PIL import Image
 
 from os import makedirs
-from os.path import splitext, split
+from os.path import splitext, split, join
 
 from tqdm import tqdm
 
@@ -96,12 +96,13 @@ class Evaluator(TemplateEvaluator):
 
 
 class PascalEvaluator(TemplateEvaluator):
-    def __init__(self, generator=None, n_classes=20, ignore_flagged_boxes=True, challenge="VOC2007"):
+    def __init__(self, generator=None, n_classes=20, ignore_flagged_boxes=True, challenge="VOC2007", set_type="test"):
         self.score = None
         self._generator = generator
         self.n_classes = n_classes
         self.challenge = challenge
         self.ignore_flagged_boxes = ignore_flagged_boxes
+        self.set_type = set_type
         self.runs = False
         self.number_of_runs = None
 
@@ -196,7 +197,7 @@ class PascalEvaluator(TemplateEvaluator):
             raise RuntimeError(
                 "A generator should be specified using the init or parameters."
             )
-        if test_generator is not None:
+        if generator is not None:
             self._generator = generator
 
         # First create the folders that are to hold the results
@@ -233,17 +234,27 @@ class PascalEvaluator(TemplateEvaluator):
                 ymin = ymin * height / 300
                 ymax = ymax * height / 300
 
-                prediction = (image_id, confidence, xmin, ymin, xmax, ymax)
+                if xmin < 0:
+                    xmin = 0
+                if ymin < 0:
+                    ymin = 0
+                if xmax > width:
+                    xmax = width
+                if ymax > height:
+                    ymax = height
+                prediction = (image_id, confidence, float(xmin),
+                              float(ymin), float(xmax), float(ymax))
 
                 results[int(class_id)].append(prediction)
 
         # writing the predictions to the output folder
         for class_id in range(1, len(results)):
             output_file = join(
-                full_output_dir, "comp3_det_test_{}.txt".format(classes[class_id]))
+                full_output_dir, "comp3_det_{}_{}.txt".format(self.set_type, classes[class_id]))
             with open(output_file, "w") as class_file:
                 for prediction in results[class_id]:
-                    class_file.write("{} {} {} {} {} {}\n".format(*prediction))
+                    class_file.write(
+                        "{} {:.6f} {:.6f} {:.6f} {:.6f} {:.6f}\n".format(*prediction))
 
     def model_speed(self, model, test_generator=None, number_of_runs=10, iteration_per_run=1000):
 

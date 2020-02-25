@@ -59,6 +59,7 @@ class VOCGenerator(TemplateGenerator):
                  load_images_into_memory: bool = False,
                  images_path: List[str] = None,
                  dct: bool = False,
+                 mode: str = "train",
                  labels_output_format: List[str] = (
                      'class_id', 'xmin', 'ymin', 'xmax', 'ymax')):
         '''
@@ -93,6 +94,7 @@ class VOCGenerator(TemplateGenerator):
 
         self._batch_size = batch_size
         self._shuffle = shuffle
+        self._mode = mode
         self._number_of_data_samples = len(self.images_path)
 
         self.batch_per_epoch = len(self.images_path) // self._batch_size
@@ -169,13 +171,20 @@ class VOCGenerator(TemplateGenerator):
         if self.load_images_into_memory:
             for i in batch_indices:
                 batch_X.append(self.images[i])
-                batch_y.append(deepcopy(self.labels[i]))
+                if not self._mode == "test":
+                    batch_y.append(deepcopy(self.labels[i]))
+                else:
+                    batch_y.append([[0, 0, 0, 0, 0]])
+
         else:
             for i in indexes:
                 with Image.open(self.images_path[i]) as image:
                     image = image.convert("RGB")
                     batch_X.append(np.array(image, dtype=np.uint8))
-                batch_y.append(deepcopy(self.labels[i]))
+                if not self._mode == "test":
+                    batch_y.append(deepcopy(self.labels[i]))
+                else:
+                    batch_y.append([[0, 0, 0, 0, 0]])
 
         # elif not (self.hdf5_dataset is None):
         #     for i in batch_indices:
@@ -196,7 +205,6 @@ class VOCGenerator(TemplateGenerator):
         # In case we need to remove any images from the batch, store their indices in this list.
         batch_items_to_remove = []
         batch_inverse_transforms = []
-
         for i in range(len(batch_X)):
 
             batch_y[i] = np.array(batch_y[i])
@@ -204,7 +212,6 @@ class VOCGenerator(TemplateGenerator):
             # Apply any image transformations we may have received.
             if self.transforms:
                 for transform in self.transforms:
-
                     batch_X[i], batch_y[i] = transform(
                         batch_X[i], batch_y[i])
 
@@ -219,14 +226,14 @@ class VOCGenerator(TemplateGenerator):
             xmax = self.labels_format['xmax']
             ymax = self.labels_format['ymax']
 
-            if np.any(batch_y[i][:, xmax] - batch_y[i][:, xmin] <= 0) or np.any(batch_y[i][:, ymax] - batch_y[i][:, ymin] <= 0):
+            if (not self._mode == "test") and (np.any(batch_y[i][:, xmax] - batch_y[i][:, xmin] <= 0) or np.any(batch_y[i][:, ymax] - batch_y[i][:, ymin] <= 0)):
                 batch_y[i] = box_filter(batch_y[i])
 
-        if self.label_encoder:
+        if self.label_encoder and not self._mode == "test":
             batch_y_encoded = self.label_encoder(batch_y)
         else:
             batch_y_encoded = batch_y
-
+        batch_y_encoded = batch_y
         if not self.dct:
             for i in range(len(batch_X)):
                 batch_X[i] = preprocess_input(batch_X[i])
@@ -269,10 +276,11 @@ class VOCGenerator(TemplateGenerator):
             if self.load_images_into_memory:
                 with Image.open(filename) as image:
                     self.images.append(np.array(image, dtype=np.uint8))
-            boxes, flagged_boxes = parse_xml_voc(filename.replace(
-                "JPEGImages", "Annotations").replace("jpg", "xml"))
-            self.labels.append(boxes)
-            self.flagged_boxes.append(flagged_boxes)
+            if not self._mode == "test":
+                boxes, flagged_boxes = parse_xml_voc(filename.replace(
+                    "JPEGImages", "Annotations").replace("jpg", "xml"))
+                self.labels.append(boxes)
+                self.flagged_boxes.append(flagged_boxes)
 
     def get_raw_input_label(self, index):
         """ Should return the raw input at a given batch index, i.e something displayable.
