@@ -211,13 +211,13 @@ class VOCGenerator(TemplateGenerator):
             ymax = self.labels_format['ymax']
 
             if (not self._mode == "test") and (np.any(batch_y[i][:, xmax] - batch_y[i][:, xmin] <= 0) or np.any(batch_y[i][:, ymax] - batch_y[i][:, ymin] <= 0)):
-                batch_y[i] = box_filter(batch_y[i])
+                batch_y[i] = self.box_filter(batch_y[i])
 
         if self.label_encoder and not self._mode == "test":
             batch_y_encoded = self.label_encoder(batch_y)
         else:
             batch_y_encoded = batch_y
-        
+
         if not self.dct:
             for i in range(len(batch_X)):
                 batch_X[i] = preprocess_input(batch_X[i])
