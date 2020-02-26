@@ -115,6 +115,8 @@ class COCOGenerator(TemplateGenerator):
                 class_id = self.matching_dictionnary[annotation["category_id"]][1]
                 bounding_boxes.append([class_id, *bbox])
 
+            if len(bounding_boxes) == 0:
+                continue
             self.images_path.append(file_path)
             self.labels.append(bounding_boxes)
 
@@ -232,7 +234,7 @@ class COCOGenerator(TemplateGenerator):
             ymax = self.labels_format['ymax']
 
             if (not self._mode == "test") and (np.any(batch_y[i][:, xmax] - batch_y[i][:, xmin] <= 0) or np.any(batch_y[i][:, ymax] - batch_y[i][:, ymin] <= 0)):
-                batch_y[i] = box_filter(batch_y[i])
+                batch_y[i] = self.box_filter(batch_y[i])
 
         if self.label_encoder and not self._mode == "test":
             batch_y_encoded = self.label_encoder(batch_y)
