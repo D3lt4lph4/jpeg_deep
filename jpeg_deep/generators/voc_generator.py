@@ -217,7 +217,7 @@ class VOCGenerator(TemplateGenerator):
             batch_y_encoded = self.label_encoder(batch_y)
         else:
             batch_y_encoded = batch_y
-        batch_y_encoded = batch_y
+        
         if not self.dct:
             for i in range(len(batch_X)):
                 batch_X[i] = preprocess_input(batch_X[i])

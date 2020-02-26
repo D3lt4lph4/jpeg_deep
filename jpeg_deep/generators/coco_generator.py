@@ -112,7 +112,7 @@ class COCOGenerator(TemplateGenerator):
             for annotation in annotations:
                 bbox = annotation["bbox"]
                 bbox = [bbox[0], bbox[1], bbox[0] + bbox[2], bbox[1] + bbox[3]]
-                class_id = self.matching_dictionnary[annotation["category_id"]]
+                class_id = self.matching_dictionnary[annotation["category_id"]][1]
                 bounding_boxes.append([class_id, *bbox])
 
             self.images_path.append(file_path)
@@ -238,7 +238,7 @@ class COCOGenerator(TemplateGenerator):
             batch_y_encoded = self.label_encoder(batch_y)
         else:
             batch_y_encoded = batch_y
-        batch_y_encoded = batch_y
+
         if not self.dct:
             for i in range(len(batch_X)):
                 batch_X[i] = preprocess_input(batch_X[i])
