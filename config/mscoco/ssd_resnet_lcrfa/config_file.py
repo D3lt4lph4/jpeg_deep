@@ -7,7 +7,7 @@ from keras.callbacks import ModelCheckpoint, TerminateOnNaN, CSVLogger, EarlySto
 from keras.preprocessing.image import ImageDataGenerator
 from keras.applications.vgg16 import preprocess_input
 
-from jpeg_deep.networks import SSD300
+from jpeg_deep.networks import SSD300_resnet
 from jpeg_deep.generators import COCOGenerator
 from jpeg_deep.evaluation import Evaluator
 
@@ -25,8 +25,8 @@ class TrainingConfiguration(object):
         self.config_description = "This is the template config file."
 
         # System dependent variable
-        self._workers = 5
-        self._multiprocessing = True
+        self._workers = 1
+        self._multiprocessing = False
 
         # Variables for comet.ml
         self._project_name = "jpeg_deep"
@@ -34,8 +34,8 @@ class TrainingConfiguration(object):
 
         # Network variables
         self._weights = None
-        self._network = SSD300(n_classes=80, scales=[
-                               0.07, 0.15, 0.33, 0.51, 0.69, 0.87, 1.05])
+        self._network = SSD300_resnet(
+            n_classes=80, scales=[0.07, 0.15, 0.33, 0.51, 0.69, 0.87, 1.05], mode="lcrfa")
 
         # Training variables
         self._epochs = 240
@@ -127,13 +127,13 @@ class TrainingConfiguration(object):
         self._evaluator = Evaluator()
 
     def prepare_testing_generator(self):
-        self._test_generator = COCOGenerator(self.validation_image_dir, self.validation_annotation_path, batch_size=self.batch_size, shuffle=False, label_encoder=self.input_encoder,
+        self._test_generator = COCOGenerator(self.validation_image_dir, self.validation_annotation_path, batch_size=self.batch_size, shuffle=False, label_encoder=self.input_encoder, dct=True,
                                              transforms=self.test_transformations, load_images_into_memory=None, images_path=self.test_sets)
 
     def prepare_training_generators(self):
-        self._train_generator = COCOGenerator(self.train_image_dir, self.train_annotation_path, batch_size=self.batch_size, shuffle=True, label_encoder=self.input_encoder,
+        self._train_generator = COCOGenerator(self.train_image_dir, self.train_annotation_path, batch_size=self.batch_size, shuffle=True, label_encoder=self.input_encoder, dct=True,
                                               transforms=self.train_tranformations)
-        self._validation_generator = COCOGenerator(self.validation_image_dir, self.validation_annotation_path, batch_size=self.batch_size, shuffle=True, label_encoder=self.input_encoder,
+        self._validation_generator = COCOGenerator(self.validation_image_dir, self.validation_annotation_path, batch_size=self.batch_size, shuffle=True, label_encoder=self.input_encoder, dct=True,
                                                    transforms=self.validation_transformations)
         self.validation_steps = len(self._validation_generator)
 

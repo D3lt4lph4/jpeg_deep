@@ -24,6 +24,7 @@ def SSD300(n_classes: int = 20,
            top_k: int = 200,
            nms_max_output_size: int = 400,
            dct: bool = False,
+           scales=None,
            image_shape: Tuple[int, int] = (300, 300)):
     '''
     Builds a ssd network, the network built can either be an RGB or DCT network. For more details on the architecture, see [the article](https://arxiv.org/abs/1512.02325v5).
@@ -47,7 +48,9 @@ def SSD300(n_classes: int = 20,
     n_classes += 1  # Account for the background class.
 
     #  Scales values for the anchor boxes
-    scales = [0.1, 0.2, 0.37, 0.54, 0.71, 0.88, 1.05]
+    if scales is None:
+        scales = [0.1, 0.2, 0.37, 0.54, 0.71, 0.88, 1.05]
+
     aspect_ratios = [[1.0, 2.0, 0.5],
                      [1.0, 2.0, 0.5, 3.0, 1.0/3.0],
                      [1.0, 2.0, 0.5, 3.0, 1.0/3.0],
