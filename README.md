@@ -131,9 +131,13 @@ The table below shows the results obtained compared with the state of the art. F
 | VGG A (official) | 29.6 | 10.4 |
 | VGG D (official) | 27.0 | 8.8 |
 | VGG A (retrained) | 29.9 | 10.7 |
-| VGG D (retrained) | 30.1 | 10.4 |
-| VGG A DCT | 39.6 | 17.2 |
-| VGG D DCT | 36.74 | 15.2 |
+| VGG D (retrained) | 28.1 | 9.2 |
+| VGG A DCT | 37.4 | 15.6 |
+| VGG D DCT | 34.5 | 13.6 |
+| ResNet (official) | 20.74 | 5.25 |
+| ResNet (retrained) | 25.27 | 7.67 |
+| ResNet lcrfa | - | - |
+| ResNet lcrfat | 25.38 | 7.67 |
 
 ### Details in the dataset path
 
