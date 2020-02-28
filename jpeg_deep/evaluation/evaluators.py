@@ -105,6 +105,7 @@ class PascalEvaluator(TemplateEvaluator):
         self.set_type = set_type
         self.runs = False
         self.number_of_runs = None
+        self.matching_iou_threshold = 0.5
 
     def __call__(self, model, test_generator=None):
         if self._generator is None and test_generator is None:
@@ -173,7 +174,7 @@ class PascalEvaluator(TemplateEvaluator):
         # Match the prediction to the ground labels
         true_positives, false_positives, cumulative_true_positives, cumulative_false_positives = self.match_predictions(results,
                                                                                                                         ignore_neutral_boxes=True,
-                                                                                                                        matching_iou_threshold=0.45,
+                                                                                                                        matching_iou_threshold=self.matching_iou_threshold,
                                                                                                                         border_pixels='include',
                                                                                                                         sorting_algorithm='quicksort')
 
