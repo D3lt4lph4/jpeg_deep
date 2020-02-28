@@ -10,8 +10,8 @@ from keras.regularizers import l2
 
 from jpeg_deep.layers.ssd_layers import AnchorBoxes, L2Normalization, DecodeDetections
 
-from .ssd_backbones import feature_map_resnet_rgb
-from .ssd_backbones import feature_map_lcrfa, feature_map_lcrfat
+from .backbones.resnet import feature_map_resnet_rgb
+from .backbones.resnet import feature_map_lcrfa, feature_map_lcrfat
 
 
 def SSD300_resnet(n_classes: int = 20,

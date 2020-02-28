@@ -9,7 +9,7 @@ from keras.applications.vgg16 import preprocess_input
 
 from jpeg_deep.networks import SSD300
 from jpeg_deep.generators import VOCGenerator
-from jpeg_deep.evaluation import Evaluator
+from jpeg_deep.evaluation import PascalEvaluator
 
 from jpeg_deep.generators import SSDInputEncoder
 from jpeg_deep.tranformations import SSDDataAugmentation, ConvertTo3Channels, Resize
@@ -47,6 +47,7 @@ class TrainingConfiguration(object):
         self._optimizer = SGD(**self.optimizer_parameters)
         self._loss = SSDLoss(neg_pos_ratio=3, alpha=1.0).compute_loss
         self._metrics = None
+
         dataset_path = environ["DATASET_PATH"]
         images_2007_path = join(dataset_path, "VOC2007/JPEGImages")
         images_2012_path = join(dataset_path, "VOC2012/JPEGImages")
