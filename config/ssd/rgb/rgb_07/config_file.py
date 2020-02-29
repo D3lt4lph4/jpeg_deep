@@ -137,7 +137,7 @@ class TrainingConfiguration(object):
         self._train_generator.prepare_dataset()
         self._validation_generator = VOCGenerator(batch_size=self.batch_size, shuffle=True, label_encoder=self.input_encoder,
                                                   transforms=self.validation_transformations, images_path=self.validation_sets)
-        self._validation_generator.prepare_dataset()
+        self._validation_generator.prepare_dataset(exclude_difficult=True)
         self.validation_steps = len(self._validation_generator)
 
     @property

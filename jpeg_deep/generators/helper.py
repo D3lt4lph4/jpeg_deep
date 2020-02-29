@@ -36,7 +36,7 @@ class ConvertTo3Channels:
             return image, labels
 
 
-def parse_xml_voc(data_path: str, classes: List[str] = None):
+def parse_xml_voc(data_path: str, classes: List[str] = None, exclude_difficult=False):
     '''
     This is an XML parser for datasets in the Pascal VOC format.
 
@@ -83,6 +83,9 @@ def parse_xml_voc(data_path: str, classes: List[str] = None):
         difficult = int(
             obj.find('difficult', recursive=False).text)
 
+        if difficult == 1 and exclude_difficult:
+            continue
+
         # Get the bounding box coordinates.
         bndbox = obj.find('bndbox', recursive=False)
         xmin = int(bndbox.xmin.text)
@@ -91,7 +94,7 @@ def parse_xml_voc(data_path: str, classes: List[str] = None):
         ymax = int(bndbox.ymax.text)
 
         boxes.append([class_id, xmin, ymin, xmax, ymax])
-        if difficult:
+        if difficult == 1:
             flagged_boxes.append(True)
         else:
             flagged_boxes.append(False)
