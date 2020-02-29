@@ -221,7 +221,7 @@ class VOCGenerator(TemplateGenerator):
 
             return [np.array(X_y), np.array(X_cbcr)], batch_y_encoded
 
-    def prepare_dataset(self):
+    def prepare_dataset(self, exclude_difficult=False):
         """ We load all the labels when preparing the data. If there is the load in memory option activated, we pre-load the images as well. """
 
         if not self._train_mode:
@@ -233,7 +233,7 @@ class VOCGenerator(TemplateGenerator):
         for filename in it:
 
             boxes, flagged_boxes = parse_xml_voc(filename.replace(
-                "JPEGImages", "Annotations").replace("jpg", "xml"))
+                "JPEGImages", "Annotations").replace("jpg", "xml"), exclude_difficult=exclude_difficult)
             self.labels.append(boxes)
             self.flagged_boxes.append(flagged_boxes)
 
