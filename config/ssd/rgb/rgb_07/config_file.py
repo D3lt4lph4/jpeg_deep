@@ -29,7 +29,7 @@ class TrainingConfiguration(object):
         self._workspace = "ssd"
 
         # Network variables
-        self._weights = None
+        self._weights = "/dlocal/home/2017018/bdegue01/weights/jpeg_deep/reproduce/vgg/full_reg/vggd/epoch-86_loss-1.4413_val_loss-1.9857_ssd.h5"
         self._network = SSD300()
 
         # Training variables
