@@ -132,7 +132,7 @@ class TrainingConfiguration(object):
 
     def prepare_training_generators(self):
         self._train_generator = VOCGenerator(batch_size=self.batch_size, shuffle=True, label_encoder=self.input_encoder,
-                                             transforms=self.train_tranformations, load_images_into_memory=None, images_path=self.train_sets)
+                                             transforms=self.train_tranformations, images_path=self.train_sets)
         self._train_generator.prepare_dataset()
         self._validation_generator = VOCGenerator(batch_size=self.batch_size, shuffle=True, label_encoder=self.input_encoder,
                                                   transforms=self.validation_transformations, images_path=self.validation_sets)
