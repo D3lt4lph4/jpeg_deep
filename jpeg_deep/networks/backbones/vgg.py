@@ -57,7 +57,7 @@ def feature_map_rgb(image_shape: Tuple[int, int], kernel_initializer: str = 'he_
     return input_layer, block4_pool, block4_conv3
 
 
-def feature_map_dct(image_shape: Tuple[int, int],  kernel_initializer: str = 'he_normal', l2_reg=0.00025):
+def feature_map_dct(image_shape: Tuple[int, int],  kernel_initializer: str = 'he_normal', l2_reg=0.0005):
     """ Helper function that generates the first layers of the SSD. This function generates the layers for the DCT network.
 
     # Arguments:
