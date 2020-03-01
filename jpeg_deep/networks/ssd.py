@@ -8,7 +8,7 @@ from keras.regularizers import l2
 
 from jpeg_deep.layers.ssd_layers import AnchorBoxes, L2Normalization, DecodeDetections
 
-from .backbones.vgg import feature_map_rgb, feature_map_dct
+from .backbones.vgg import feature_map_rgb, feature_map_dct, feature_map_dct_deconv
 
 
 def SSD300(n_classes: int = 20,
@@ -76,14 +76,17 @@ def SSD300(n_classes: int = 20,
     variances = [0.1, 0.1, 0.2, 0.2]
 
     # Prepare the feature extractor.
-    if backbone not in ["VGG16", "VGGDCT"]:
+    if backbone not in ["VGG16", "VGGDCT", "VGGDCT_deconv"]:
         raise RuntimeError("Backbone {} not supported yet. Should be in {}".format(
-            backbone, "VGG16, VGGDCT"))
+            backbone, "VGG16, VGGDCT, VGGDCT_deconv"))
     elif backbone == "VGG16":
         input_layer, block4_pool, block4_conv3 = feature_map_rgb(
             image_shape, kernel_initializer=kernel_initializer)
-    else:
+    elif backbone == "VGGDCT":
         input_layer, block4_pool, block4_conv3 = feature_map_dct(
+            (38, 38), kernel_initializer=kernel_initializer)
+    else:
+        input_layer, block4_pool, block4_conv3 = feature_map_dct_deconv(
             (38, 38), kernel_initializer=kernel_initializer)
 
     # Create the network.

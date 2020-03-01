@@ -110,3 +110,53 @@ def feature_map_dct(image_shape: Tuple[int, int],  kernel_initializer: str = 'he
     concat = Concatenate(axis=-1, name="concat_dct")([block4_pool, norm_cbcr])
 
     return [input_y, input_cbcr], concat, block4_conv3
+
+
+def feature_map_dct_deconv(image_shape: Tuple[int, int],  kernel_initializer: str = 'he_normal', l2_reg=0.0005):
+    """ Helper function that generates the first layers of the SSD. This function generates the layers for the DCT network.
+
+    # Arguments:
+        - image_shape: A tuple containing the shape of the image.
+        - l2_regularization: The float value for the l2 normalization.
+        - kernel_initializer: The type of initializer for the convolution kernels.
+
+    # Returns:
+        Three layers: input_layer, block4_pool, block4_conv3. These layers are used to intantiate the network.
+    """
+    input_shape_y = (*input_shape, 64)
+    input_shape_cb = (input_shape[0] // 2, input_shape[1] // 2, 64)
+    input_shape_cr = (input_shape[0] // 2, input_shape[1] // 2, 64)
+
+    input_y = Input(input_shape_y)
+    input_cb = Input(shape=input_shape_cb)
+    input_cr = Input(shape=input_shape_cr)
+
+    cb = Conv2DTranspose(64, kernel_size=(2, 2), strides=2,
+                         kernel_regularizer=l2(l2_reg))(input_cb)
+    cr = Conv2DTranspose(64, kernel_size=(2, 2), strides=2,
+                         kernel_regularizer=l2(l2_reg))(input_cr)
+
+    x = Concatenate(axis=-1)([input_y, cb, cr])
+
+    x = BatchNormalization(
+        name="b_norm", input_shape=input_shape_y)(x)
+
+    # Block 4
+    x = Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               kernel_regularizer=l2(l2_reg),
+               name='block4_conv1_dct')(x)
+    x = Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               kernel_regularizer=l2(l2_reg),
+               name='block4_conv2')(x)
+    block4_conv3 = Conv2D(512, (3, 3),
+                          activation='relu',
+                          padding='same',
+                          kernel_regularizer=l2(l2_reg),
+                          name='block4_conv3')(x)
+    block4_pool = MaxPooling2D((2, 2), strides=(2, 2), name='block4_pool')(x)
+
+    return [input_y, input_cb, input_cr], block4_pool, block4_conv3
