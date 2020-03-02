@@ -127,6 +127,8 @@ class VOCGenerator(TemplateGenerator):
             - index: The index of the batch
         """
         index = index % self.batch_per_epoch
+        if index == 0:
+            self.on_epoch_end()
         indexes = self.indexes[index * self.batch_size:(index + 1) *
                                self._batch_size]
 
