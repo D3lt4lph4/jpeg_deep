@@ -69,8 +69,7 @@ else:
 
 if (args.horovod and hvd.rank() == 0) or (not args.horovod):
     verbose = 1
-    output_dir = join(environ["EXPERIMENTS_OUTPUT_DIRECTORY"], "{}_{}_{}".format(
-        config.workspace, config.project_name, key))
+    output_dir = join(environ["EXPERIMENTS_OUTPUT_DIRECTORY"], output_dir)
 
     checkpoints_output_dir = join(output_dir, "checkpoints")
     config_output_dir = join(output_dir, "config")
