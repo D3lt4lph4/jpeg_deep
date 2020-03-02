@@ -56,7 +56,7 @@ def conv_block(input_tensor,
                filters,
                stage,
                block,
-               strides=(2, 2)
+               strides=(2, 2),
                kernel_reg=0.00005):
     """A block that has a conv layer at shortcut.
     # Arguments
