@@ -13,7 +13,7 @@ from jpeg_deep.layers.ssd_layers import AnchorBoxes, L2Normalization, DecodeDete
 from ..resnet_blocks import conv_block, identity_block
 
 
-def feature_map_resnet_rgb(image_shape: Tuple[int, int], kernel_initializer: str = 'he_normal', l2_reg=0.00025):
+def feature_map_resnet_rgb(image_shape: Tuple[int, int], kernel_initializer: str = 'he_normal', l2_reg=0.0005):
     """ Helper function that generates the first layers of the SSD. This function generates the layers for the RGB network.
 
     # Arguments:
@@ -42,23 +42,43 @@ def feature_map_resnet_rgb(image_shape: Tuple[int, int], kernel_initializer: str
     x = MaxPooling2D((3, 3), strides=(2, 2))(x)
 
     # 2
-    x = conv_block(x, 3, [64, 64, 256], stage=2, block='a', strides=(1, 1))
-    x = identity_block(x, 3, [64, 64, 256], stage=2, block='b')
-    x = identity_block(x, 3, [64, 64, 256], stage=2, block='c')
+    x = conv_block(x, 3, [64, 64, 256], stage=2, block='a',
+                   strides=(1, 1), kernel_reg=l2_reg)
+    x = identity_block(x, 3, [64, 64, 256], stage=2,
+                       block='b', kernel_reg=l2_reg)
+    x = identity_block(x, 3, [64, 64, 256], stage=2,
+                       block='c', kernel_reg=l2_reg)
 
     # 3
-    x = conv_block(x, 3, [128, 128, 512], stage=3, block='a')
-    x = identity_block(x, 3, [128, 128, 512], stage=3, block='b')
-    x = identity_block(x, 3, [128, 128, 512], stage=3, block='c')
-    block4_conv3 = identity_block(x, 3, [128, 128, 512], stage=3, block='d')
+    x = conv_block(x, 3, [128, 128, 512], stage=3,
+                   block='a', kernel_reg=l2_reg)
+    x = identity_block(x, 3, [128, 128, 512], stage=3,
+                       block='b', kernel_reg=l2_reg)
+    x = identity_block(x, 3, [128, 128, 512], stage=3,
+                       block='c', kernel_reg=l2_reg)
+    block4_conv3 = identity_block(
+        x, 3, [128, 128, 512], stage=3, block='d', kernel_reg=l2_reg)
 
     # 4
-    x = conv_block(block4_conv3, 3, [256, 256, 1024], stage=4, block='a')
-    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='b')
-    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='c')
-    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='d')
-    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='e')
-    last = identity_block(x, 3, [256, 256, 1024], stage=4, block='f')
+    x = conv_block(block4_conv3, 3, [256, 256, 1024],
+                   stage=4, block='a', kernel_reg=l2_reg)
+    x = identity_block(x, 3, [256, 256, 1024], stage=4,
+                       block='b', kernel_reg=l2_reg)
+    x = identity_block(x, 3, [256, 256, 1024], stage=4,
+                       block='c', kernel_reg=l2_reg)
+    x = identity_block(x, 3, [256, 256, 1024], stage=4,
+                       block='d', kernel_reg=l2_reg)
+    x = identity_block(x, 3, [256, 256, 1024], stage=4,
+                       block='e', kernel_reg=l2_reg)
+    x = identity_block(x, 3, [256, 256, 1024], stage=4,
+                       block='f', kernel_reg=l2_reg)
+
+    x = conv_block(x, 3, [512, 512, 2048], stage=5,
+                   block='a', kernel_reg=l2_reg)
+    x = identity_block(x, 3, [512, 512, 2048], stage=5,
+                       block='b', kernel_reg=l2_reg)
+    last = identity_block(x, 3, [512, 512, 2048],
+                          stage=5, block='c', kernel_reg=l2_reg)
 
     return input_layer, last, block4_conv3
 

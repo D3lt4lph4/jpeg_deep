@@ -1,21 +1,16 @@
 from os import environ
 from os.path import join
 
-from keras.optimizers import Adadelta, SGD
-from keras.losses import categorical_crossentropy
-from keras.callbacks import ModelCheckpoint, TerminateOnNaN, CSVLogger, EarlyStopping, ReduceLROnPlateau, TensorBoard
-from keras.preprocessing.image import ImageDataGenerator
-from keras.applications.vgg16 import preprocess_input
+from keras.optimizers import SGD
+from keras.callbacks import ModelCheckpoint, TerminateOnNaN, EarlyStopping, ReduceLROnPlateau, TensorBoard
 
 from jpeg_deep.networks import SSD300_resnet
 from jpeg_deep.generators import VOCGenerator
-from jpeg_deep.evaluation import Evaluator
+from jpeg_deep.evaluation import PascalEvaluator
 
 from jpeg_deep.generators import SSDInputEncoder
 from jpeg_deep.tranformations import SSDDataAugmentation, ConvertTo3Channels, Resize
 from jpeg_deep.losses import SSDLoss
-
-#from template.config import TemplateConfiguration
 
 
 class TrainingConfiguration(object):
@@ -33,18 +28,20 @@ class TrainingConfiguration(object):
         self._workspace = "ssd"
 
         # Network variables
-        self._weights = "/dlocal/home/2017018/bdegue01/weights/jpeg_deep/reproduce/vgg/full_reg/vggd/epoch-86_loss-1.4413_val_loss-1.9857_ssd.h5"
+        self._weights = ""
         self._network = SSD300_resnet()
 
         # Training variables
         self._epochs = 240
         self._batch_size = 32
         self._steps_per_epoch = 1000
+
         self.optimizer_parameters = {
             "lr": 0.001, "momentum": 0.9}
         self._optimizer = SGD(**self.optimizer_parameters)
         self._loss = SSDLoss(neg_pos_ratio=3, alpha=1.0).compute_loss
         self._metrics = None
+
         dataset_path = environ["DATASET_PATH"]
         images_2007_path = join(dataset_path, "VOC2007/JPEGImages")
         images_2012_path = join(dataset_path, "VOC2012/JPEGImages")
@@ -63,7 +60,7 @@ class TrainingConfiguration(object):
                                             min_delta=0,
                                             patience=15)
 
-        self._callbacks = [self.reduce_lr_on_plateau,
+        self._callbacks = [self.reduce_lr_on_plateau, self.early_stopping,
                            self.terminate_on_nan]
 
         self.input_encoder = SSDInputEncoder()
@@ -121,22 +118,24 @@ class TrainingConfiguration(object):
         ]
 
     def prepare_for_inference(self):
-        pass
+        K.clear_session()
+        self._network = SSD300_resnet(mode="inference")
 
     def prepare_evaluator(self):
-        self._evaluator = Evaluator()
+        self._evaluator = PascalEvaluator(challenge="VOC2012")
 
     def prepare_testing_generator(self):
-        self._test_generator = VOCGenerator(batch_size=self.batch_size, shuffle=False, label_encoder=self.input_encoder,
-                                            transforms=self.test_transformations, load_images_into_memory=None, images_path=self.test_sets)
+        self._test_generator = VOCGenerator(batch_size=self.batch_size, shuffle=False, label_encoder=self.input_encoder, train_mode=False,
+                                            transforms=self.test_transformations, images_path=self.test_sets)
+        self._test_generator.prepare_dataset()
 
     def prepare_training_generators(self):
         self._train_generator = VOCGenerator(batch_size=self.batch_size, shuffle=True, label_encoder=self.input_encoder,
-                                             transforms=self.train_tranformations, load_images_into_memory=None, images_path=self.train_sets)
+                                             transforms=self.train_tranformations, images_path=self.train_sets)
         self._train_generator.prepare_dataset()
         self._validation_generator = VOCGenerator(batch_size=self.batch_size, shuffle=True, label_encoder=self.input_encoder,
-                                                  transforms=self.validation_transformations, load_images_into_memory=None, images_path=self.validation_sets)
-        self._validation_generator.prepare_dataset()
+                                                  transforms=self.validation_transformations, images_path=self.validation_sets)
+        self._validation_generator.prepare_dataset(exclude_difficult=True)
         self.validation_steps = len(self._validation_generator)
 
     @property

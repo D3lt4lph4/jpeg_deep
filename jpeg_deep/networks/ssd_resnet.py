@@ -20,7 +20,7 @@ def SSD300_resnet(n_classes: int = 20,
                   backbone: str = "resnet",
                   confidence_thresh: float = 0.01,
                   iou_threshold: float = 0.45,
-                  l2_regularizer: float = 0.00025,
+                  l2_regularizer: float = 0.0005,
                   top_k: int = 200,
                   nms_max_output_size: int = 400,
                   dct: bool = False,
@@ -77,21 +77,13 @@ def SSD300_resnet(n_classes: int = 20,
     # The variances by which the encoded target coordinates are divided as in the original implementation
     variances = [0.1, 0.1, 0.2, 0.2]
 
-    # If we train we set to the pre-set size else either None or the specified size.
-    if mode == "training":
-        img_h, img_w = 300, 300
-    elif image_shape is None:
-        img_h, img_w = None, None
-    else:
-        img_h, img_w = 300, 300
-
     # Prepare the feature extractor.
     if backbone not in ["resnet", "lcrfa", "lcrfat"]:
         raise RuntimeError("Backbone {} not supported yet. Should be in {}".format(
             backbone, "VGG16, VGGDCT"))
     elif backbone == "resnet":
         input_layer, fc7, block4_conv3 = feature_map_resnet_rgb(
-            image_shape, kernel_initializer=kernel_initializer)
+            image_shape, kernel_initializer=kernel_initializer, l2_reg=l2_regularizer)
     elif backbone == "lcrfa":
         input_layer, fc7, block4_conv3 = feature_map_lcrfa(
             (38, 38), kernel_initializer=kernel_initializer)
@@ -175,27 +167,27 @@ def SSD300_resnet(n_classes: int = 20,
         # conv9_2_mbox_priorbox = AnchorBoxesTensorflow(
         #     this_scale=scales[5], next_scale=scales[6], step=steps[5], aspect_ratios=aspect_ratios[5], name='conv9_2_mbox_priorbox')(conv9_2_mbox_loc)
     else:
-        block4_conv3_norm_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[0], next_scale=scales[1], aspect_ratios=aspect_ratios[0],
+        block4_conv3_norm_mbox_priorbox = AnchorBoxes(300, 300, this_scale=scales[0], next_scale=scales[1], aspect_ratios=aspect_ratios[0],
                                                       two_boxes_for_ar1=two_boxes_for_ar1, this_steps=steps[
             0], this_offsets=offsets[0], clip_boxes=clip_boxes,
             variances=variances, coords=coords, normalize_coords=normalize_coords, name='conv4_3_norm_mbox_priorbox')(block4_conv3_norm_mbox_loc)
-        fc7_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[1], next_scale=scales[2], aspect_ratios=aspect_ratios[1],
+        fc7_mbox_priorbox = AnchorBoxes(300, 300, this_scale=scales[1], next_scale=scales[2], aspect_ratios=aspect_ratios[1],
                                         two_boxes_for_ar1=two_boxes_for_ar1, this_steps=steps[
                                             1], this_offsets=offsets[1], clip_boxes=clip_boxes,
                                         variances=variances, coords=coords, normalize_coords=normalize_coords, name='fc7_mbox_priorbox')(fc7_mbox_loc)
-        conv6_2_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[2], next_scale=scales[3], aspect_ratios=aspect_ratios[2],
+        conv6_2_mbox_priorbox = AnchorBoxes(300, 300, this_scale=scales[2], next_scale=scales[3], aspect_ratios=aspect_ratios[2],
                                             two_boxes_for_ar1=two_boxes_for_ar1, this_steps=steps[
                                                 2], this_offsets=offsets[2], clip_boxes=clip_boxes,
                                             variances=variances, coords=coords, normalize_coords=normalize_coords, name='conv6_2_mbox_priorbox')(conv6_2_mbox_loc)
-        conv7_2_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[3], next_scale=scales[4], aspect_ratios=aspect_ratios[3],
+        conv7_2_mbox_priorbox = AnchorBoxes(300, 300, this_scale=scales[3], next_scale=scales[4], aspect_ratios=aspect_ratios[3],
                                             two_boxes_for_ar1=two_boxes_for_ar1, this_steps=steps[
                                                 3], this_offsets=offsets[3], clip_boxes=clip_boxes,
                                             variances=variances, coords=coords, normalize_coords=normalize_coords, name='conv7_2_mbox_priorbox')(conv7_2_mbox_loc)
-        conv8_2_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[4], next_scale=scales[5], aspect_ratios=aspect_ratios[4],
+        conv8_2_mbox_priorbox = AnchorBoxes(300, 300, this_scale=scales[4], next_scale=scales[5], aspect_ratios=aspect_ratios[4],
                                             two_boxes_for_ar1=two_boxes_for_ar1, this_steps=steps[
                                                 4], this_offsets=offsets[4], clip_boxes=clip_boxes,
                                             variances=variances, coords=coords, normalize_coords=normalize_coords, name='conv8_2_mbox_priorbox')(conv8_2_mbox_loc)
-        conv9_2_mbox_priorbox = AnchorBoxes(img_h, img_w, this_scale=scales[5], next_scale=scales[6], aspect_ratios=aspect_ratios[5],
+        conv9_2_mbox_priorbox = AnchorBoxes(300, 300, this_scale=scales[5], next_scale=scales[6], aspect_ratios=aspect_ratios[5],
                                             two_boxes_for_ar1=two_boxes_for_ar1, this_steps=steps[
                                                 5], this_offsets=offsets[5], clip_boxes=clip_boxes,
                                             variances=variances, coords=coords, normalize_coords=normalize_coords, name='conv9_2_mbox_priorbox')(conv9_2_mbox_loc)

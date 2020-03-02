@@ -5,7 +5,7 @@ from keras.regularizers import l2
 from keras.layers import Conv2D, BatchNormalization, Activation, add
 
 
-def identity_block(input_tensor, kernel_size, filters, stage, block):
+def identity_block(input_tensor, kernel_size, filters, stage, block, kernel_reg=0.00005):
     """The identity block is the block that has no conv layer at shortcut.
     # Arguments
         input_tensor: input tensor
@@ -24,7 +24,7 @@ def identity_block(input_tensor, kernel_size, filters, stage, block):
 
     x = Conv2D(filters1, (1, 1),
                kernel_initializer='he_normal',
-               kernel_regularizer=l2(0.00005),
+               kernel_regularizer=l2(kernel_reg),
                name=conv_name_base + '2a')(input_tensor)
     x = BatchNormalization(
         axis=bn_axis, momentum=0.9, epsilon=1e-5, name=bn_name_base + '2a')(x)
@@ -33,7 +33,7 @@ def identity_block(input_tensor, kernel_size, filters, stage, block):
     x = Conv2D(filters2, kernel_size,
                padding='same',
                kernel_initializer='he_normal',
-               kernel_regularizer=l2(0.00005),
+               kernel_regularizer=l2(kernel_reg),
                name=conv_name_base + '2b')(x)
     x = BatchNormalization(
         axis=bn_axis, momentum=0.9, epsilon=1e-5, name=bn_name_base + '2b')(x)
@@ -41,7 +41,7 @@ def identity_block(input_tensor, kernel_size, filters, stage, block):
 
     x = Conv2D(filters3, (1, 1),
                kernel_initializer='he_normal',
-               kernel_regularizer=l2(0.00005),
+               kernel_regularizer=l2(kernel_reg),
                name=conv_name_base + '2c')(x)
     x = BatchNormalization(
         axis=bn_axis, momentum=0.9, epsilon=1e-5, name=bn_name_base + '2c')(x)
@@ -56,7 +56,8 @@ def conv_block(input_tensor,
                filters,
                stage,
                block,
-               strides=(2, 2)):
+               strides=(2, 2)
+               kernel_reg=0.00005):
     """A block that has a conv layer at shortcut.
     # Arguments
         input_tensor: input tensor
@@ -79,7 +80,7 @@ def conv_block(input_tensor,
 
     x = Conv2D(filters1, (1, 1), strides=strides,
                kernel_initializer='he_normal',
-               kernel_regularizer=l2(0.00005),
+               kernel_regularizer=l2(kernel_reg),
                name=conv_name_base + '2a')(input_tensor)
     x = BatchNormalization(
         axis=bn_axis, momentum=0.9, epsilon=1e-5, name=bn_name_base + '2a')(x)
@@ -87,7 +88,7 @@ def conv_block(input_tensor,
 
     x = Conv2D(filters2, kernel_size, padding='same',
                kernel_initializer='he_normal',
-               kernel_regularizer=l2(0.00005),
+               kernel_regularizer=l2(kernel_reg),
                name=conv_name_base + '2b')(x)
     x = BatchNormalization(
         axis=bn_axis, momentum=0.9, epsilon=1e-5, name=bn_name_base + '2b')(x)
@@ -95,14 +96,14 @@ def conv_block(input_tensor,
 
     x = Conv2D(filters3, (1, 1),
                kernel_initializer='he_normal',
-               kernel_regularizer=l2(0.00005),
+               kernel_regularizer=l2(kernel_reg),
                name=conv_name_base + '2c')(x)
     x = BatchNormalization(
         axis=bn_axis, momentum=0.9, epsilon=1e-5, name=bn_name_base + '2c')(x)
 
     shortcut = Conv2D(filters3, (1, 1), strides=strides,
                       kernel_initializer='he_normal',
-                      kernel_regularizer=l2(0.00005),
+                      kernel_regularizer=l2(kernel_reg),
                       name=conv_name_base + '1')(input_tensor)
     shortcut = BatchNormalization(
         axis=bn_axis, momentum=0.9, epsilon=1e-5, name=bn_name_base + '1')(shortcut)
