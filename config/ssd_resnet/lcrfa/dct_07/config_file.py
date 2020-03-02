@@ -3,7 +3,6 @@ from os.path import join
 
 from keras import backend as K
 from keras.optimizers import SGD
-from keras.losses import categorical_crossentropy
 from keras.callbacks import ModelCheckpoint, TerminateOnNaN, EarlyStopping, ReduceLROnPlateau, TensorBoard
 
 from jpeg_deep.networks import SSD300_resnet
