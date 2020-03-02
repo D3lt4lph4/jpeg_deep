@@ -1,6 +1,7 @@
 from os import environ
 from os.path import join
 
+from keras import backend as K
 from keras.optimizers import SGD
 from keras.callbacks import ModelCheckpoint, TerminateOnNaN, EarlyStopping, ReduceLROnPlateau, TensorBoard
 
