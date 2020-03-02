@@ -35,7 +35,7 @@ class TrainingConfiguration(object):
         # Network variables
         self._weights = None
         self._network = SSD300_resnet(
-            n_classes=80, scales=[0.07, 0.15, 0.33, 0.51, 0.69, 0.87, 1.05], mode="lcrfat")
+            n_classes=80, scales=[0.07, 0.15, 0.33, 0.51, 0.69, 0.87, 1.05], backbone="lcrfat")
 
         # Training variables
         self._epochs = 240
