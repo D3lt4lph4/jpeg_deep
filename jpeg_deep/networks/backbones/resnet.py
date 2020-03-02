@@ -74,7 +74,7 @@ def feature_map_resnet_rgb(image_shape: Tuple[int, int], kernel_initializer: str
                        block='f', kernel_reg=l2_reg)
 
     x = conv_block(x, 3, [512, 512, 2048], stage=5,
-                   block='a', kernel_reg=l2_reg)
+                   block='a', kernel_reg=l2_reg, stride=(1, 1))
     x = identity_block(x, 3, [512, 512, 2048], stage=5,
                        block='b', kernel_reg=l2_reg)
     last = identity_block(x, 3, [512, 512, 2048],
@@ -126,7 +126,11 @@ def feature_map_lcrfa(image_shape: Tuple[int, int],  kernel_initializer: str = '
     x = identity_block(x, 3, [256, 256, 1024], stage=4, block='c')
     x = identity_block(x, 3, [256, 256, 1024], stage=4, block='d')
     x = identity_block(x, 3, [256, 256, 1024], stage=4, block='e')
-    last = identity_block(x, 3, [256, 256, 1024], stage=4, block='f')
+    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='f')
+
+    x = conv_block(x, 3, [512, 512, 2048], stage=5, block='a', stride=(1, 1))
+    x = identity_block(x, 3, [512, 512, 2048], stage=5, block='b')
+    last = identity_block(x, 3, [512, 512, 2048], stage=5, block='c')
 
     return [input_y, input_cbcr], last, block4_conv3
 

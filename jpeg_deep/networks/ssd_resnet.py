@@ -86,10 +86,10 @@ def SSD300_resnet(n_classes: int = 20,
             image_shape, kernel_initializer=kernel_initializer, l2_reg=l2_regularizer)
     elif backbone == "lcrfa":
         input_layer, fc7, block4_conv3 = feature_map_lcrfa(
-            (38, 38), kernel_initializer=kernel_initializer)
+            (38, 38), kernel_initializer=kernel_initializer, l2_reg=l2_regularizer)
     else:
         input_layer, fc7, block4_conv3 = feature_map_lcrfat(
-            (38, 38), kernel_initializer=kernel_initializer)
+            (38, 38), kernel_initializer=kernel_initializer, l2_reg=l2_regularizer)
 
     conv6_1 = Conv2D(256, (1, 1), activation='relu', padding='same',
                      kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularizer), bias_regularizer=l2(l2_regularizer), name='conv6_1')(fc7)
