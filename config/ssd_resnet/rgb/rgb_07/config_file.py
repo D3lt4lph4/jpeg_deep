@@ -29,7 +29,7 @@ class TrainingConfiguration(object):
         self._workspace = "ssd"
 
         # Network variables
-        self._weights = None
+        self._weights = "/dlocal/home/2017018/bdegue01/weights/jpeg_deep/reproduce/resnet/own_generator/classification_rgb_jpeg-deep_zWPduOfMjEggvVSgkFqfOZMeVM0wcJJ6/checkpoints/epoch-87_loss-0.7307_val_loss-1.6102.h5"
         self._network = SSD300_resnet()
 
         # Training variables
