@@ -74,7 +74,7 @@ def feature_map_resnet_rgb(image_shape: Tuple[int, int], kernel_initializer: str
                        block='f', kernel_reg=l2_reg)
 
     x = conv_block(x, 3, [512, 512, 2048], stage=5,
-                   block='a', kernel_reg=l2_reg, stride=(1, 1))
+                   block='a', kernel_reg=l2_reg, strides=(1, 1))
     x = identity_block(x, 3, [512, 512, 2048], stage=5,
                        block='b', kernel_reg=l2_reg)
     last = identity_block(x, 3, [512, 512, 2048],
