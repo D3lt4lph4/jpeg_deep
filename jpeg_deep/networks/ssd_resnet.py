@@ -83,7 +83,7 @@ def SSD300_resnet(n_classes: int = 20,
     elif image_shape is None:
         img_h, img_w = None, None
     else:
-        img_h, img_w = image_shape
+        img_h, img_w = 300, 300
 
     # Prepare the feature extractor.
     if backbone not in ["resnet", "lcrfa", "lcrfat"]:
