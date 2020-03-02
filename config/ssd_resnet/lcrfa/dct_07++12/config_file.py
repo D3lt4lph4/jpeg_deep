@@ -34,7 +34,7 @@ class TrainingConfiguration(object):
 
         # Network variables
         self._weights = "/dlocal/home/2017018/bdegue01/weights/jpeg_deep/classification_dct/vggd/epoch-123_loss-1.8214_val_loss-2.2425_ssd.h5"
-        self._network_resnet = SSD300(
+        self._network_resnet = SSD300_resnet(
             backbone="lcrfa", dct=True, image_shape=(38, 38))
 
         # Training variables
