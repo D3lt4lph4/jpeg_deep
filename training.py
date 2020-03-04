@@ -134,7 +134,7 @@ if args.restart:
                         callbacks=config.callbacks,
                         workers=config.workers,
                         verbose=verbose,
-                        restart_epoch=restart_epoch,
+                        initial_epoch=restart_epoch,
                         validation_steps=config.validation_steps,
                         use_multiprocessing=config.multiprocessing)
 else:
