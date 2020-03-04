@@ -120,7 +120,7 @@ if config.weights is not None and args.horovod and hvd.rank() == 0 or config.wei
         print("Loading weights (by name): {}".format(config.weights))
         K.clear_session()
         model = load_model(model_path, custom_objects={
-                           "L2Normalization": L2Normalization, "DecodeDetections": DecodeDetections, "AnchorBoxes": AnchorBoxes})
+                           "L2Normalization": L2Normalization, "DecodeDetections": DecodeDetections, "AnchorBoxes": AnchorBoxes, "compute_loss": config.loss})
     else:
         print("Loading weights (by name): {}".format(config.weights))
         model.load_weights(config.weights, by_name=True)
