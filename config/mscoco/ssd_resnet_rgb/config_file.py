@@ -25,8 +25,8 @@ class TrainingConfiguration(object):
         self.config_description = "This is the template config file."
 
         # System dependent variable
-        self._workers = 1
-        self._multiprocessing = False
+        self._workers = 5
+        self._multiprocessing = True
 
         # Variables for comet.ml
         self._project_name = "jpeg_deep"
