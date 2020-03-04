@@ -25,8 +25,8 @@ class TrainingConfiguration(object):
         self.config_description = "This is the template config file."
 
         # System dependent variable
-        self._workers = 1
-        self._multiprocessing = False
+        self._workers = 5
+        self._multiprocessing = True
 
         # Variables for comet.ml
         self._project_name = "jpeg_deep"
@@ -39,7 +39,7 @@ class TrainingConfiguration(object):
 
         # Training variables
         self._epochs = 240
-        self._batch_size = 1
+        self._batch_size = 32
         self._steps_per_epoch = 3700
         self._validation_steps = 156
         self.optimizer_parameters = {
