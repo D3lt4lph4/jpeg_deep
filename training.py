@@ -22,6 +22,9 @@ from operator import itemgetter
 import keras.backend as K
 from keras.models import load_model
 
+from jpeg_deep.layers.ssd_layers import AnchorBoxes, DecodeDetections, L2Normalization
+from jpeg_deep.losses.ssd_loss import SSDLoss
+
 import tensorflow as tf
 try:
     import horovod.keras as hvd
@@ -116,7 +119,8 @@ if config.weights is not None and args.horovod and hvd.rank() == 0 or config.wei
         restart_epoch = int(model_file.split("_")[0].split('-')[-1])
         print("Loading weights (by name): {}".format(config.weights))
         K.clear_session()
-        model = load_model(model_path)
+        model = load_model(model_path, custom_objects={
+                           "L2Normalization": L2Normalization, "DecodeDetections": DecodeDetections, "AnchorBoxes": AnchorBoxes})
     else:
         print("Loading weights (by name): {}".format(config.weights))
         model.load_weights(config.weights, by_name=True)
