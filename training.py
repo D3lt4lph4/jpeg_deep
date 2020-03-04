@@ -98,9 +98,9 @@ if (args.horovod and hvd.rank() == 0) or (not args.horovod):
 
     # Saving the config file.
     if args.restart:
-        copyfile(join(args.restart, "config", "config_file.py"),
+        copyfile(join(args.restart, "config", "saved_config.py"),
                  join(config_output_dir, "saved_config.py"))
-        copyfile(join(args.restart, "config", "config_file.py"),
+        copyfile(join(args.restart, "config", "saved_config.py"),
                  join(config_output_dir, "temp_config.py"))
     else:
         copyfile(join(args.configuration, "config_file.py"),
