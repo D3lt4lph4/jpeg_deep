@@ -22,6 +22,9 @@ from operator import itemgetter
 import keras.backend as K
 from keras.models import load_model
 
+from jpeg_deep.layers.ssd_layers import AnchorBoxes, DecodeDetections, L2Normalization
+from jpeg_deep.losses.ssd_loss import SSDLoss
+
 import tensorflow as tf
 try:
     import horovod.keras as hvd
@@ -98,9 +101,9 @@ if (args.horovod and hvd.rank() == 0) or (not args.horovod):
 
     # Saving the config file.
     if args.restart:
-        copyfile(join(args.restart, "config", "config_file.py"),
+        copyfile(join(args.restart, "config", "saved_config.py"),
                  join(config_output_dir, "saved_config.py"))
-        copyfile(join(args.restart, "config", "config_file.py"),
+        copyfile(join(args.restart, "config", "saved_config.py"),
                  join(config_output_dir, "temp_config.py"))
     else:
         copyfile(join(args.configuration, "config_file.py"),
@@ -116,7 +119,8 @@ if config.weights is not None and args.horovod and hvd.rank() == 0 or config.wei
         restart_epoch = int(model_file.split("_")[0].split('-')[-1])
         print("Loading weights (by name): {}".format(config.weights))
         K.clear_session()
-        model = load_model(model_path)
+        model = load_model(model_path, custom_objects={
+                           "L2Normalization": L2Normalization, "DecodeDetections": DecodeDetections, "AnchorBoxes": AnchorBoxes, "compute_loss": config.loss})
     else:
         print("Loading weights (by name): {}".format(config.weights))
         model.load_weights(config.weights, by_name=True)
@@ -130,7 +134,7 @@ if args.restart:
                         callbacks=config.callbacks,
                         workers=config.workers,
                         verbose=verbose,
-                        restart_epoch=restart_epoch,
+                        initial_epoch=restart_epoch,
                         validation_steps=config.validation_steps,
                         use_multiprocessing=config.multiprocessing)
 else:
