@@ -7,6 +7,7 @@ from keras.layers import Activation, Conv2D, MaxPooling2D, Reshape, Concatenate,
 from keras.regularizers import l2
 
 from jpeg_deep.layers.ssd_layers import AnchorBoxes, L2Normalization, DecodeDetections
+from jpeg_deep.layers import ResizeFeatures
 
 from .backbones.vgg import feature_map_rgb, feature_map_dct, feature_map_dct_deconv
 
@@ -22,6 +23,7 @@ def SSD300(n_classes: int = 20,
            nms_max_output_size: int = 400,
            dct: bool = False,
            scales=None,
+           rescale_position: int = 0,
            image_shape: Tuple[int, int] = (300, 300)):
     '''
     Builds a ssd network, the network built can either be an RGB or DCT network. For more details on the architecture, see [the article](https://arxiv.org/abs/1512.02325v5).
@@ -84,7 +86,7 @@ def SSD300(n_classes: int = 20,
             image_shape, kernel_initializer=kernel_initializer)
     elif backbone == "VGGDCT":
         input_layer, block4_pool, block4_conv3 = feature_map_dct(
-            (38, 38), kernel_initializer=kernel_initializer)
+            image_shape, kernel_initializer=kernel_initializer, rescale_position=rescale_position)
     else:
         input_layer, block4_pool, block4_conv3 = feature_map_dct_deconv(
             (38, 38), kernel_initializer=kernel_initializer)

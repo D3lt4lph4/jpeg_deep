@@ -8,8 +8,10 @@ from keras.models import Model
 from keras.layers import Input, Conv2D, MaxPooling2D, Concatenate, BatchNormalization, Conv2DTranspose
 from keras.regularizers import l2
 
+from jpeg_deep.layers import ResizeFeatures
 
-def feature_map_rgb(image_shape: Tuple[int, int], kernel_initializer: str = 'he_normal', l2_reg=0.0005):
+
+def feature_map_rgb(image_shape: Tuple[int, int], kernel_initializer: str = 'he_normal', l2_reg=0.0005, rescale_position:int=0):
     """ Helper function that generates the first layers of the SSD. This function generates the layers for the RGB network.
 
     # Arguments:
@@ -57,7 +59,7 @@ def feature_map_rgb(image_shape: Tuple[int, int], kernel_initializer: str = 'he_
     return input_layer, block4_pool, block4_conv3
 
 
-def feature_map_dct(image_shape: Tuple[int, int],  kernel_initializer: str = 'he_normal', l2_reg=0.0005):
+def feature_map_dct(image_shape: Tuple[int, int],  kernel_initializer: str = 'he_normal', l2_reg=0.0005, rescale_position:int=0):
     """ Helper function that generates the first layers of the SSD. This function generates the layers for the DCT network.
 
     # Arguments:
@@ -82,24 +84,40 @@ def feature_map_dct(image_shape: Tuple[int, int],  kernel_initializer: str = 'he
     norm_cbcr = BatchNormalization(
         name="b_norm_cbcr", input_shape=input_shape_cbcr)(input_cbcr)
 
+    if 0 < rescale_position < 5:
+        norm_cbcr = ResizeFeatures((19, 19))(norm_cbcr)
+
     # Block 1
     norm_y = BatchNormalization(
         name="b_norm_y", input_shape=input_shape_y)(input_y)
+
+    if rescale_position == 1:
+        norm_y = ResizeFeatures((38, 38))(norm_y)
 
     block1_conv1 = Conv2D(256, (3, 3), kernel_regularizer=l2(l2_reg),
                           activation='relu',
                           padding='same',
                           name='block1_conv1_dct_256')(norm_y)
 
+    if rescale_position == 2:
+        block1_conv1 = ResizeFeatures((38, 38))(block1_conv1)
+
     # Block 4
     block4_conv1 = Conv2D(512, (3, 3), kernel_regularizer=l2(l2_reg),
                           activation='relu',
                           padding='same',
                           name='block4_conv1_dct')(block1_conv1)
+    if rescale_position == 3:
+        block4_conv1 = ResizeFeatures((38, 38))(block4_conv1)
+
     block4_conv2 = Conv2D(512, (3, 3), kernel_regularizer=l2(l2_reg),
                           activation='relu',
                           padding='same',
                           name='block4_conv2')(block4_conv1)
+
+    if rescale_position == 4:
+        block4_conv2 = ResizeFeatures((38, 38))(block4_conv2)
+
     block4_conv3 = Conv2D(512, (3, 3), kernel_regularizer=l2(l2_reg),
                           activation='relu',
                           padding='same',
