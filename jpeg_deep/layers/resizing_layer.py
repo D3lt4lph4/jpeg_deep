@@ -66,7 +66,7 @@ class ResizeFeatures(Layer):
             assert self.data_format == 'channels_last'
         except AssertionError:
             print("Only tensorflow backend is supported for the resize layer and accordingly 'channels_last' ordering")
-        if method == "bilinear":
+        if self.method == "bilinear":
             output = tfi.resize_images(
                 inputs, self.output_dim)
         else:
