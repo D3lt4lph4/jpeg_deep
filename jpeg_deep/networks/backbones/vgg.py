@@ -84,7 +84,7 @@ def feature_map_dct(image_shape: Tuple[int, int],  kernel_initializer: str = 'he
     input_cbcr = Input(input_shape_cbcr)
 
     if rescale_position == 10:
-        input_y_l = Lambda(identity_layer, output_shape=(None, None, 64), name='identity_layer')(input_y)
+        input_y_l = Lambda(identity_layer, output_shape=(None, None, 64), name='identity_layer_l')(input_y)
         input_cbcr_l = Lambda(identity_layer, output_shape=(None, None, 128), name='identity_layer')(input_cbcr)
         
         input_y_l = ResizeFeatures((38, 38))(input_y_l)
