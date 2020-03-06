@@ -125,6 +125,7 @@ def feature_map_dct(image_shape: Tuple[int, int],  kernel_initializer: str = 'he
     
     if rescale_position == 5:
         block4_conv3 = ResizeFeatures((38, 38))(block4_conv3_out)
+
     block4_pool = MaxPooling2D((2, 2), strides=(
         2, 2), name='block4_pool')(block4_conv3)
 
