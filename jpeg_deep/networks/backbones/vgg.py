@@ -103,7 +103,7 @@ def feature_map_dct(image_shape: Tuple[int, int],  kernel_initializer: str = 'he
             name="b_norm_y", input_shape=input_shape_y)(input_y)
     
     
-    if 0 < rescale_position < 5:
+    if 0 < rescale_position <= 5:
         norm_cbcr = ResizeFeatures((19, 19))(norm_cbcr)
 
     if rescale_position == 1:
@@ -137,7 +137,7 @@ def feature_map_dct(image_shape: Tuple[int, int],  kernel_initializer: str = 'he
                           activation='relu',
                           padding='same',
                           name='block4_conv3')(block4_conv2)
-    if rescale_position == 5:
+    if rescale_position == 6:
         block4_conv3_out = ResizeFeatures((38, 38), method="nn")(block4_conv3)
         block4_pool = MaxPooling2D((2, 2), strides=(
                 2, 2), name='block4_pool')(block4_conv3)
@@ -146,6 +146,8 @@ def feature_map_dct(image_shape: Tuple[int, int],  kernel_initializer: str = 'he
                           activation='relu',
                           padding='same',
                           name='block4_conv3')(block4_conv2)
+        if rescale_position == 5:
+            block4_conv3_out = ResizeFeatures((38, 38))(block4_conv3_out)
         block4_pool = MaxPooling2D((2, 2), strides=(
             2, 2), name='block4_pool')(block4_conv3_out)
 
