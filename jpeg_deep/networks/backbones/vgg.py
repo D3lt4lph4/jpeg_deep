@@ -5,7 +5,7 @@ import numpy as np
 import tensorflow as tf
 import keras.backend as K
 from keras.models import Model
-from keras.layers import Input, Conv2D, MaxPooling2D, Concatenate, BatchNormalization, Conv2DTranspose
+from keras.layers import Input, Conv2D, MaxPooling2D, Concatenate, BatchNormalization, Conv2DTranspose, Lambda
 from keras.regularizers import l2
 
 from jpeg_deep.layers import ResizeFeatures
@@ -58,6 +58,8 @@ def feature_map_rgb(image_shape: Tuple[int, int], kernel_initializer: str = 'he_
         2, 2), padding='same', name='block4_pool')(block4_conv3)
     return input_layer, block4_pool, block4_conv3
 
+def identity_layer(tensor):
+    return tensor
 
 def feature_map_dct(image_shape: Tuple[int, int],  kernel_initializer: str = 'he_normal', l2_reg=0.0005, rescale_position:int=0):
     """ Helper function that generates the first layers of the SSD. This function generates the layers for the DCT network.
@@ -81,15 +83,28 @@ def feature_map_dct(image_shape: Tuple[int, int],  kernel_initializer: str = 'he
     input_y = Input(input_shape_y)
     input_cbcr = Input(input_shape_cbcr)
 
-    norm_cbcr = BatchNormalization(
-        name="b_norm_cbcr", input_shape=input_shape_cbcr)(input_cbcr)
-
+    if rescale_position == 10:
+        input_y_l = Lambda(identity_layer, output_shape=(None, None, 64), name='identity_layer')(input_y)
+        input_cbcr_l = Lambda(identity_layer, output_shape=(None, None, 128), name='identity_layer')(input_cbcr)
+        
+        input_y_l = ResizeFeatures((38, 38))(input_y_l)
+        input_cbcr_l = ResizeFeatures((19, 19))(input_cbcr_l)
+        
+        norm_cbcr = BatchNormalization(
+            name="b_norm_cbcr", input_shape=input_shape_cbcr)(input_cbcr_l)
+        # Block 1
+        norm_y = BatchNormalization(
+            name="b_norm_y", input_shape=input_shape_y)(input_y_l)
+    else:
+        norm_cbcr = BatchNormalization(
+            name="b_norm_cbcr", input_shape=input_shape_cbcr)(input_cbcr)
+        # Block 1
+        norm_y = BatchNormalization(
+            name="b_norm_y", input_shape=input_shape_y)(input_y)
+    
+    
     if 0 < rescale_position < 5:
         norm_cbcr = ResizeFeatures((19, 19))(norm_cbcr)
-
-    # Block 1
-    norm_y = BatchNormalization(
-        name="b_norm_y", input_shape=input_shape_y)(input_y)
 
     if rescale_position == 1:
         norm_y = ResizeFeatures((38, 38))(norm_y)
