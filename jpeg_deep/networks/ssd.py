@@ -103,6 +103,8 @@ def SSD300(n_classes: int = 20,
                           kernel_initializer=kernel_initializer, name='block5_conv2')(block5_conv1)
     block5_conv3 = Conv2D(512, (3, 3), activation='relu', padding='same',
                           kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularizer), name='block5_conv3')(block5_conv2)
+    if rescale_position == 5:
+        block5_conv3 = ResizeFeatures((19, 19))(block5_conv3)
     block5_pool = MaxPooling2D(pool_size=(3, 3), strides=(
         1, 1), padding='same', name='block5_pool')(block5_conv3)
 
