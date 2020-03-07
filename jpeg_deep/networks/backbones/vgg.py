@@ -179,9 +179,9 @@ def feature_map_dct_deconv(input_shape: Tuple[int, int],  kernel_initializer: st
     input_cr = Input(shape=input_shape_cr)
 
     cb = Conv2DTranspose(64, kernel_size=(2, 2), strides=2,
-                         kernel_regularizer=l2(l2_reg))(input_cb)
+                         kernel_regularizer=l2(l2_reg), name="deconv_cb")(input_cb)
     cr = Conv2DTranspose(64, kernel_size=(2, 2), strides=2,
-                         kernel_regularizer=l2(l2_reg))(input_cr)
+                         kernel_regularizer=l2(l2_reg), name="deconv_cr")(input_cr)
 
     x = Concatenate(axis=-1)([input_y, cb, cr])
 
