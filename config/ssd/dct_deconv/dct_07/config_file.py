@@ -127,16 +127,16 @@ class TrainingConfiguration(object):
         self._evaluator = PascalEvaluator()
 
     def prepare_testing_generator(self):
-        self._test_generator = VOCGenerator(batch_size=self.batch_size, shuffle=False, label_encoder=self.input_encoder, dct=True,
+        self._test_generator = VOCGenerator(batch_size=self.batch_size, shuffle=False, label_encoder=self.input_encoder, dct=True, split_cbcr=True,
                                             transforms=self.test_transformations, images_path=self.test_sets)
         self._test_generator.prepare_dataset()
 
     def prepare_training_generators(self):
-        self._train_generator = VOCGenerator(batch_size=self.batch_size, shuffle=True, label_encoder=self.input_encoder, dct=True,
+        self._train_generator = VOCGenerator(batch_size=self.batch_size, shuffle=True, label_encoder=self.input_encoder, dct=True, split_cbcr=True,
                                              transforms=self.train_tranformations, images_path=self.train_sets)
         self._train_generator.prepare_dataset()
 
-        self._validation_generator = VOCGenerator(batch_size=self.batch_size, shuffle=True, label_encoder=self.input_encoder, dct=True,
+        self._validation_generator = VOCGenerator(batch_size=self.batch_size, shuffle=True, label_encoder=self.input_encoder, dct=True, split_cbcr=True,
                                                   transforms=self.validation_transformations, images_path=self.validation_sets)
         self._validation_generator.prepare_dataset(exclude_difficult=True)
         self.validation_steps = len(self._validation_generator)
