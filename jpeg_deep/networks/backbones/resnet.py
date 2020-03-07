@@ -259,7 +259,7 @@ def feature_map_deconvolution_rfa(image_shape: Tuple[int, int],  kernel_initiali
     x = identity_block(x, 3, [128, 128, 512], stage=3,
                        block='c', kernel_reg=l2_reg)
     block4_conv3 = identity_block(
-        y, 3, [128, 128, 512], stage=3, block='d', kernel_reg=l2_reg)
+        x, 3, [128, 128, 512], stage=3, block='d', kernel_reg=l2_reg)
 
     x = conv_block(block4_conv3, 3, [256, 256, 1024],
                    stage=4, block='a', kernel_reg=l2_reg)
