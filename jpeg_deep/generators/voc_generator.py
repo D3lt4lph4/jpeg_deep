@@ -48,6 +48,7 @@ class VOCGenerator(TemplateGenerator):
                  label_encoder: object = None,
                  transforms: List[object] = None,
                  dct: bool = False,
+                 split_cbcr=False,
                  train_mode: bool = True,
                  labels_output_format: List[str] = (
                      'class_id', 'xmin', 'ymin', 'xmax', 'ymax')):
@@ -73,7 +74,7 @@ class VOCGenerator(TemplateGenerator):
                     join(image_dir, filename + ".jpg"))
 
         self.images_path = self.images_path
-
+        self.split_cbcr = split_cbcr
         self._batch_size = batch_size
         self._shuffle = shuffle
         self._train_mode = train_mode
@@ -203,7 +204,11 @@ class VOCGenerator(TemplateGenerator):
             return batch_X, batch_y_encoded
         else:
             X_y = []
-            X_cbcr = []
+            if self.split_cbcr:
+                X_cb = []
+                X_cr = []
+            else:
+                X_cbcr = []
             for i, image_to_save in enumerate(batch_X):
                 im = Image.fromarray(image_to_save)
                 fake_file = BytesIO()
@@ -214,14 +219,22 @@ class VOCGenerator(TemplateGenerator):
                 y_x, y_y, y_c = dct_y.shape
                 cb_x, cb_y, cb_c = dct_cb.shape
 
-                temp_y = np.empty((cb_x * 2, cb_y * 2, y_c))
+                temp_y = np.zeros((cb_x * 2, cb_y * 2, y_c))
 
                 temp_y[:y_x, :y_y, :] = dct_y
 
                 X_y.append(temp_y)
-                X_cbcr.append(np.concatenate([dct_cb, dct_cr], axis=-1))
 
-            return [np.array(X_y), np.array(X_cbcr)], batch_y_encoded
+                if self.split_cbcr:
+                    X_cb.append(dct_cb)
+                    X_cr.append(dct_cr)
+                else:
+                    X_cbcr.append(np.concatenate([dct_cb, dct_cr], axis=-1))
+
+            if self.split_cbcr:
+                return [np.array(X_y), np.array(X_cb), np.array(X_cr)], batch_y_encoded
+            else:
+                return [np.array(X_y), np.array(X_cbcr)], batch_y_encoded
 
     def prepare_dataset(self, exclude_difficult=False):
         """ We load all the labels when preparing the data. If there is the load in memory option activated, we pre-load the images as well. """
