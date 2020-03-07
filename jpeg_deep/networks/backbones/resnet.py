@@ -5,7 +5,7 @@ import numpy as np
 import tensorflow as tf
 import keras.backend as K
 from keras.models import Model
-from keras.layers import Input, Lambda, Activation, Conv2D, MaxPooling2D, Reshape, Concatenate, BatchNormalization, ZeroPadding2D
+from keras.layers import Input, Lambda, Activation, Conv2D, MaxPooling2D, Reshape, Concatenate, BatchNormalization, ZeroPadding2D, Conv2DTranspose
 from keras.regularizers import l2
 
 from jpeg_deep.layers.ssd_layers import AnchorBoxes, L2Normalization, DecodeDetections
@@ -195,6 +195,74 @@ def feature_map_lcrfat(image_shape: Tuple[int, int],  kernel_initializer: str = 
                       stage=1, block='a_cbcr', strides=(1, 1), kernel_reg=l2_reg)
 
     x = Concatenate(axis=-1)([y, cbcr])
+
+    x = identity_block(x, 3, [256, 256, 1024], stage=4,
+                       block='b', kernel_reg=l2_reg)
+    x = identity_block(x, 3, [256, 256, 1024], stage=4,
+                       block='c', kernel_reg=l2_reg)
+    x = identity_block(x, 3, [256, 256, 1024], stage=4,
+                       block='d', kernel_reg=l2_reg)
+    x = identity_block(x, 3, [256, 256, 1024], stage=4,
+                       block='e', kernel_reg=l2_reg)
+    x = identity_block(x, 3, [256, 256, 1024], stage=4,
+                       block='f', kernel_reg=l2_reg)
+
+    x = conv_block(x, 3, [512, 512, 2048], stage=5,
+                   block='a', strides=(1, 1), kernel_reg=l2_reg)
+    x = identity_block(x, 3, [512, 512, 2048], stage=5,
+                       block='b', kernel_reg=l2_reg)
+    last = identity_block(x, 3, [512, 512, 2048],
+                          stage=5, block='c', kernel_reg=l2_reg)
+
+    return [input_y, input_cbcr], last, block4_conv3
+
+
+def feature_map_deconvolution_rfa(image_shape: Tuple[int, int],  kernel_initializer: str = 'he_normal', l2_reg=0.0005):
+    """ Helper function that generates the first layers of the SSD. This function generates the layers for the DCT network.
+
+    # Arguments:
+        - image_shape: A tuple containing the shape of the image.
+        - l2_regularization: The float value for the l2 normalization.
+        - kernel_initializer: The type of initializer for the convolution kernels.
+
+    # Returns:
+        Three layers: input_layer, block4_pool, block4_conv3. These layers are used to intantiate the network.
+    """
+    input_shape_y = (38, 38, 64)
+    input_shape_cb = (19, 19, 64)
+    input_shape_cr = (19, 19, 64)
+
+    input_y = Input(shape=input_shape_y)
+    input_cb = Input(shape=input_shape_cb)
+    input_cr = Input(shape=input_shape_cr)
+
+    cb = Conv2DTranspose(64, kernel_size=(2, 2), strides=2,
+                         kernel_regularizer=l2(l2_reg))(input_cb)
+    cr = Conv2DTranspose(64, kernel_size=(2, 2), strides=2,
+                         kernel_regularizer=l2(l2_reg))(input_cr)
+
+    x = Concatenate(axis=-1)([input_y, cb, cr])
+    x = BatchNormalization(axis=3, momentum=0.9,
+                           epsilon=1e-5, name='bn_cbcr')(x)
+
+    x = conv_block(x, 1, [256, 256, 1024],
+                   stage=1, block="a", strides=(1, 1), kernel_reg=l2_reg)
+    x = identity_block(x, 2, [256, 256, 1024], stage=2,
+                       block="b", kernel_reg=l2_reg)
+    x = identity_block(x, 3, [256, 256, 1024], stage=2,
+                       block="c", kernel_reg=l2_reg)
+
+    x = conv_block(x, 3, [128, 128, 512], stage=3,
+                   block='a', strides=(1, 1), kernel_reg=l2_reg)
+    x = identity_block(x, 3, [128, 128, 512], stage=3,
+                       block='b', kernel_reg=l2_reg)
+    x = identity_block(x, 3, [128, 128, 512], stage=3,
+                       block='c', kernel_reg=l2_reg)
+    block4_conv3 = identity_block(
+        y, 3, [128, 128, 512], stage=3, block='d', kernel_reg=l2_reg)
+
+    x = conv_block(block4_conv3, 3, [128, 128, 512],
+                   stage=4, block='a_y', kernel_reg=l2_reg)
 
     x = identity_block(x, 3, [256, 256, 1024], stage=4,
                        block='b', kernel_reg=l2_reg)
