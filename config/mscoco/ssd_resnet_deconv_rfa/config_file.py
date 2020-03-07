@@ -33,7 +33,7 @@ class TrainingConfiguration(object):
         self._workspace = "ssd"
 
         # Network variables
-        self._weights = None
+        self._weights = "/dlocal/home/2017018/bdegue01/weights/jpeg_deep/classification_dct/resnet_deconv/classification_dct_jpeg-deep_GYftBmXMdjdxoMksyI3e9VqB5IriBC9T/checkpoints/epoch-87_loss-0.7459_val_loss-1.5599.h5"
         self._network = SSD300_resnet(n_classes=80, scales=[
                                       0.07, 0.15, 0.33, 0.51, 0.69, 0.87, 1.05], mode="deconv_rfa")
 
@@ -127,13 +127,13 @@ class TrainingConfiguration(object):
         self._evaluator = Evaluator()
 
     def prepare_testing_generator(self):
-        self._test_generator = COCOGenerator(self.validation_image_dir, self.validation_annotation_path, batch_size=self.batch_size, shuffle=False, label_encoder=self.input_encoder, dct=True,
+        self._test_generator = COCOGenerator(self.validation_image_dir, self.validation_annotation_path, batch_size=self.batch_size, shuffle=False, label_encoder=self.input_encoder, dct=True,  split_cbcr=True,
                                              transforms=self.test_transformations, load_images_into_memory=None, images_path=self.test_sets)
 
     def prepare_training_generators(self):
-        self._train_generator = COCOGenerator(self.train_image_dir, self.train_annotation_path, batch_size=self.batch_size, shuffle=True, label_encoder=self.input_encoder, dct=True,
+        self._train_generator = COCOGenerator(self.train_image_dir, self.train_annotation_path, batch_size=self.batch_size, shuffle=True, label_encoder=self.input_encoder, dct=True, split_cbcr=True,
                                               transforms=self.train_tranformations)
-        self._validation_generator = COCOGenerator(self.validation_image_dir, self.validation_annotation_path, batch_size=self.batch_size, shuffle=True, label_encoder=self.input_encoder, dct=True,
+        self._validation_generator = COCOGenerator(self.validation_image_dir, self.validation_annotation_path, batch_size=self.batch_size, shuffle=True, label_encoder=self.input_encoder, dct=True, split_cbcr=True,
                                                    transforms=self.validation_transformations)
         self.validation_steps = len(self._validation_generator)
 

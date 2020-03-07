@@ -121,7 +121,7 @@ class TrainingConfiguration(object):
     def prepare_for_inference(self):
         K.clear_session()
         self._network = SSD300_resnet(
-            backbone="lcrfa", dct=True, image_shape=(38, 38), mode="inference")
+            backbone="deconv_rfa", dct=True, image_shape=(38, 38), mode="inference")
 
     def prepare_evaluator(self):
         self._evaluator = PascalEvaluator()
