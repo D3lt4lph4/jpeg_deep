@@ -2,6 +2,7 @@ from template_keras.evaluators import TemplateEvaluator
 import sys
 import numpy as np
 import time
+import json
 from statistics import mean, stdev
 from PIL import Image
 
@@ -9,8 +10,10 @@ from os import makedirs
 from os.path import splitext, split, join
 
 from tqdm import tqdm
-
 from tqdm import trange
+
+from pycocotools.coco import COCO
+from pycocotools.cocoeval import COCOeval
 
 from jpeg_deep.utils import iou
 
@@ -673,3 +676,228 @@ class PascalEvaluator(TemplateEvaluator):
         mean_average_precision = np.average(average_precisions[1:])
 
         return mean_average_precision
+
+
+class CocoEvaluator(TemplateEvaluator):
+    def __init__(self, generator=None, n_classes=80, ignore_flagged_boxes=True, challenge="VOC2007", set_type="test"):
+        self.score = None
+        self._generator = generator
+        self.n_classes = n_classes
+        self.challenge = challenge
+        self.set_type = set_type
+        self.runs = False
+        self.number_of_runs = None
+
+        # Getting the dictionnary matching the class/id
+        self.coco = COCO(annotation_file)
+
+        # display COCO categories and supercategories
+        cats = self.coco.loadCats(self.coco.getCatIds())
+        id_classes = sorted([(value["id"], value["name"])
+                             for value in cats], key=lambda x: x[0])
+
+        # add background class
+        id_classes.insert(0, (0, "background"))
+
+        # add the index for the predictions
+        id_classes = [(value[0], value[1], i)
+                      for i, value in enumerate(id_classes)]
+
+        # create a dictionnary with the ids as keys
+        self.matching_dictionnary = {value[2]: [
+            value[0], value[1]] for value in id_classes}
+
+
+    def __call__(self, model, test_generator=None):
+        if self._generator is None and test_generator is None:
+            raise RuntimeError(
+                "A generator should be specified using the init or parameters."
+            )
+
+        self.runs = False
+        if test_generator is not None:
+            self._generator = test_generator
+
+        # Get all the predictions
+        self._generator.batch_size = 1
+        self.shuffle = False
+        generator_len = self._generator.number_of_data_samples
+
+        images_path = self._generator.images_path
+
+        results = []
+
+        for i in tqdm(range(generator_len)):
+            X, y = self._generator.__getitem__(i)
+
+            predictions = model.predict(X)
+            image_id = int(splitext(split(images_path[i])[1])[0])
+
+            for box in predictions[0]:
+                class_id, confidence, xmin, ymin, xmax, ymax = box
+                with Image.open(images_path[i]) as img:
+                    width, height = img.size
+                xmin = xmin * width / 300
+                xmax = xmax * width / 300
+                ymin = ymin * height / 300
+                ymax = ymax * height / 300
+
+                if xmin < 0:
+                    xmin = 0
+                if ymin < 0:
+                    ymin = 0
+                if xmax > width:
+                    xmax = width
+                if ymax > height:
+                    ymax = height
+                
+                prediction = {"image_id": image_id,"category_id": self.matching_dictionnary[class_id],"bbox": [xmin, ymin, xmax-xmin, ymax-ymin],"score":float(confidence)}
+
+                results.append(prediction)
+    
+    with open("/tmp/output.json", "w") as file:
+        json.dump(results, file)
+    
+    dataDir='/d2/thesis/datasets/mscoco'
+    dataType='val2017'
+    annFile='{}/annotations/instances_{}.json'.format(dataDir,dataType)
+
+    annType = "bbox"     #specify type here
+    prefix = 'instances'
+
+    cocoGt=COCO(annFile)
+
+    cocoDt=cocoGt.loadRes("/tmp/output.json")
+
+    imgIds=sorted(cocoGt.getImgIds())
+
+    cocoEval = COCOeval(cocoGt,cocoDt,annType)
+    cocoEval.params.imgIds = imgIds
+    cocoEval.evaluate()
+    cocoEval.accumulate()
+    cocoEval.summarize()
+
+    def predict_for_submission(self, model, generator=None, output_dir="."):
+        if self._generator is None and generator is None:
+            raise RuntimeError(
+                "A generator should be specified using the init or parameters."
+            )
+        if generator is not None:
+            self._generator = generator
+
+        # First create the folders that are to hold the results
+        full_output_dir = join(output_dir, "results", self.challenge, "Main")
+        makedirs(full_output_dir)
+
+        # Predicting for all the classes
+        self._generator.batch_size = 1
+        self.shuffle = False
+
+        generator_len = self._generator.number_of_data_samples
+
+        images_path = self._generator.images_path
+
+        classes = ['background', 'aeroplane', 'bicycle', 'bird', 'boat',
+                   'bottle', 'bus', 'car', 'cat',
+                   'chair', 'cow', 'diningtable', 'dog',
+                            'horse', 'motorbike', 'person', 'pottedplant',
+                            'sheep', 'sofa', 'train', 'tvmonitor']
+
+        results = [list() for _ in range(self.n_classes + 1)]
+
+        for i in tqdm(range(generator_len)):
+            X, y = self._generator.__getitem__(i)
+            predictions = model.predict(X)
+            image_id = splitext(split(images_path[i])[1])[0]
+
+            for box in predictions[0]:
+                class_id, confidence, xmin, ymin, xmax, ymax = box
+                with Image.open(images_path[i]) as img:
+                    width, height = img.size
+                xmin = xmin * width / 300
+                xmax = xmax * width / 300
+                ymin = ymin * height / 300
+                ymax = ymax * height / 300
+
+                if xmin < 0:
+                    xmin = 0
+                if ymin < 0:
+                    ymin = 0
+                if xmax > width:
+                    xmax = width
+                if ymax > height:
+                    ymax = height
+                prediction = (image_id, confidence, float(xmin),
+                              float(ymin), float(xmax), float(ymax))
+
+                results[int(class_id)].append(prediction)
+
+        # writing the predictions to the output folder
+        for class_id in range(1, len(results)):
+            output_file = join(
+                full_output_dir, "comp3_det_{}_{}.txt".format(self.set_type, classes[class_id]))
+            with open(output_file, "w") as class_file:
+                for prediction in results[class_id]:
+                    class_file.write(
+                        "{} {:.6f} {:.6f} {:.6f} {:.6f} {:.6f}\n".format(*prediction))
+
+    def model_speed(self, model, test_generator=None, number_of_runs=10, iteration_per_run=1000):
+
+        if self._generator is None and test_generator is None:
+            raise RuntimeError(
+                "A generator should be specified using the init or parameters."
+            )
+        if test_generator is not None:
+            self._generator = test_generator
+
+        times = []
+
+        X, _ = self._generator.__getitem__(0)
+
+        for _ in tqdm(range(number_of_runs)):
+            start_time = time.time()
+            for _ in range(iteration_per_run):
+                _ = model.predict(X)
+            times.append(time.time() - start_time)
+
+        print("It took {} seconds on average of {} runs to run {} iteration of prediction with bacth size {}.".format(
+            mean(times), number_of_runs, iteration_per_run, self._generator.batch_size))
+        print("The number of FPS for the tested network was {}.".format(
+            self._generator.batch_size * iteration_per_run / mean(times)))
+
+    def make_runs(self, model, test_generator=None, number_of_runs=10):
+
+        if self._generator is None and test_generator is None:
+            raise RuntimeError(
+                "A generator should be specified using the init or parameters."
+            )
+
+        scores = []
+        self.runs = True
+
+        if test_generator is not None:
+            self._generator = test_generator
+
+        if test_generator is not None:
+            for i in range(number_of_runs):
+                scores.append(model.evaluate_generator(self._generator))
+        else:
+            for i in range(number_of_runs):
+                scores.append(model.evaluate_generator(self._generator))
+
+        self.score = np.mean(np.array(scores), axis=0)
+        self.number_of_runs = number_of_runs
+
+    def __str__(self):
+        if self.runs:
+            return "Number of runs: {}\nAverage score: {}".format(
+                self.number_of_runs, self.score)
+        else:
+            return "The evaluated score is {}.".format(self.score)
+
+    @property
+    def test_generator(self):
+        return self._generator
+
+    def display_results(self):
+        print("The evaluated score is {}.".format(self.score))
