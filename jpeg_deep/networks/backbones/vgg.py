@@ -186,7 +186,7 @@ def feature_map_dct_deconv(input_shape: Tuple[int, int],  kernel_initializer: st
     x = Concatenate(axis=-1)([input_y, cb, cr])
 
     x = BatchNormalization(
-        name="b_norm", input_shape=input_shape_y)(x)
+        name="b_norm")(x)
 
     # Block 4
     x = Conv2D(512, (3, 3),
