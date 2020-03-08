@@ -14,8 +14,8 @@ import numpy as np
 from scipy.ndimage import zoom
 
 from jpeg_deep.networks import vgga, vggd
-from jpeg_deep.networks import vgga_dct, vggd_dct
-from jpeg_deep.networks import vgga_dct_conv, vggd_dct_conv
+from jpeg_deep.networks import vgga_dct, vggd_dct, vggd_dct_deconv
+from jpeg_deep.networks import vgga_dct_conv, vggd_dct_conv, vggd_dct_deconv_conv
 
 
 def to_fully_conv(model):
@@ -71,8 +71,10 @@ def to_fully_conv_dct(model, model_type):
 
     if model_type == "vgga":
         new_model = vgga_dct_conv()
-    else:
+    elif model_type == "vggd":
         new_model = vggd_dct_conv()
+    else:
+        new_model = vggd_dct_deconv_conv()
 
     for layer in model.layers:
         if "Dense" not in str(layer) and "Flatten" not in str(layer):
@@ -112,20 +114,24 @@ parser.add_argument("wp", help="The weights to be converted", type=str)
 parser.add_argument("-dct", action="store_true")
 args = parser.parse_args()
 
+flag = False
 if args.mt == "vgga":
     if args.dct:
         model = vgga_dct(1000)
     else:
         model = vgga(1000)
-else:
+elif args.mt == "vggd":
     if args.dct:
         model = vggd_dct(1000)
     else:
         model = vggd(1000)
+else:
+    flag = True
+    model = vggd_dct_deconv(1000)
 
 model.load_weights(args.wp)
 
-if args.dct:
+if args.dct or flag:
     new_model = to_fully_conv_dct(model, args.mt)
 else:
     new_model = to_fully_conv(model)
@@ -143,7 +149,7 @@ new_model.save(file_name_ssd)
 
 with h5py.File(file_name_ssd, 'a') as f:
 
-    if not args.dct:
+    if not (args.dct or flag):
         del f['model_weights']['dropout_1']
         del f['model_weights']['dropout_2']
     del f['model_weights']['conv2d_3']
