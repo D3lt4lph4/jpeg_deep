@@ -728,4 +728,4 @@ def vggd_dct_y(classes=1000, input_shape=(28, 28)):
     x = Dropout(0.5)(x)
     x = Dense(classes, activation='softmax', name='predictions')(x)
 
-    return Model(inputs=[input_y, input_cbcr], outputs=x)
+    return Model(input_y, outputs=x)
