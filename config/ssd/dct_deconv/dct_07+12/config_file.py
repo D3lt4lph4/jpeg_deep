@@ -122,7 +122,7 @@ class TrainingConfiguration(object):
     def prepare_for_inference(self):
         K.clear_session()
         self._network = SSD300(
-            backbone="VGGDCT", dct=True, image_shape=(38, 38), mode="inference")
+            backbone="VGGDCT_deconv", dct=True, image_shape=(38, 38), mode="inference")
 
     def prepare_evaluator(self):
         self._evaluator = PascalEvaluator()
