@@ -219,7 +219,7 @@ class VOCGenerator(TemplateGenerator):
                 y_x, y_y, y_c = dct_y.shape
                 cb_x, cb_y, cb_c = dct_cb.shape
 
-                temp_y = np.zeros((cb_x * 2, cb_y * 2, y_c))
+                temp_y = np.zeros((cb_x * 2, cb_y * 2, y_c), dtype=np.int16)
 
                 temp_y[:y_x, :y_y, :] = dct_y
 
