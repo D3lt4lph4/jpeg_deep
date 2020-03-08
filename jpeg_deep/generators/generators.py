@@ -67,7 +67,7 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
         self.association, self.classes, self.images_path = prepare_imagenet(
             index_file, data_directory)
 
-        self.images_path = self.images_path[:4000]
+        self.images_path = self.images_path
 
         # External data
         self._batch_size = batch_size
