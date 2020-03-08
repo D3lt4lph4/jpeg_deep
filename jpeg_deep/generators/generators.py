@@ -56,6 +56,7 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
                  seed=333,
                  validation_split=0.0,
                  split_cbcr=False,
+                 only_y=False,
                  validation=False,
                  transforms=None):
 
@@ -66,7 +67,7 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
         self.association, self.classes, self.images_path = prepare_imagenet(
             index_file, data_directory)
 
-        # self.images_path = self.images_path[:1000]
+        self.images_path = self.images_path[:4000]
 
         # External data
         self._batch_size = batch_size
@@ -76,6 +77,7 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
         # Internal data
         self.input_size = input_size
         self.split_cbcr = split_cbcr
+        self.only_y = only_y
 
         # If no validation split, all in test
         if validation_split == 0 or validation_split == 1:
@@ -222,7 +224,10 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
             # Setting the target class to 1
             y[i, int(self.association[index_class])] = 1
         if not self.split_cbcr:
-            return [X_y, X_cbcr], y
+            if self.only_y:
+                return X_y, y
+            else:
+                return [X_y, X_cbcr], y
         else:
             return [X_y, X_cb, X_cr], y
 
