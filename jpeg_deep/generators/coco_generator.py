@@ -101,29 +101,34 @@ class COCOGenerator(TemplateGenerator):
             value[1], value[2]] for value in id_classes}
 
         # Loading all the images
-        img_ids = self.coco.getImgIds()
-        images = self.coco.loadImgs(img_ids)
-        # Getting all the information for each of the images
-        for image in tqdm(images):
-            # Annotations for the image
-            file_path = join(image_directory, image["file_name"])
+        if mode == "train":
+            img_ids = self.coco.getImgIds()
+            images = self.coco.loadImgs(img_ids)
+            # Getting all the information for each of the images
+            for image in tqdm(images):
+                # Annotations for the image
+                file_path = join(image_directory, image["file_name"])
 
-            annIds = self.coco.getAnnIds(imgIds=image['id'], iscrowd=None)
-            annotations = self.coco.loadAnns(annIds)
-            bounding_boxes = []
-            for annotation in annotations:
-                bbox = annotation["bbox"]
-                bbox = [bbox[0], bbox[1], bbox[0] + bbox[2], bbox[1] + bbox[3]]
-                class_id = self.matching_dictionnary[annotation["category_id"]][1]
-                bounding_boxes.append([class_id, *bbox])
+                annIds = self.coco.getAnnIds(imgIds=image['id'], iscrowd=None)
+                annotations = self.coco.loadAnns(annIds)
+                bounding_boxes = []
+                for annotation in annotations:
+                    bbox = annotation["bbox"]
+                    bbox = [bbox[0], bbox[1], bbox[0] + bbox[2], bbox[1] + bbox[3]]
+                    class_id = self.matching_dictionnary[annotation["category_id"]][1]
+                    bounding_boxes.append([class_id, *bbox])
 
-            if len(bounding_boxes) == 0:
-                continue
-            self.images_path.append(file_path)
-            self.labels.append(bounding_boxes)
+                if len(bounding_boxes) == 0:
+                    continue
+                self.images_path.append(file_path)
+                self.labels.append(bounding_boxes)
+        
+        else:
+            files = [join(image_directory, file) for file in os.listdir(image_directory) if os.path.isfile(os.path.join(image_directory, file))]
 
-        print(len(self.images_path))
-        print(len(self.labels))
+            for file in files:
+                self.images_path.append(file)
+                self.labels.append([0, 0, 0, 0, 0])
 
         self.dataset_size = len(self.images_path)
 

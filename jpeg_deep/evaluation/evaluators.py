@@ -725,12 +725,82 @@ class CocoEvaluator(TemplateEvaluator):
         images_path = self._generator.images_path
 
         results = []
+        imgIds = []
+        for i in tqdm(range(generator_len)):
+            X, y = self._generator.__getitem__(i)
 
+            predictions = model.predict(X)
+            image_id = splitext(split(images_path[i])[1])[0]
+            image_id = int(image_id.split("_")[-1])
+            imgIds.append(image_id)
+
+            for box in predictions[0]:
+                class_id, confidence, xmin, ymin, xmax, ymax = box
+                with Image.open(images_path[i]) as img:
+                    width, height = img.size
+                xmin = xmin * width / 300
+                xmax = xmax * width / 300
+                ymin = ymin * height / 300
+                ymax = ymax * height / 300
+
+                if xmin < 0:
+                    xmin = 0
+                if ymin < 0:
+                    ymin = 0
+                if xmax > width:
+                    xmax = width
+                if ymax > height:
+                    ymax = height
+
+                if confidence > 0.5:
+                    print(confidence)
+                
+                prediction = {"image_id": image_id,"category_id": self.matching_dictionnary[class_id][0],"bbox": [xmin, ymin, xmax-xmin, ymax-ymin],"score":float(confidence)}
+
+                results.append(prediction)
+
+        with open("/tmp/output.json", "w") as file:
+            json.dump(results, file)
+
+        cocoGt=COCO(self.annotation_file)
+
+        cocoDt=cocoGt.loadRes("/tmp/output.json")
+
+        # imgIds=sorted(cocoGt.getImgIds())
+
+        cocoEval = COCOeval(cocoGt,cocoDt, "bbox")
+        cocoEval.params.imgIds = imgIds
+        cocoEval.evaluate()
+        cocoEval.accumulate()
+        cocoEval.summarize()
+
+    def predict_for_submission(self, model, generator=None, output_dir="."):
+        if self._generator is None and test_generator is None:
+            raise RuntimeError(
+                "A generator should be specified using the init or parameters."
+            )
+
+        self.runs = False
+        if test_generator is not None:
+            self._generator = test_generator
+
+        # Get all the predictions
+        self._generator.batch_size = 1
+        self.shuffle = False
+        generator_len = self._generator.number_of_data_samples
+
+        images_path = self._generator.images_path
+
+        results = []
+        imgIds = []
         for i in tqdm(range(generator_len)):
             X, y = self._generator.__getitem__(i)
 
             predictions = model.predict(X)
             image_id = int(splitext(split(images_path[i])[1])[0])
+            # image_id = splitext(split(images_path[i])[1])[0]
+            # image_id = int(image_id.split("_")[-1])
+            imgIds.append(image_id)
 
             for box in predictions[0]:
                 class_id, confidence, xmin, ymin, xmax, ymax = box
@@ -749,89 +819,18 @@ class CocoEvaluator(TemplateEvaluator):
                     xmax = width
                 if ymax > height:
                     ymax = height
+
+                if confidence > 0.5:
+                    print(confidence)
                 
-                prediction = {"image_id": image_id,"category_id": self.matching_dictionnary[class_id],"bbox": [xmin, ymin, xmax-xmin, ymax-ymin],"score":float(confidence)}
+                prediction = {"image_id": image_id,"category_id": self.matching_dictionnary[class_id][0],"bbox": [xmin, ymin, xmax-xmin, ymax-ymin],"score":float(confidence)}
 
                 results.append(prediction)
     
-    with open("/tmp/output.json", "w") as file:
-        json.dump(results, file)
+        output_file = join(output_dir, "output.json")
+        with open(output_file, "w") as file_json:
+            json.dump(results, file_json)
 
-    cocoGt=COCO(self.annotation_file)
-
-    cocoDt=cocoGt.loadRes("/tmp/output.json")
-
-    imgIds=sorted(cocoGt.getImgIds())
-
-    cocoEval = COCOeval(cocoGt,cocoDt, "bbox")
-    cocoEval.params.imgIds = imgIds
-    cocoEval.evaluate()
-    cocoEval.accumulate()
-    cocoEval.summarize()
-
-    def predict_for_submission(self, model, generator=None, output_dir="."):
-        if self._generator is None and generator is None:
-            raise RuntimeError(
-                "A generator should be specified using the init or parameters."
-            )
-        if generator is not None:
-            self._generator = generator
-
-        # First create the folders that are to hold the results
-        full_output_dir = join(output_dir, "results", self.challenge, "Main")
-        makedirs(full_output_dir)
-
-        # Predicting for all the classes
-        self._generator.batch_size = 1
-        self.shuffle = False
-
-        generator_len = self._generator.number_of_data_samples
-
-        images_path = self._generator.images_path
-
-        classes = ['background', 'aeroplane', 'bicycle', 'bird', 'boat',
-                   'bottle', 'bus', 'car', 'cat',
-                   'chair', 'cow', 'diningtable', 'dog',
-                            'horse', 'motorbike', 'person', 'pottedplant',
-                            'sheep', 'sofa', 'train', 'tvmonitor']
-
-        results = [list() for _ in range(self.n_classes + 1)]
-
-        for i in tqdm(range(generator_len)):
-            X, y = self._generator.__getitem__(i)
-            predictions = model.predict(X)
-            image_id = splitext(split(images_path[i])[1])[0]
-
-            for box in predictions[0]:
-                class_id, confidence, xmin, ymin, xmax, ymax = box
-                with Image.open(images_path[i]) as img:
-                    width, height = img.size
-                xmin = xmin * width / 300
-                xmax = xmax * width / 300
-                ymin = ymin * height / 300
-                ymax = ymax * height / 300
-
-                if xmin < 0:
-                    xmin = 0
-                if ymin < 0:
-                    ymin = 0
-                if xmax > width:
-                    xmax = width
-                if ymax > height:
-                    ymax = height
-                prediction = (image_id, confidence, float(xmin),
-                              float(ymin), float(xmax), float(ymax))
-
-                results[int(class_id)].append(prediction)
-
-        # writing the predictions to the output folder
-        for class_id in range(1, len(results)):
-            output_file = join(
-                full_output_dir, "comp3_det_{}_{}.txt".format(self.set_type, classes[class_id]))
-            with open(output_file, "w") as class_file:
-                for prediction in results[class_id]:
-                    class_file.write(
-                        "{} {:.6f} {:.6f} {:.6f} {:.6f} {:.6f}\n".format(*prediction))
 
     def model_speed(self, model, test_generator=None, number_of_runs=10, iteration_per_run=1000):
 
