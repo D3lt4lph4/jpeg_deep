@@ -679,12 +679,11 @@ class PascalEvaluator(TemplateEvaluator):
 
 
 class CocoEvaluator(TemplateEvaluator):
-    def __init__(self, generator=None, n_classes=80, ignore_flagged_boxes=True, challenge="VOC2007", set_type="test"):
+    def __init__(self, annotation_file, generator=None, n_classes=80):
         self.score = None
         self._generator = generator
         self.n_classes = n_classes
-        self.challenge = challenge
-        self.set_type = set_type
+        self.annotation_file = annotation_file
         self.runs = False
         self.number_of_runs = None
 
@@ -757,21 +756,14 @@ class CocoEvaluator(TemplateEvaluator):
     
     with open("/tmp/output.json", "w") as file:
         json.dump(results, file)
-    
-    dataDir='/d2/thesis/datasets/mscoco'
-    dataType='val2017'
-    annFile='{}/annotations/instances_{}.json'.format(dataDir,dataType)
 
-    annType = "bbox"     #specify type here
-    prefix = 'instances'
-
-    cocoGt=COCO(annFile)
+    cocoGt=COCO(self.annotation_file)
 
     cocoDt=cocoGt.loadRes("/tmp/output.json")
 
     imgIds=sorted(cocoGt.getImgIds())
 
-    cocoEval = COCOeval(cocoGt,cocoDt,annType)
+    cocoEval = COCOeval(cocoGt,cocoDt, "bbox")
     cocoEval.params.imgIds = imgIds
     cocoEval.evaluate()
     cocoEval.accumulate()
