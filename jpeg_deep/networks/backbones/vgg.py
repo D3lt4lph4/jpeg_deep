@@ -207,3 +207,46 @@ def feature_map_dct_deconv(input_shape: Tuple[int, int],  kernel_initializer: st
     block4_pool = MaxPooling2D((2, 2), strides=(2, 2), name='block4_pool')(x)
 
     return [input_y, input_cb, input_cr], block4_pool, block4_conv3
+
+
+def feature_map_dct_y(input_shape: Tuple[int, int],  kernel_initializer: str = 'he_normal', l2_reg=0.0005):
+    """Instantiates the VGG16 architecture.
+        classes: optional number of classes to classify images
+            into, only to be specified if `include_top` is True, and
+            if no `weights` argument is specified.
+    # Returns
+        A Keras model instance.
+    """
+    input_shape_y = (*input_shape, 64)
+
+    input_y = Input(input_shape_y)
+
+    # Block 1
+    x = BatchNormalization(
+        name="b_norm_64", input_shape=input_shape_y)(input_y)
+
+    x = Conv2D(256, (3, 3),
+               activation='relu',
+               padding='same',
+               kernel_regularizer=l2(l2_reg),
+               name='block1_conv1_dct_256')(x)
+
+    # Block 4
+    x = Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               kernel_regularizer=l2(l2_reg),
+               name='block4_conv1_dct')(x)
+    x = Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               kernel_regularizer=l2(l2_reg),
+               name='block4_conv2')(x)
+    block4_conv3 = Conv2D(512, (3, 3),
+               activation='relu',
+               padding='same',
+               kernel_regularizer=l2(l2_reg),
+               name='block4_conv3')(x)
+    block4_pool = MaxPooling2D((2, 2), strides=(2, 2), name='block4_pool')(block4_conv3)
+
+    return input_y, block4_pool, block4_conv3

@@ -9,7 +9,7 @@ from keras.regularizers import l2
 from jpeg_deep.layers.ssd_layers import AnchorBoxes, L2Normalization, DecodeDetections
 from jpeg_deep.layers import ResizeFeatures
 
-from .backbones.vgg import feature_map_rgb, feature_map_dct, feature_map_dct_deconv
+from .backbones.vgg import feature_map_rgb, feature_map_dct, feature_map_dct_deconv, feature_map_dct_y
 
 
 def SSD300(n_classes: int = 20,
@@ -78,7 +78,7 @@ def SSD300(n_classes: int = 20,
     variances = [0.1, 0.1, 0.2, 0.2]
 
     # Prepare the feature extractor.
-    if backbone not in ["VGG16", "VGGDCT", "VGGDCT_deconv"]:
+    if backbone not in ["VGG16", "VGGDCT", "VGGDCT_deconv, VGGDCT_y"]:
         raise RuntimeError("Backbone {} not supported yet. Should be in {}".format(
             backbone, "VGG16, VGGDCT, VGGDCT_deconv"))
     elif backbone == "VGG16":
@@ -87,8 +87,11 @@ def SSD300(n_classes: int = 20,
     elif backbone == "VGGDCT":
         input_layer, block4_pool, block4_conv3 = feature_map_dct(
             image_shape, kernel_initializer=kernel_initializer, rescale_position=rescale_position)
-    else:
+    elif backbone == "VGGDCT_deconv":
         input_layer, block4_pool, block4_conv3 = feature_map_dct_deconv(
+            (38, 38), kernel_initializer=kernel_initializer)
+    else:
+        input_layer, block4_pool, block4_conv3 = feature_map_dct_y(
             (38, 38), kernel_initializer=kernel_initializer)
 
     # Create the network.

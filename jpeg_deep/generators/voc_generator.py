@@ -49,6 +49,7 @@ class VOCGenerator(TemplateGenerator):
                  transforms: List[object] = None,
                  dct: bool = False,
                  split_cbcr=False,
+                 only_y=False,
                  train_mode: bool = True,
                  labels_output_format: List[str] = (
                      'class_id', 'xmin', 'ymin', 'xmax', 'ymax')):
@@ -75,6 +76,7 @@ class VOCGenerator(TemplateGenerator):
 
         self.images_path = self.images_path
         self.split_cbcr = split_cbcr
+        self.only_y = only_y
         self._batch_size = batch_size
         self._shuffle = shuffle
         self._train_mode = train_mode
@@ -234,7 +236,10 @@ class VOCGenerator(TemplateGenerator):
             if self.split_cbcr:
                 return [np.array(X_y), np.array(X_cb), np.array(X_cr)], batch_y_encoded
             else:
-                return [np.array(X_y), np.array(X_cbcr)], batch_y_encoded
+                if self.only_y:
+                    return np.array(X_y), batch_y_encoded
+                else:
+                    return [np.array(X_y), np.array(X_cbcr)], batch_y_encoded
 
     def prepare_dataset(self, exclude_difficult=False):
         """ We load all the labels when preparing the data. If there is the load in memory option activated, we pre-load the images as well. """
