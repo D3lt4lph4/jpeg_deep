@@ -78,7 +78,7 @@ def SSD300(n_classes: int = 20,
     variances = [0.1, 0.1, 0.2, 0.2]
 
     # Prepare the feature extractor.
-    if backbone not in ["VGG16", "VGGDCT", "VGGDCT_deconv, VGGDCT_y"]:
+    if backbone not in ["VGG16", "VGGDCT", "VGGDCT_deconv", "VGGDCT_y"]:
         raise RuntimeError("Backbone {} not supported yet. Should be in {}".format(
             backbone, "VGG16, VGGDCT, VGGDCT_deconv"))
     elif backbone == "VGG16":

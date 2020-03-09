@@ -28,7 +28,7 @@ class TrainingConfiguration(object):
         self._workspace = "ssd"
 
         # Network variables
-        self._weights = "/dlocal/home/2017018/bdegue01/weights/jpeg_deep/classification_dct/vgg_deconv/classification_dct_jpeg_deep_74HV774QQk4x72pBlZPeggslIeITHkcQ/checkpoints/epoch-94_loss-1.8564_val_loss-2.2586_ssd.h5"
+        self._weights = "/dlocal/home/2017018/bdegue01/weights/jpeg_deep/classification_dct/vggd_y/classification_dct_jpeg_deep_GlhLFIjZN2pv5rXF9NJG6wJkhZnL2Nkq/checkpoints/epoch-97_loss-2.0259_val_loss-2.4263_ssd.h5"
         self._network = SSD300(
             backbone="VGGDCT_y", dct=True, image_shape=(38, 38))
 
