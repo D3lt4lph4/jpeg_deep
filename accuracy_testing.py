@@ -11,8 +11,8 @@ from jpeg_deep.generators import DCTGeneratorJPEG2DCT
 from jpeg_deep.networks import vgga_resize, vggd_resize
 from jpeg_deep.networks import vgga_dct_resize, vggd_dct_resize
 from jpeg_deep.networks import vgga_conv, vggd_conv
-from jpeg_deep.networks import vgga_dct_conv, vggd_dct_conv
-from jpeg_deep.networks import ResNet50, late_concat_rfa, late_concat_rfa_thinner
+from jpeg_deep.networks import vgga_dct_conv, vggd_dct_conv, vggd_dct_y_conv, vggd_dct_deconv_conv
+from jpeg_deep.networks import ResNet50, late_concat_rfa, late_concat_rfa_thinner, deconvolution_rfa
 
 
 parser = ArgumentParser()
@@ -55,12 +55,18 @@ elif args.n == "vggddct":
         model = vggd_dct_resize(1000)
     else:
         model = vggd_dct_conv(1000)
+elif args.n == "vggddeconv":
+    model = vggd_dct_deconv_conv(1000)
+elif args.n == "vggdy":
+    model = vggd_dct_y_conv(1000)
 elif args.n == "resnet":
     model = ResNet50(1000, (None, None))
-elif args.n == "lcraf":
+elif args.n == "lcrfa":
     model = late_concat_rfa(input_shape=None)
-elif args.n == "lcraft":
+elif args.n == "lcrfat":
     model = late_concat_rfa_thinner(input_shape=None)
+elif args.n == "deconv_rfa":
+    model = deconvolution_rfa(input_shape=None)
 
 model.load_weights(args.wp, by_name=True)
 
@@ -69,9 +75,16 @@ model.compile(optimizer=SGD(), loss=categorical_crossentropy,
               metrics=['accuracy', 'top_k_categorical_accuracy'])
 
 # Creating the generator for the testing
-if args.n in ["vggadct", "vggddct", "lcraf", "lcraft"]:
-    generator = DCTGeneratorJPEG2DCT(args.dp, args.jf, input_size=(
-        None), batch_size=1, transforms=transformations)
+if args.n not in ["vgga", "vggd"]:
+    if args.n in ["deconv_rfa", "vggddeconv"]:
+        generator = DCTGeneratorJPEG2DCT(args.dp, args.jf, input_size=(
+            None), batch_size=1, transforms=transformations, split_cbcr=True)
+    elif args.n in ["vggdy"]:
+        generator = DCTGeneratorJPEG2DCT(args.dp, args.jf, input_size=(
+            None), batch_size=1, transforms=transformations, only_y=True)
+    else:
+        generator = DCTGeneratorJPEG2DCT(args.dp, args.jf, input_size=(
+            None), batch_size=1, transforms=transformations)
 else:
     generator = RGBGenerator(args.dp, args.jf, input_size=(
         None), batch_size=1, transforms=transformations)

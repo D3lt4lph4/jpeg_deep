@@ -501,7 +501,7 @@ def vggd_dct_deconv(classes=1000, input_shape=(28, 28)):
     return Model(inputs=[input_y, input_cb, input_cr], outputs=x)
 
 
-def vggd_dct_deconv_conv(classes=1000, input_shape=(28, 28)):
+def vggd_dct_deconv_conv(classes=1000, input_shape=None):
     """Instantiates the VGG16 architecture.
         classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True, and
@@ -730,7 +730,7 @@ def vggd_dct_y(classes=1000, input_shape=(28, 28)):
 
     return Model(input_y, outputs=x)
 
-def vggd_dct_y_conv(classes=1000, input_shape=(28, 28)):
+def vggd_dct_y_conv(classes=1000, input_shape=(None, None)):
     """Instantiates the VGG16 architecture.
         classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True, and
