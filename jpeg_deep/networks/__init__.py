@@ -8,6 +8,7 @@ from .networks_dct import vggd_dct_deconv, vggd_dct_deconv_conv, vggd_dct_deconv
 from .resnet import ResNet50
 from .resnet_dct import late_concat_rfa, late_concat_rfa_thinner
 from .resnet_dct import deconvolution_rfa
+from .resnet_dct import late_concat_rfa_y, late_concat_rfa_y_thinner
 
 from .ssd import SSD300
 from .ssd_resnet import SSD300_resnet

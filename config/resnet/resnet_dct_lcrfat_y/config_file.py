@@ -1,58 +1,74 @@
-from os import environ
 from os.path import join
+from os import environ
 
-from keras import backend as K
 from keras.optimizers import SGD
+from keras.losses import categorical_crossentropy
 from keras.callbacks import ModelCheckpoint, TerminateOnNaN, EarlyStopping, ReduceLROnPlateau, TensorBoard
 
-from jpeg_deep.networks import SSD300_resnet
-from jpeg_deep.generators import VOCGenerator
-from jpeg_deep.evaluation import PascalEvaluator
+from jpeg_deep.generators import DCTGeneratorJPEG2DCT
+from jpeg_deep.networks import late_concat_rfa_y_thinner
+from jpeg_deep.evaluation import Evaluator
 
-from jpeg_deep.generators import SSDInputEncoder
-from jpeg_deep.tranformations import SSDDataAugmentation, ConvertTo3Channels, Resize
-from jpeg_deep.losses import SSDLoss
+from albumentations import (
+    HorizontalFlip,
+    RandomCrop,
+    CenterCrop,
+    SmallestMaxSize,
+)
+
+from albumentations import (
+    OneOf,
+    Compose
+)
 
 
 class TrainingConfiguration(object):
 
     def __init__(self):
         # Variables to hold the description of the experiment
-        self.config_description = "This is the template config file."
+        self.description = "Training configuration file for the RGB version of the ResNet50 network."
 
         # System dependent variable
-        self._workers = 5
+        self._workers = 10
         self._multiprocessing = True
 
         # Variables for comet.ml
-        self._project_name = "jpeg_deep"
-        self._workspace = "ssd"
+        self._project_name = "jpeg-deep"
+        self._workspace = "classification_dct"
 
         # Network variables
-        self._weights = "/dlocal/home/2017018/bdegue01/weights/jpeg_deep/classification_dct/resnet_deconv/classification_dct_jpeg-deep_GYftBmXMdjdxoMksyI3e9VqB5IriBC9T/checkpoints/epoch-87_loss-0.7459_val_loss-1.5599.h5"
-        self._network = SSD300_resnet(
-            backbone="deconv_rfa", dct=True, image_shape=(38, 38))
+        self._weights = None
+        self._network = late_concat_rfa_y_thinner()
 
         # Training variables
-        self._epochs = 240
+        self._epochs = 90
         self._batch_size = 32
-        self._steps_per_epoch = 1000
-
+        self._steps_per_epoch = 1281167 // self.batch_size
+        self._validation_steps = 50000 // self._batch_size
         self.optimizer_parameters = {
-            "lr": 0.001, "momentum": 0.9}
+            "lr": 0.0125, "momentum": 0.9}
         self._optimizer = SGD(**self.optimizer_parameters)
-        self._loss = SSDLoss(neg_pos_ratio=3, alpha=1.0).compute_loss
-        self._metrics = None
+        self._loss = categorical_crossentropy
+        self._metrics = ['accuracy', 'top_k_categorical_accuracy']
 
-        dataset_path = environ["DATASET_PATH"]
-        images_2007_path = join(dataset_path, "VOC2007/JPEGImages")
-        images_2012_path = join(dataset_path, "VOC2012/JPEGImages")
-        self.train_sets = [(images_2007_path, join(dataset_path, "VOC2007/ImageSets/Main/train.txt")), (images_2012_path, join(
-            dataset_path, "VOC2012/ImageSets/Main/train.txt"))]
-        self.validation_sets = [(images_2007_path, join(dataset_path, "VOC2007/ImageSets/Main/val.txt")),
-                                (images_2012_path, join(dataset_path, "VOC2012/ImageSets/Main/val.txt"))]
-        self.test_sets = [(images_2007_path, join(
-            dataset_path, "VOC2007/ImageSets/Main/test.txt"))]
+        self.train_directory = join(
+            environ["DATASET_PATH_TRAIN"], "imagenet/train")
+        self.validation_directory = join(
+            environ["DATASET_PATH_TRAIN"], "imagenet/validation")
+        self.test_directory = join(
+            environ["DATASET_PATH_VAL"], "imagenet/validation")
+        self.validation_split = 0.95
+        self.index_file = "/home/2017018/bdegue01/git/jpeg_deep/data/imagenet_class_index.json"
+
+        # Defining the transformations that will be applied to the inputs.
+        self.train_transformations = [
+            SmallestMaxSize(256),
+            RandomCrop(224, 224),
+            HorizontalFlip()
+        ]
+
+        self.validation_transformations = [
+            SmallestMaxSize(256), CenterCrop(224, 224)]
 
         # Keras stuff
         self.model_checkpoint = None
@@ -60,18 +76,10 @@ class TrainingConfiguration(object):
         self.terminate_on_nan = TerminateOnNaN()
         self.early_stopping = EarlyStopping(monitor='val_loss',
                                             min_delta=0,
-                                            patience=15)
+                                            patience=11)
 
-        self._callbacks = [self.reduce_lr_on_plateau, self.early_stopping,
-                           self.terminate_on_nan]
-
-        self.input_encoder = SSDInputEncoder()
-
-        self.train_tranformations = [SSDDataAugmentation()]
-        self.validation_transformations = [
-            ConvertTo3Channels(), Resize(height=300, width=300)]
-        self.test_transformations = [ConvertTo3Channels(), Resize(
-            height=300, width=300)]
+        self._callbacks = [self.reduce_lr_on_plateau,
+                           self.terminate_on_nan, self.early_stopping]
 
         self._train_generator = None
         self._validation_generator = None
@@ -120,26 +128,20 @@ class TrainingConfiguration(object):
         ]
 
     def prepare_for_inference(self):
-        K.clear_session()
-        self._network = SSD300_resnet(
-            backbone="deconv_rfa", dct=True, image_shape=(38, 38), mode="inference")
+        pass
 
     def prepare_evaluator(self):
-        self._evaluator = PascalEvaluator()
+        self._evaluator = Evaluator()
 
     def prepare_testing_generator(self):
-        self._test_generator = VOCGenerator(batch_size=self.batch_size, shuffle=False, label_encoder=self.input_encoder, dct=True, split_cbcr=True,
-                                            transforms=self.test_transformations, images_path=self.test_sets)
-        self._test_generator.prepare_dataset()
+        self._test_generator = DCTGeneratorJPEG2DCT(
+            self.test_directory, self.index_file, None, 1, only_y=True)
 
     def prepare_training_generators(self):
-        self._train_generator = VOCGenerator(batch_size=self.batch_size, shuffle=True, label_encoder=self.input_encoder, dct=True, split_cbcr=True,
-                                             transforms=self.train_tranformations, images_path=self.train_sets)
-        self._train_generator.prepare_dataset()
-        self._validation_generator = VOCGenerator(batch_size=self.batch_size, shuffle=True, label_encoder=self.input_encoder, dct=True, split_cbcr=True,
-                                                  transforms=self.validation_transformations, images_path=self.validation_sets)
-        self._validation_generator.prepare_dataset(exclude_difficult=True)
-        self.validation_steps = len(self._validation_generator)
+        self._train_generator = DCTGeneratorJPEG2DCT(
+            self.train_directory, self.index_file, batch_size=self.batch_size, shuffle=True, transforms=self.train_transformations, only_y=True)
+        self._validation_generator = DCTGeneratorJPEG2DCT(
+            self.validation_directory, self.index_file, batch_size=self.batch_size, shuffle=True, transforms=self.validation_transformations, only_y=True)
 
     @property
     def train_generator(self):
@@ -220,3 +222,11 @@ class TrainingConfiguration(object):
     @property
     def workspace(self):
         return self._workspace
+
+    @property
+    def horovod(self):
+        return self._horovod
+
+    @property
+    def validation_steps(self):
+        return self._validation_steps

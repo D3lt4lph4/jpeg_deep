@@ -176,3 +176,93 @@ def deconvolution_rfa(input_shape=(28, 28), classes: int = 1000):
                   name='resnet50_deconv_rfa')
 
     return model
+
+
+def late_concat_rfa_y(input_shape=(28, 28), classes: int = 1000):
+    if input_shape is None:
+        input_shape_y = (None, None, 64)
+    else:
+        input_shape_y = (*input_shape, 64)
+
+    input_y = Input(shape=input_shape_y)
+
+    bn_axis = 3
+
+    bn_y = BatchNormalization(
+        axis=bn_axis, momentum=0.9, epsilon=1e-5, name='bn_y')(input_y)
+
+    x = conv_block(bn_y, 1, [256, 256, 1024],
+                   stage=1, block="a_y", strides=(1, 1))
+    x = identity_block(x, 2, [256, 256, 1024], stage=1, block="b_y")
+    x = identity_block(x, 3, [256, 256, 1024], stage=1, block="c_y")
+
+    x = conv_block(x, 3, [128, 128, 512], stage=2, block='a_y', strides=(1, 1))
+    x = identity_block(x, 3, [128, 128, 512], stage=2, block='b_y')
+    x = identity_block(x, 3, [128, 128, 512], stage=2, block='c_y')
+    x = identity_block(x, 3, [128, 128, 512], stage=2, block='d_y')
+
+    x = conv_block(x, 3, [128, 128, 1024], stage=3, block='a_y')
+    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='b')
+    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='c')
+    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='d')
+    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='e')
+    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='f')
+
+    x = conv_block(x, 3, [512, 512, 2048], stage=5, block='a')
+    x = identity_block(x, 3, [512, 512, 2048], stage=5, block='b')
+    x = identity_block(x, 3, [512, 512, 2048], stage=5, block='c')
+
+    x = GlobalAveragePooling2D(name='avg_pool')(x)
+    x = Dense(classes, activation='softmax',
+              kernel_regularizer=l2(0.00005), name='fc1000')(x)
+
+    model = Model(input_y, x,
+                  name='resnet50_late_concat_rfa_y')
+
+    return model
+
+
+def late_concat_rfa_y_thinner(input_shape=(28, 28), classes=1000):
+    if input_shape is None:
+        input_shape_y = (None, None, 64)
+    else:
+        input_shape_y = (*input_shape, 64)
+
+    input_y = Input(shape=input_shape_y)
+
+    bn_axis = 3
+
+    bn_y = BatchNormalization(
+        axis=bn_axis, momentum=0.9, epsilon=1e-5, name='bn_y')(input_y)
+
+    x = conv_block(bn_y, 1, [256, 256, 384],
+                   stage=1, block="a_y", strides=(1, 1))
+    x = identity_block(x, 2, [256, 256, 384], stage=1, block="b_y")
+    x = identity_block(x, 3, [256, 256, 384], stage=1, block="c_y")
+
+    x = conv_block(x, 3, [128, 128, 384], stage=2, block='a_y', strides=(1, 1))
+    x = identity_block(x, 3, [128, 128, 384], stage=2, block='b_y')
+    x = identity_block(x, 3, [128, 128, 384], stage=2, block='c_y')
+    x = identity_block(x, 3, [128, 128, 384], stage=2, block='d_y')
+
+    x = conv_block(x, 3, [128, 128, 1024], stage=3, block='a_y')
+
+    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='b')
+    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='c')
+    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='d')
+    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='e')
+    x = identity_block(x, 3, [256, 256, 1024], stage=4, block='f')
+
+    x = conv_block(x, 3, [512, 512, 2048], stage=5, block='a')
+    x = identity_block(x, 3, [512, 512, 2048], stage=5, block='b')
+    x = identity_block(x, 3, [512, 512, 2048], stage=5, block='c')
+
+    x = GlobalAveragePooling2D(name='avg_pool')(x)
+    x = Dense(classes, activation='softmax',
+              kernel_regularizer=l2(0.00005), name='fc1000')(x)
+
+    # Create model.
+    model = Model(input_y, x,
+                  name='resnet50_late_concat_rfa_y_thinner')
+
+    return model
