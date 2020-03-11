@@ -290,7 +290,7 @@ class PascalEvaluator(TemplateEvaluator):
 
                 res = tf.image.combined_non_max_suppression(bbox, bbox_scores, 400, 200, 0.45, 0.01)
 
-                print(res)
+                # print(res)
 
                 # for i in range(len(pred)):
                 #     decode_bbox = pred[i][:, -4:]
