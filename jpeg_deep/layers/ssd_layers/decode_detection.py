@@ -156,18 +156,21 @@ class DecodeDetections(Layer):
             self.tf_normalize_coords, normalized_coords, non_normalized_coords)
 
         # Concatenate the one-hot class confidences and the converted box coordinates to form the decoded predictions tensor.
-        y_pred = tf.concat(
-            values=[y_pred[..., :-12], xmin, ymin, xmax, ymax], axis=-1)
+        # y_pred = tf.concat(
+        #     values=[y_pred[..., :-12], xmin, ymin, xmax, ymax], axis=-1)
 
         preds = tf.concat([xmin, ymin, xmax, ymax], axis=-1)
-        scores = y_pred[..., :-12]
+        scores = y_pred[..., 1:-12]
 
         preds = tf.expand_dims(preds, axis=2)
 
         f_pred = tf.image.combined_non_max_suppression(
             preds, scores, 400, 200, 0.45, 0.01, clip_boxes=False)
 
-        return f_pred[0]
+        conf = tf.expand_dims(f_pred[1], -1)
+        classes = tf.expand_dims(f_pred[2], -1)
+
+        return tf.concat([classes, conf, f_pred[0]], axis=-1)
         #####################################################################################
         # 2. Perform confidence thresholding, per-class non-maximum suppression, and
         #    top-k filtering.
