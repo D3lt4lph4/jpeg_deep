@@ -159,6 +159,7 @@ class DecodeDetections(Layer):
         y_pred = tf.concat(
             values=[y_pred[..., :-12], xmin, ymin, xmax, ymax], axis=-1)
 
+        return y_pred
         #####################################################################################
         # 2. Perform confidence thresholding, per-class non-maximum suppression, and
         #    top-k filtering.
@@ -195,6 +196,7 @@ class DecodeDetections(Layer):
                                                mask=threshold_met)
 
                 # If any boxes made the threshold, perform NMS.
+
                 def perform_nms():
                     scores = single_class[..., 1]
 

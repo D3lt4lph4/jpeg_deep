@@ -17,6 +17,7 @@ from pycocotools.cocoeval import COCOeval
 
 from jpeg_deep.utils import iou
 
+import tensorflow as tf
 
 class Evaluator(TemplateEvaluator):
     def __init__(self, generator=None):
@@ -260,7 +261,7 @@ class PascalEvaluator(TemplateEvaluator):
                     class_file.write(
                         "{} {:.6f} {:.6f} {:.6f} {:.6f} {:.6f}\n".format(*prediction))
 
-    def model_speed(self, model, test_generator=None, number_of_runs=10, iteration_per_run=1000):
+    def model_speed(self, model, test_generator=None, number_of_runs=10, iteration_per_run=200):
 
         if self._generator is None and test_generator is None:
             raise RuntimeError(
@@ -272,11 +273,43 @@ class PascalEvaluator(TemplateEvaluator):
         times = []
 
         X, _ = self._generator.__getitem__(0)
-
+        sess = tf.Session(config=tf.ConfigProto(device_count={'GPU': 0}))
+        boxes = tf.placeholder(dtype='float32', shape=(None, 4))
+        scores = tf.placeholder(dtype='float32', shape=(None,))
+        nms = tf.image.non_max_suppression(boxes, scores, 400, iou_threshold=0.45)
         for _ in tqdm(range(number_of_runs)):
             start_time = time.time()
             for _ in range(iteration_per_run):
-                _ = model.predict(X)
+                results = []
+                pred = model.predict(X)
+                # print(pred.shape)
+
+                bbox = pred[:,:, -4:]
+                bbox = np.expand_dims(bbox, axis=2)
+                bbox_scores = pred[:,:, :-4]
+
+                res = tf.image.combined_non_max_suppression(bbox, bbox_scores, 400, 200, 0.45, 0.01)
+
+                print(res)
+
+                # for i in range(len(pred)):
+                #     decode_bbox = pred[i][:, -4:]
+                #     for c in range(1, 21):
+                #         c_confs = pred[i, :, c]
+                #         c_confs_m = c_confs > 0.01
+                #         if len(c_confs[c_confs_m]) > 0:
+                #             boxes_to_process = decode_bbox[c_confs_m]
+                #             confs_to_process = c_confs[c_confs_m]
+                #             feed_dict = {boxes: boxes_to_process,
+                #                         scores: confs_to_process}
+                #             idx = sess.run(nms, feed_dict=feed_dict)
+                #             good_boxes = boxes_to_process[idx]
+                #             confs = confs_to_process[idx][:, None]
+                #             labels = c * np.ones((len(idx), 1))
+                #             c_pred = np.concatenate((labels, confs, good_boxes),
+                #                                     axis=1)
+                #             results.append(c_pred)
+
             times.append(time.time() - start_time)
 
         print("It took {} seconds on average of {} runs to run {} iteration of prediction with bacth size {}.".format(
