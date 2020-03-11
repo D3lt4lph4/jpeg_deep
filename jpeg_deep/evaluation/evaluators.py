@@ -284,13 +284,13 @@ class PascalEvaluator(TemplateEvaluator):
                 pred = model.predict(X)
                 # print(pred.shape)
 
-                bbox = pred[:,:, -4:]
-                bbox = np.expand_dims(bbox, axis=2)
-                bbox_scores = pred[:,:, :-4]
+                # bbox = pred[:,:, -4:]
+                # bbox = np.expand_dims(bbox, axis=2)
+                # bbox_scores = pred[:,:, :-4]
 
-                res = tf.image.combined_non_max_suppression(bbox, bbox_scores, 400, 200, 0.45, 0.01)
+                # res = tf.image.combined_non_max_suppression(bbox, bbox_scores, 400, 200, 0.45, 0.01, clip_boxes=False)
 
-                # print(res)
+                # val = np.array(res)[0].eval(session=sess)
 
                 # for i in range(len(pred)):
                 #     decode_bbox = pred[i][:, -4:]

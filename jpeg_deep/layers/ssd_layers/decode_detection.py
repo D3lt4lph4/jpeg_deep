@@ -159,7 +159,15 @@ class DecodeDetections(Layer):
         y_pred = tf.concat(
             values=[y_pred[..., :-12], xmin, ymin, xmax, ymax], axis=-1)
 
-        return y_pred
+        preds = tf.concat([xmin, ymin, xmax, ymax], axis=-1)
+        scores = y_pred[..., :-12]
+
+        preds = tf.expand_dims(preds, axis=2)
+
+        f_pred = tf.image.combined_non_max_suppression(
+            preds, scores, 400, 200, 0.45, 0.01, clip_boxes=False)
+
+        return f_pred[0]
         #####################################################################################
         # 2. Perform confidence thresholding, per-class non-maximum suppression, and
         #    top-k filtering.
