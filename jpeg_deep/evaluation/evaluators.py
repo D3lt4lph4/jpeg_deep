@@ -19,40 +19,6 @@ from jpeg_deep.utils import iou
 
 import tensorflow as tf
 
-from torchvision.ops import nms
-import torch
-from multiprocessing import Process, Pool, Queue
-from threading import Thread
-
-def fn_3(pred, q_out):
-
-    results = []
-    for i in range(len(pred)):
-        class_preds = []
-        for c in range(1, 21):
-            c_confs = pred[i, :, c]
-            decode_bbox = pred[i, :, -4:]
-            c_confs_m = c_confs > 0.01
-            if len(c_confs[c_confs_m]) > 0:
-                boxes_to_process = decode_bbox[c_confs_m]
-                confs_to_process = c_confs[c_confs_m]
-
-                idx = nms(torch.tensor(boxes_to_process), torch.tensor(confs_to_process), 0.45)
-                idx = idx.numpy()
-
-                if len(idx) > 200:
-                    idx = idx[:200]
-
-                confs = np.expand_dims(confs_to_process, 1)[idx]
-                c_pred = np.concatenate([np.ones(confs.shape) * c, confs, boxes_to_process[idx]], axis=-1)
-                class_preds.append(c_pred)
-        
-        res = np.concatenate(class_preds, axis=0)
-        res = res[res[:,1].argsort()[::-1]]
-        results.append(res[:200])
-    
-    q_out.put(results)
-
 
 class Evaluator(TemplateEvaluator):
     def __init__(self, generator=None):
@@ -296,7 +262,7 @@ class PascalEvaluator(TemplateEvaluator):
                     class_file.write(
                         "{} {:.6f} {:.6f} {:.6f} {:.6f} {:.6f}\n".format(*prediction))
 
-    def model_speed(self, model, test_generator=None, number_of_runs=10, iteration_per_run=100):
+    def model_speed(self, model, test_generator=None, number_of_runs=10, iteration_per_run=200):
 
         if self._generator is None and test_generator is None:
             raise RuntimeError(
@@ -316,17 +282,7 @@ class PascalEvaluator(TemplateEvaluator):
             for _ in range(iteration_per_run):
                 results = []
                 pred = model.predict(X)
-                
-            #     # We run the NMS on cpu in thread as it is faster than on GPU
-            #     p.append(Thread(target=fn_3, args=(pred, q_o)))
-            #     p[-1].start()
-                
-            # for proc in p:
-            #     proc.join()
-            #     # print(q_o.get()[5][0])
                             
-                            
-
             times.append(time.time() - start_time)
 
         print("It took {} seconds on average of {} runs to run {} iteration of prediction with bacth size {}.".format(
