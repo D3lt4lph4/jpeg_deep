@@ -275,7 +275,6 @@ class PascalEvaluator(TemplateEvaluator):
 
         X, _ = self._generator.__getitem__(0)
         
-        q_o = Queue()
         for _ in tqdm(range(number_of_runs)):
             start_time = time.time()
             p = [] 
