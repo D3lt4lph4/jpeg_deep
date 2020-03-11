@@ -62,6 +62,7 @@ class COCOGenerator(TemplateGenerator):
                  dct: bool = False,
                  mode: str = "train",
                  split_cbcr=False,
+                 only_y=False,
                  labels_output_format: List[str] = (
                      'class_id', 'xmin', 'ymin', 'xmax', 'ymax')):
         '''
@@ -78,6 +79,7 @@ class COCOGenerator(TemplateGenerator):
         self.transforms = transforms
         self.label_encoder = label_encoder
         self.split_cbcr = split_cbcr
+        self.only_y = only_y
 
         # Getting all the images
         self.image_directory = image_directory
@@ -114,7 +116,8 @@ class COCOGenerator(TemplateGenerator):
                 bounding_boxes = []
                 for annotation in annotations:
                     bbox = annotation["bbox"]
-                    bbox = [bbox[0], bbox[1], bbox[0] + bbox[2], bbox[1] + bbox[3]]
+                    bbox = [bbox[0], bbox[1], bbox[0] +
+                            bbox[2], bbox[1] + bbox[3]]
                     class_id = self.matching_dictionnary[annotation["category_id"]][1]
                     bounding_boxes.append([class_id, *bbox])
 
@@ -122,9 +125,10 @@ class COCOGenerator(TemplateGenerator):
                     continue
                 self.images_path.append(file_path)
                 self.labels.append(bounding_boxes)
-        
+
         else:
-            files = [join(image_directory, file) for file in os.listdir(image_directory) if os.path.isfile(os.path.join(image_directory, file))]
+            files = [join(image_directory, file) for file in os.listdir(
+                image_directory) if os.path.isfile(os.path.join(image_directory, file))]
 
             for file in files:
                 self.images_path.append(file)
@@ -288,7 +292,10 @@ class COCOGenerator(TemplateGenerator):
             if self.split_cbcr:
                 return [np.array(X_y), np.array(X_cb), np.array(X_cr)], batch_y_encoded
             else:
-                return [np.array(X_y), np.array(X_cbcr)], batch_y_encoded
+                if self.only_y:
+                    return np.array(X_y), batch_y_encoded
+                else:
+                    return [np.array(X_y), np.array(X_cbcr)], batch_y_encoded
 
     def get_raw_input_label(self, index):
         """ Should return the raw input at a given batch index, i.e something displayable.
