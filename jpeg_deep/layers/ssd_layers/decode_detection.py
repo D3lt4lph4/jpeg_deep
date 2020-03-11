@@ -156,10 +156,10 @@ class DecodeDetections(Layer):
             self.tf_normalize_coords, normalized_coords, non_normalized_coords)
 
         # Concatenate the one-hot class confidences and the converted box coordinates to form the decoded predictions tensor.
-        y_pred = tf.concat(
-            values=[y_pred[..., :-12], xmin, ymin, xmax, ymax], axis=-1)
+        # y_pred = tf.concat(
+        #     values=[y_pred[..., :-12], xmin, ymin, xmax, ymax], axis=-1)
 
-        return y_pred
+        # return y_pred
         preds = tf.concat([xmin, ymin, xmax, ymax], axis=-1)
         scores = y_pred[..., 1:-12]
 

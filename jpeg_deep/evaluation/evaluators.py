@@ -296,7 +296,7 @@ class PascalEvaluator(TemplateEvaluator):
                     class_file.write(
                         "{} {:.6f} {:.6f} {:.6f} {:.6f} {:.6f}\n".format(*prediction))
 
-    def model_speed(self, model, test_generator=None, number_of_runs=10, iteration_per_run=200):
+    def model_speed(self, model, test_generator=None, number_of_runs=10, iteration_per_run=100):
 
         if self._generator is None and test_generator is None:
             raise RuntimeError(
@@ -308,11 +308,7 @@ class PascalEvaluator(TemplateEvaluator):
         times = []
 
         X, _ = self._generator.__getitem__(0)
-        sess = tf.Session(config=tf.ConfigProto(device_count={'GPU': 0}))
-        boxes = tf.placeholder(dtype='float32', shape=(None, 4))
-        scores = tf.placeholder(dtype='float32', shape=(None,))
-        # nms = tf.image.non_max_suppression(boxes, scores, 400, iou_threshold=0.45)
-
+        
         q_o = Queue()
         for _ in tqdm(range(number_of_runs)):
             start_time = time.time()
@@ -321,13 +317,13 @@ class PascalEvaluator(TemplateEvaluator):
                 results = []
                 pred = model.predict(X)
                 
-                # We run the NMS on cpu in thread as it is faster than on GPU
-                p.append(Thread(target=fn_3, args=(pred, q_o)))
-                p[-1].start()
+            #     # We run the NMS on cpu in thread as it is faster than on GPU
+            #     p.append(Thread(target=fn_3, args=(pred, q_o)))
+            #     p[-1].start()
                 
-            for proc in p:
-                proc.join()
-                # print(q_o.get()[5][0])
+            # for proc in p:
+            #     proc.join()
+            #     # print(q_o.get()[5][0])
                             
                             
 
