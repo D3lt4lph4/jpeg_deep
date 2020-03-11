@@ -296,7 +296,7 @@ class PascalEvaluator(TemplateEvaluator):
                     class_file.write(
                         "{} {:.6f} {:.6f} {:.6f} {:.6f} {:.6f}\n".format(*prediction))
 
-    def model_speed(self, model, test_generator=None, number_of_runs=10, iteration_per_run=100):
+    def model_speed(self, model, test_generator=None, number_of_runs=10, iteration_per_run=200):
 
         if self._generator is None and test_generator is None:
             raise RuntimeError(
@@ -327,7 +327,7 @@ class PascalEvaluator(TemplateEvaluator):
                 
             for proc in p:
                 proc.join()
-                print(q_o.get()[5][0])
+                # print(q_o.get()[5][0])
                             
                             
 
