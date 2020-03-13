@@ -35,7 +35,7 @@ class TrainingConfiguration(object):
         # Network variables
         self._weights = "/dlocal/home/2017018/bdegue01/weights/jpeg_deep/classification_dct/lcrfat_y/classification_dct_jpeg-deep_cwuagngnTzBVTL1DuPtA4lnl5nHKn6hu/checkpoints/epoch-71_loss-0.9257_val_loss-1.7127.h5"
         self._network = SSD300_resnet(
-            n_classes=80, scales=[0.07, 0.15, 0.33, 0.51, 0.69, 0.87, 1.05], backbone="lcrfat_t")
+            n_classes=80, scales=[0.07, 0.15, 0.33, 0.51, 0.69, 0.87, 1.05], backbone="lcrfat_y")
 
         # Training variables
         self._epochs = 240
