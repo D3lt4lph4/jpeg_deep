@@ -342,7 +342,7 @@ def feature_map_lcrfa_y(image_shape: Tuple[int, int],  kernel_initializer: str =
     return [input_y, input_cbcr], last, block4_conv3
 
 
-def feature_map_lcrfat(image_shape: Tuple[int, int],  kernel_initializer: str = 'he_normal', l2_reg=0.0005):
+def feature_map_lcrfat_y(image_shape: Tuple[int, int],  kernel_initializer: str = 'he_normal', l2_reg=0.0005):
     """ Helper function that generates the first layers of the SSD. This function generates the layers for the DCT network.
 
     # Arguments:
