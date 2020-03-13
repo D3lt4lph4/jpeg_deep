@@ -339,7 +339,7 @@ def feature_map_lcrfa_y(image_shape: Tuple[int, int],  kernel_initializer: str =
     last = identity_block(x, 3, [512, 512, 2048],
                           stage=5, block='c', kernel_reg=l2_reg)
 
-    return [input_y, input_cbcr], last, block4_conv3
+    return input_y, last, block4_conv3
 
 
 def feature_map_lcrfat_y(image_shape: Tuple[int, int],  kernel_initializer: str = 'he_normal', l2_reg=0.0005):
@@ -396,4 +396,4 @@ def feature_map_lcrfat_y(image_shape: Tuple[int, int],  kernel_initializer: str 
     last = identity_block(x, 3, [512, 512, 2048],
                           stage=5, block='c', kernel_reg=l2_reg)
 
-    return [input_y, input_cbcr], last, block4_conv3
+    return input_y, last, block4_conv3
