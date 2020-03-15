@@ -63,7 +63,7 @@ class TrainingConfiguration(object):
                                             min_delta=0,
                                             patience=15)
 
-        self._callbacks = [self.reduce_lr_on_plateau,
+        self._callbacks = [self.reduce_lr_on_plateau, self.early_stopping,
                            self.terminate_on_nan]
 
         self.input_encoder = SSDInputEncoder(n_classes=80)
