@@ -1,6 +1,7 @@
 from os import environ
 from os.path import join
 
+from keras import backend as K
 from keras.optimizers import Adadelta, SGD
 from keras.losses import categorical_crossentropy
 from keras.callbacks import ModelCheckpoint, TerminateOnNaN, CSVLogger, EarlyStopping, ReduceLROnPlateau, TensorBoard
@@ -35,7 +36,7 @@ class TrainingConfiguration(object):
         # Network variables
         self._weights = "/dlocal/home/2017018/bdegue01/weights/jpeg_deep/reproduce/vgg/full_reg/vggd/epoch-86_loss-1.4413_val_loss-1.9857_ssd.h5"
         self._network = SSD300(n_classes=80, scales=[
-                               0.07, 0.15, 0.33, 0.51, 0.69, 0.87, 1.05])
+                               0.07, 0.15, 0.33, 0.51, 0.69, 0.87, 1.05], backbone="VGG16")
 
         # Training variables
         self._epochs = 240
@@ -63,7 +64,7 @@ class TrainingConfiguration(object):
                                             min_delta=0,
                                             patience=15)
 
-        self._callbacks = [self.reduce_lr_on_plateau,
+        self._callbacks = [self.reduce_lr_on_plateau, self.early_stopping,
                            self.terminate_on_nan]
 
         self.input_encoder = SSDInputEncoder(n_classes=80)
@@ -121,14 +122,17 @@ class TrainingConfiguration(object):
         ]
 
     def prepare_for_inference(self):
-        pass
+        K.clear_session()
+        self._network = SSD300(n_classes=80, scales=[
+                               0.07, 0.15, 0.33, 0.51, 0.69, 0.87, 1.05], backbone="VGG16", mode="inference")
 
     def prepare_evaluator(self):
-        self._evaluator = Evaluator()
+        self._evaluator = CocoEvaluator(
+            self.validation_annotation_path, set="val2017", alg="resnet")
 
     def prepare_testing_generator(self):
         self._test_generator = COCOGenerator(self.validation_image_dir, self.validation_annotation_path, batch_size=self.batch_size, shuffle=False, label_encoder=self.input_encoder,
-                                             transforms=self.test_transformations, load_images_into_memory=None, images_path=self.test_sets)
+                                             transforms=self.test_transformations)
 
     def prepare_training_generators(self):
         self._train_generator = COCOGenerator(self.train_image_dir, self.train_annotation_path, batch_size=self.batch_size, shuffle=True, label_encoder=self.input_encoder,

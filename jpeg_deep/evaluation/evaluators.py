@@ -758,9 +758,6 @@ class CocoEvaluator(TemplateEvaluator):
                     xmax = width
                 if ymax > height:
                     ymax = height
-
-                if confidence > 0.5:
-                    print(confidence)
                 
                 prediction = {"image_id": image_id,"category_id": self.matching_dictionnary[class_id][0],"bbox": [xmin, ymin, xmax-xmin, ymax-ymin],"score":float(confidence)}
 
@@ -825,9 +822,6 @@ class CocoEvaluator(TemplateEvaluator):
                     xmax = width
                 if ymax > height:
                     ymax = height
-
-                if confidence > 0.5:
-                    print(confidence)
                 
                 prediction = {"image_id": image_id,"category_id": self.matching_dictionnary[class_id][0],"bbox": [xmin, ymin, xmax-xmin, ymax-ymin],"score":float(confidence)}
 
