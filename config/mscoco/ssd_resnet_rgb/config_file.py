@@ -9,7 +9,7 @@ from keras.applications.vgg16 import preprocess_input
 
 from jpeg_deep.networks import SSD300_resnet
 from jpeg_deep.generators import COCOGenerator
-from jpeg_deep.evaluation import Evaluator
+from jpeg_deep.evaluation import CocoEvaluator
 
 from jpeg_deep.generators import SSDInputEncoder
 from jpeg_deep.tranformations import SSDDataAugmentation, ConvertTo3Channels, Resize

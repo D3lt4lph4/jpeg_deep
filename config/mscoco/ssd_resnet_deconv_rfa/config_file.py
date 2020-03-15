@@ -9,7 +9,7 @@ from keras.applications.vgg16 import preprocess_input
 
 from jpeg_deep.networks import SSD300_resnet
 from jpeg_deep.generators import COCOGenerator
-from jpeg_deep.evaluation import Evaluator
+from jpeg_deep.evaluation import CocoEvaluator
 
 from jpeg_deep.generators import SSDInputEncoder
 from jpeg_deep.tranformations import SSDDataAugmentation, ConvertTo3Channels, Resize
@@ -25,8 +25,8 @@ class TrainingConfiguration(object):
         self.config_description = "This is the template config file."
 
         # System dependent variable
-        self._workers = 1
-        self._multiprocessing = False
+        self._workers = 5
+        self._multiprocessing = True
 
         # Variables for comet.ml
         self._project_name = "jpeg_deep"
@@ -39,7 +39,7 @@ class TrainingConfiguration(object):
 
         # Training variables
         self._epochs = 240
-        self._batch_size = 1
+        self._batch_size = 32
         self._steps_per_epoch = 3700
         self._validation_steps = 156
         self.optimizer_parameters = {
@@ -124,11 +124,12 @@ class TrainingConfiguration(object):
         pass
 
     def prepare_evaluator(self):
-        self._evaluator = Evaluator()
+        self._evaluator = CocoEvaluator(
+            self.validation_annotation_path, set="val2017", alg="resnet")
 
     def prepare_testing_generator(self):
         self._test_generator = COCOGenerator(self.validation_image_dir, self.validation_annotation_path, batch_size=self.batch_size, shuffle=False, label_encoder=self.input_encoder, dct=True,  split_cbcr=True,
-                                             transforms=self.test_transformations, load_images_into_memory=None, images_path=self.test_sets)
+                                             transforms=self.test_transformations)
 
     def prepare_training_generators(self):
         self._train_generator = COCOGenerator(self.train_image_dir, self.train_annotation_path, batch_size=self.batch_size, shuffle=True, label_encoder=self.input_encoder, dct=True, split_cbcr=True,
