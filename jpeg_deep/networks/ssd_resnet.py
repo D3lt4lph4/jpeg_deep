@@ -11,7 +11,7 @@ from keras.regularizers import l2
 from jpeg_deep.layers.ssd_layers import AnchorBoxes, L2Normalization, DecodeDetections
 
 from .backbones.resnet import feature_map_resnet_rgb
-from .backbones.resnet import feature_map_lcrfa, feature_map_lcrfat, feature_map_deconvolution_rfa
+from .backbones.resnet import feature_map_lcrfa, feature_map_lcrfat, feature_map_deconvolution_rfa, feature_map_lcrfa_y, feature_map_lcrfat_y
 
 
 def SSD300_resnet(n_classes: int = 20,
@@ -78,7 +78,7 @@ def SSD300_resnet(n_classes: int = 20,
     variances = [0.1, 0.1, 0.2, 0.2]
 
     # Prepare the feature extractor.
-    if backbone not in ["resnet", "lcrfa", "lcrfat", "deconv_rfa"]:
+    if backbone not in ["resnet", "lcrfa", "lcrfat", "deconv_rfa", "lcrfa_y", "lcrfat_y"]:
         raise RuntimeError("Backbone {} not supported yet. Should be in {}".format(
             backbone, "VGG16, VGGDCT"))
     elif backbone == "resnet":
@@ -90,8 +90,14 @@ def SSD300_resnet(n_classes: int = 20,
     elif backbone == "lcrfat":
         input_layer, fc7, block4_conv3 = feature_map_lcrfat(
             (38, 38), kernel_initializer=kernel_initializer, l2_reg=l2_regularizer)
-    else:
+    elif backbone == "deconv_rfa":
         input_layer, fc7, block4_conv3 = feature_map_deconvolution_rfa(
+            (38, 38), kernel_initializer=kernel_initializer, l2_reg=l2_regularizer)
+    elif backbone == "lcrfa_y":
+        input_layer, fc7, block4_conv3 = feature_map_lcrfa_y(
+            (38, 38), kernel_initializer=kernel_initializer, l2_reg=l2_regularizer)
+    else:
+        input_layer, fc7, block4_conv3 = feature_map_lcrfat_y(
             (38, 38), kernel_initializer=kernel_initializer, l2_reg=l2_regularizer)
 
     conv6_1 = Conv2D(256, (1, 1), activation='relu', padding='same',
