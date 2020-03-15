@@ -684,13 +684,15 @@ class PascalEvaluator(TemplateEvaluator):
 
 
 class CocoEvaluator(TemplateEvaluator):
-    def __init__(self, annotation_file, generator=None, n_classes=80):
+    def __init__(self, annotation_file, generator=None, n_classes=80, set="test-dev2017", alg="dummy"):
         self.score = None
         self._generator = generator
         self.n_classes = n_classes
         self.annotation_file = annotation_file
         self.runs = False
         self.number_of_runs = None
+        self.set = set
+        self.alg = alg
 
         # Getting the dictionnary matching the class/id
         self.coco = COCO(annotation_file)
@@ -802,9 +804,8 @@ class CocoEvaluator(TemplateEvaluator):
             X, y = self._generator.__getitem__(i)
 
             predictions = model.predict(X)
-            image_id = int(splitext(split(images_path[i])[1])[0])
-            # image_id = splitext(split(images_path[i])[1])[0]
-            # image_id = int(image_id.split("_")[-1])
+            image_id = splitext(split(images_path[i])[1])[0]
+            image_id = int(image_id.split("_")[-1])
             imgIds.append(image_id)
 
             for box in predictions[0]:
@@ -832,7 +833,7 @@ class CocoEvaluator(TemplateEvaluator):
 
                 results.append(prediction)
     
-        output_file = join(output_dir, "output.json")
+        output_file = join(output_dir, "{}_{}_{}.json".format(detections, self.set, self.alg))
         with open(output_file, "w") as file_json:
             json.dump(results, file_json)
 

@@ -35,7 +35,7 @@ class TrainingConfiguration(object):
         # Network variables
         self._weights = "/dlocal/home/2017018/bdegue01/weights/jpeg_deep/reproduce/resnet/own_generator/classification_rgb_jpeg-deep_zWPduOfMjEggvVSgkFqfOZMeVM0wcJJ6/checkpoints/epoch-87_loss-0.7307_val_loss-1.6102.h5"
         self._network = SSD300_resnet(
-            n_classes=80, scales=[0.07, 0.15, 0.33, 0.51, 0.69, 0.87, 1.05])
+            n_classes=80, scales=[0.07, 0.15, 0.33, 0.51, 0.69, 0.87, 1.05], backbone="resnet")
 
         # Training variables
         self._epochs = 240
@@ -124,11 +124,12 @@ class TrainingConfiguration(object):
         pass
 
     def prepare_evaluator(self):
-        self._evaluator = Evaluator()
+        self._evaluator = CocoEvaluator(
+            self.validation_annotation_path, set="val2017", alg="resnet")
 
     def prepare_testing_generator(self):
         self._test_generator = COCOGenerator(self.validation_image_dir, self.validation_annotation_path, batch_size=self.batch_size, shuffle=False, label_encoder=self.input_encoder,
-                                             transforms=self.test_transformations, load_images_into_memory=None, images_path=self.test_sets)
+                                             transforms=self.test_transformations)
 
     def prepare_training_generators(self):
         self._train_generator = COCOGenerator(self.train_image_dir, self.train_annotation_path, batch_size=self.batch_size, shuffle=True, label_encoder=self.input_encoder,
