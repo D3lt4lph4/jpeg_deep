@@ -13,6 +13,7 @@ from jpeg_deep.networks import vgga_dct_resize, vggd_dct_resize
 from jpeg_deep.networks import vgga_conv, vggd_conv
 from jpeg_deep.networks import vgga_dct_conv, vggd_dct_conv, vggd_dct_y_conv, vggd_dct_deconv_conv
 from jpeg_deep.networks import ResNet50, late_concat_rfa, late_concat_rfa_thinner, deconvolution_rfa
+from jpeg_deep.networks import late_concat_rfa_y, late_concat_rfa_y_thinner
 
 
 parser = ArgumentParser()
@@ -63,8 +64,12 @@ elif args.n == "resnet":
     model = ResNet50(1000, (None, None))
 elif args.n == "lcrfa":
     model = late_concat_rfa(input_shape=None)
+elif args.n == "lcrfay":
+    model = late_concat_rfa_y(input_shape=None)
 elif args.n == "lcrfat":
     model = late_concat_rfa_thinner(input_shape=None)
+elif args.n == "lcrfaty":
+    model = late_concat_rfa_y_thinner(input_shape=None)
 elif args.n == "deconv_rfa":
     model = deconvolution_rfa(input_shape=None)
 
@@ -79,7 +84,7 @@ if args.n not in ["vgga", "vggd"]:
     if args.n in ["deconv_rfa", "vggddeconv"]:
         generator = DCTGeneratorJPEG2DCT(args.dp, args.jf, input_size=(
             None), batch_size=1, transforms=transformations, split_cbcr=True)
-    elif args.n in ["vggdy"]:
+    elif args.n in ["vggdy", "lcrfay", "lcrfaty"]:
         generator = DCTGeneratorJPEG2DCT(args.dp, args.jf, input_size=(
             None), batch_size=1, transforms=transformations, only_y=True)
     else:
