@@ -4,8 +4,6 @@ from os.path import join
 from keras import backend as K
 from keras.optimizers import SGD
 from keras.callbacks import ModelCheckpoint, TerminateOnNaN, EarlyStopping, ReduceLROnPlateau, TensorBoard
-from keras.preprocessing.image import ImageDataGenerator
-from keras.applications.vgg16 import preprocess_input
 
 from jpeg_deep.networks import SSD300_resnet
 from jpeg_deep.generators import COCOGenerator
@@ -64,7 +62,8 @@ class TrainingConfiguration(object):
         self._callbacks = [self.reduce_lr_on_plateau, self.early_stopping,
                            self.terminate_on_nan]
 
-        self.input_encoder = SSDInputEncoder(n_classes=80)
+        self.input_encoder = SSDInputEncoder(
+            n_classes=80, scales=[0.07, 0.15, 0.33, 0.51, 0.69, 0.87, 1.05])
 
         self.train_tranformations = [SSDDataAugmentation()]
         self.validation_transformations = [
@@ -125,7 +124,7 @@ class TrainingConfiguration(object):
 
     def prepare_evaluator(self):
         self._evaluator = CocoEvaluator(
-            self.validation_annotation_path, set="val2017", alg="resnet")
+            self.validation_annotation_path, set="val2017", alg="lcrfat-y")
 
     def prepare_testing_generator(self):
         self._test_generator = COCOGenerator(self.validation_image_dir, self.validation_annotation_path, batch_size=1, shuffle=False, label_encoder=self.input_encoder, dct=True, only_y=True,
