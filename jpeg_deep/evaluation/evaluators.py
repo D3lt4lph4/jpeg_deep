@@ -38,7 +38,7 @@ class Evaluator(TemplateEvaluator):
 
         self.score = model.evaluate_generator(self._generator, verbose=1)
 
-    def model_speed(self, model, test_generator=None, number_of_runs=10, iteration_per_run=200):
+    def model_speed(self, model, test_generator=None, number_of_runs=10, iteration_per_run=200, verbose=False):
 
         if self._generator is None and test_generator is None:
             raise RuntimeError(
@@ -51,7 +51,9 @@ class Evaluator(TemplateEvaluator):
 
         X, _ = self._generator.__getitem__(0)
 
-        for _ in tqdm(range(number_of_runs)):
+        it = tqdm(range(number_of_runs)) if verbose else range(number_of_runs)
+
+        for _ in it:
             start_time = time.time()
             for _ in range(iteration_per_run):
                 _ = model.predict(X)
@@ -684,13 +686,15 @@ class PascalEvaluator(TemplateEvaluator):
 
 
 class CocoEvaluator(TemplateEvaluator):
-    def __init__(self, annotation_file, generator=None, n_classes=80):
+    def __init__(self, annotation_file, generator=None, n_classes=80, set="test-dev2017", alg="dummy"):
         self.score = None
         self._generator = generator
         self.n_classes = n_classes
         self.annotation_file = annotation_file
         self.runs = False
         self.number_of_runs = None
+        self.set = set
+        self.alg = alg
 
         # Getting the dictionnary matching the class/id
         self.coco = COCO(annotation_file)
@@ -756,9 +760,6 @@ class CocoEvaluator(TemplateEvaluator):
                     xmax = width
                 if ymax > height:
                     ymax = height
-
-                if confidence > 0.5:
-                    print(confidence)
                 
                 prediction = {"image_id": image_id,"category_id": self.matching_dictionnary[class_id][0],"bbox": [xmin, ymin, xmax-xmin, ymax-ymin],"score":float(confidence)}
 
@@ -780,14 +781,14 @@ class CocoEvaluator(TemplateEvaluator):
         cocoEval.summarize()
 
     def predict_for_submission(self, model, generator=None, output_dir="."):
-        if self._generator is None and test_generator is None:
+        if self._generator is None and generator is None:
             raise RuntimeError(
                 "A generator should be specified using the init or parameters."
             )
 
         self.runs = False
-        if test_generator is not None:
-            self._generator = test_generator
+        if generator is not None:
+            self._generator = generator
 
         # Get all the predictions
         self._generator.batch_size = 1
@@ -802,9 +803,8 @@ class CocoEvaluator(TemplateEvaluator):
             X, y = self._generator.__getitem__(i)
 
             predictions = model.predict(X)
-            image_id = int(splitext(split(images_path[i])[1])[0])
-            # image_id = splitext(split(images_path[i])[1])[0]
-            # image_id = int(image_id.split("_")[-1])
+            image_id = splitext(split(images_path[i])[1])[0]
+            image_id = int(image_id.split("_")[-1])
             imgIds.append(image_id)
 
             for box in predictions[0]:
@@ -824,15 +824,12 @@ class CocoEvaluator(TemplateEvaluator):
                     xmax = width
                 if ymax > height:
                     ymax = height
-
-                if confidence > 0.5:
-                    print(confidence)
                 
                 prediction = {"image_id": image_id,"category_id": self.matching_dictionnary[class_id][0],"bbox": [xmin, ymin, xmax-xmin, ymax-ymin],"score":float(confidence)}
 
                 results.append(prediction)
     
-        output_file = join(output_dir, "output.json")
+        output_file = join(output_dir, "{}_{}_{}.json".format("detections", self.set, self.alg))
         with open(output_file, "w") as file_json:
             json.dump(results, file_json)
 

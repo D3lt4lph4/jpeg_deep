@@ -1,21 +1,17 @@
 from os import environ
 from os.path import join
 
-from keras.optimizers import Adadelta, SGD
-from keras.losses import categorical_crossentropy
-from keras.callbacks import ModelCheckpoint, TerminateOnNaN, CSVLogger, EarlyStopping, ReduceLROnPlateau, TensorBoard
-from keras.preprocessing.image import ImageDataGenerator
-from keras.applications.vgg16 import preprocess_input
+from keras import backend as K
+from keras.optimizers import SGD
+from keras.callbacks import ModelCheckpoint, TerminateOnNaN, EarlyStopping, ReduceLROnPlateau, TensorBoard
 
 from jpeg_deep.networks import SSD300_resnet
 from jpeg_deep.generators import COCOGenerator
-from jpeg_deep.evaluation import Evaluator
+from jpeg_deep.evaluation import CocoEvaluator
 
 from jpeg_deep.generators import SSDInputEncoder
 from jpeg_deep.tranformations import SSDDataAugmentation, ConvertTo3Channels, Resize
 from jpeg_deep.losses import SSDLoss
-
-#from template.config import TemplateConfiguration
 
 
 class TrainingConfiguration(object):
@@ -35,7 +31,7 @@ class TrainingConfiguration(object):
         # Network variables
         self._weights = "/dlocal/home/2017018/bdegue01/weights/jpeg_deep/reproduce/resnet/own_generator/classification_rgb_jpeg-deep_zWPduOfMjEggvVSgkFqfOZMeVM0wcJJ6/checkpoints/epoch-87_loss-0.7307_val_loss-1.6102.h5"
         self._network = SSD300_resnet(
-            n_classes=80, scales=[0.07, 0.15, 0.33, 0.51, 0.69, 0.87, 1.05])
+            n_classes=80, scales=[0.07, 0.15, 0.33, 0.51, 0.69, 0.87, 1.05], backbone="resnet")
 
         # Training variables
         self._epochs = 240
@@ -63,10 +59,11 @@ class TrainingConfiguration(object):
                                             min_delta=0,
                                             patience=15)
 
-        self._callbacks = [self.reduce_lr_on_plateau,
+        self._callbacks = [self.reduce_lr_on_plateau, self.early_stopping,
                            self.terminate_on_nan]
 
-        self.input_encoder = SSDInputEncoder(n_classes=80)
+        self.input_encoder = SSDInputEncoder(
+            n_classes=80, scales=[0.07, 0.15, 0.33, 0.51, 0.69, 0.87, 1.05])
 
         self.train_tranformations = [SSDDataAugmentation()]
         self.validation_transformations = [
@@ -121,14 +118,17 @@ class TrainingConfiguration(object):
         ]
 
     def prepare_for_inference(self):
-        pass
+        K.clear_session()
+        self._network = SSD300_resnet(
+            n_classes=80, scales=[0.07, 0.15, 0.33, 0.51, 0.69, 0.87, 1.05], backbone="resnet", mode="inference")
 
     def prepare_evaluator(self):
-        self._evaluator = Evaluator()
+        self._evaluator = CocoEvaluator(
+            self.validation_annotation_path, set="val2017", alg="resnet")
 
     def prepare_testing_generator(self):
         self._test_generator = COCOGenerator(self.validation_image_dir, self.validation_annotation_path, batch_size=self.batch_size, shuffle=False, label_encoder=self.input_encoder,
-                                             transforms=self.test_transformations, load_images_into_memory=None, images_path=self.test_sets)
+                                             transforms=self.test_transformations)
 
     def prepare_training_generators(self):
         self._train_generator = COCOGenerator(self.train_image_dir, self.train_annotation_path, batch_size=self.batch_size, shuffle=True, label_encoder=self.input_encoder,
