@@ -779,14 +779,14 @@ class CocoEvaluator(TemplateEvaluator):
         cocoEval.summarize()
 
     def predict_for_submission(self, model, generator=None, output_dir="."):
-        if self._generator is None and test_generator is None:
+        if self._generator is None and generator is None:
             raise RuntimeError(
                 "A generator should be specified using the init or parameters."
             )
 
         self.runs = False
-        if test_generator is not None:
-            self._generator = test_generator
+        if generator is not None:
+            self._generator = generator
 
         # Get all the predictions
         self._generator.batch_size = 1
@@ -827,7 +827,7 @@ class CocoEvaluator(TemplateEvaluator):
 
                 results.append(prediction)
     
-        output_file = join(output_dir, "{}_{}_{}.json".format(detections, self.set, self.alg))
+        output_file = join(output_dir, "{}_{}_{}.json".format("detections", self.set, self.alg))
         with open(output_file, "w") as file_json:
             json.dump(results, file_json)
 
