@@ -38,7 +38,7 @@ class Evaluator(TemplateEvaluator):
 
         self.score = model.evaluate_generator(self._generator, verbose=1)
 
-    def model_speed(self, model, test_generator=None, number_of_runs=10, iteration_per_run=200):
+    def model_speed(self, model, test_generator=None, number_of_runs=10, iteration_per_run=200, verbose=False):
 
         if self._generator is None and test_generator is None:
             raise RuntimeError(
@@ -51,7 +51,9 @@ class Evaluator(TemplateEvaluator):
 
         X, _ = self._generator.__getitem__(0)
 
-        for _ in tqdm(range(number_of_runs)):
+        it = tqdm(range(number_of_runs)) if verbose else range(number_of_runs)
+
+        for _ in it:
             start_time = time.time()
             for _ in range(iteration_per_run):
                 _ = model.predict(X)
