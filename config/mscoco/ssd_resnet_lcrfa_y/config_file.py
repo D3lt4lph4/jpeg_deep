@@ -62,7 +62,8 @@ class TrainingConfiguration(object):
         self._callbacks = [self.reduce_lr_on_plateau, self.early_stopping,
                            self.terminate_on_nan]
 
-        self.input_encoder = SSDInputEncoder(n_classes=80)
+        self.input_encoder = SSDInputEncoder(
+            n_classes=80, scales=[0.07, 0.15, 0.33, 0.51, 0.69, 0.87, 1.05])
 
         self.train_tranformations = [SSDDataAugmentation()]
         self.validation_transformations = [
@@ -123,7 +124,7 @@ class TrainingConfiguration(object):
 
     def prepare_evaluator(self):
         self._evaluator = CocoEvaluator(
-            self.validation_annotation_path, set="val2017", alg="resnet")
+            self.validation_annotation_path, set="val2017", alg="lcrfa-y")
 
     def prepare_testing_generator(self):
         self._test_generator = COCOGenerator(self.validation_image_dir, self.validation_annotation_path, batch_size=self.batch_size, shuffle=False, label_encoder=self.input_encoder, dct=True, only_y=True,
