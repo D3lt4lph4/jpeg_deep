@@ -129,7 +129,7 @@ class TrainingConfiguration(object):
 
     def prepare_evaluator(self):
         self._evaluator = CocoEvaluator(
-            self.validation_annotation_path, set="val2017", alg="resnet")
+            self.validation_annotation_path, set="val2017", alg="ssd")
 
     def prepare_testing_generator(self):
         self._test_generator = COCOGenerator(self.validation_image_dir, self.validation_annotation_path, batch_size=self.batch_size, shuffle=False, label_encoder=self.input_encoder,
