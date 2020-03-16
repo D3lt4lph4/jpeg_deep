@@ -264,7 +264,7 @@ class PascalEvaluator(TemplateEvaluator):
                     class_file.write(
                         "{} {:.6f} {:.6f} {:.6f} {:.6f} {:.6f}\n".format(*prediction))
 
-    def model_speed(self, model, test_generator=None, number_of_runs=10, iteration_per_run=200):
+    def model_speed(self, model, test_generator=None, number_of_runs=10, iteration_per_run=200, verbose=False):
 
         if self._generator is None and test_generator is None:
             raise RuntimeError(
@@ -276,8 +276,10 @@ class PascalEvaluator(TemplateEvaluator):
         times = []
 
         X, _ = self._generator.__getitem__(0)
+
+        it = tqdm(range(number_of_runs)) if verbose else range(number_of_runs)
         
-        for _ in tqdm(range(number_of_runs)):
+        for _ in it:
             start_time = time.time()
             p = [] 
             for _ in range(iteration_per_run):
