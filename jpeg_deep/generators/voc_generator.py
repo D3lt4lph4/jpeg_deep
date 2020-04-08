@@ -17,8 +17,6 @@ from jpeg2dct.numpy import load, loads
 
 from keras.applications.vgg16 import preprocess_input
 
-from template_keras.generators import TemplateGenerator
-
 from .helper_ssd import BoxFilter
 from .helper import parse_xml_voc
 
@@ -39,7 +37,7 @@ class DatasetError(Exception):
     pass
 
 
-class VOCGenerator(TemplateGenerator):
+class VOCGenerator(object):
 
     def __init__(self,
                  images_path: List[str],

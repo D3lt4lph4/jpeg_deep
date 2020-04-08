@@ -29,8 +29,6 @@ from .helper_ssd import BoxFilter
 
 from pycocotools.coco import COCO
 
-from template_keras.generators import TemplateGenerator
-
 
 class DegenerateBatchError(Exception):
     '''
@@ -48,7 +46,7 @@ class DatasetError(Exception):
     pass
 
 
-class COCOGenerator(TemplateGenerator):
+class COCOGenerator(object):
 
     def __init__(self,
                  image_directory: str,

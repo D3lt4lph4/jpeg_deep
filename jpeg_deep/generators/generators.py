@@ -18,8 +18,6 @@ from keras.applications.vgg16 import preprocess_input
 
 from keras.utils import Sequence
 
-from template_keras.generators import TemplateGenerator
-
 
 def prepare_imagenet(index_file, data_directory):
 
@@ -44,7 +42,7 @@ def prepare_imagenet(index_file, data_directory):
     return association, classes, images_path
 
 
-class DCTGeneratorJPEG2DCT(TemplateGenerator):
+class DCTGeneratorJPEG2DCT(object):
     'Generates data in the DCT space for Keras. This generator makes usage of the [following](https://github.com/uber-research/jpeg2dct) repository to read the jpeg images in the correct format.'
 
     def __init__(self,
@@ -232,7 +230,7 @@ class DCTGeneratorJPEG2DCT(TemplateGenerator):
             return [X_y, X_cb, X_cr], y
 
 
-class DummyGeneratorRGB(TemplateGenerator):
+class DummyGeneratorRGB(object):
     'Generates data in the DCT space for Keras.'
 
     def __init__(self,
@@ -269,7 +267,7 @@ class DummyGeneratorRGB(TemplateGenerator):
         return X, y
 
 
-class DummyGeneratorDCT(TemplateGenerator):
+class DummyGeneratorDCT(objetc):
     'Generates data in the DCT space for Keras.'
 
     def __init__(self,
@@ -308,7 +306,7 @@ class DummyGeneratorDCT(TemplateGenerator):
         return X, y
 
 
-class RGBGenerator(TemplateGenerator):
+class RGBGenerator(object):
     """ Generator for RGB images for the Imagenet dataset. The generator needs a folder with all the classes as well as the index file to generate the data.
 
     # Arguments
