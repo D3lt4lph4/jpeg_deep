@@ -1,4 +1,3 @@
-from template_keras.evaluators import TemplateEvaluator
 import sys
 import numpy as np
 import time
@@ -20,7 +19,7 @@ from jpeg_deep.utils import iou
 import tensorflow as tf
 
 
-class Evaluator(TemplateEvaluator):
+class Evaluator(object):
     def __init__(self, generator=None):
         self.score = None
         self._generator = generator
@@ -102,7 +101,7 @@ class Evaluator(TemplateEvaluator):
         print("The evaluated score is {}.".format(self.score))
 
 
-class PascalEvaluator(TemplateEvaluator):
+class PascalEvaluator(object):
     def __init__(self, generator=None, n_classes=20, ignore_flagged_boxes=True, challenge="VOC2007", set_type="test"):
         self.score = None
         self._generator = generator
@@ -278,14 +277,14 @@ class PascalEvaluator(TemplateEvaluator):
         X, _ = self._generator.__getitem__(0)
 
         it = tqdm(range(number_of_runs)) if verbose else range(number_of_runs)
-        
+
         for _ in it:
             start_time = time.time()
-            p = [] 
+            p = []
             for _ in range(iteration_per_run):
                 results = []
                 pred = model.predict(X)
-                            
+
             times.append(time.time() - start_time)
 
         print("It took {} seconds on average of {} runs to run {} iteration of prediction with bacth size {}.".format(
@@ -687,7 +686,7 @@ class PascalEvaluator(TemplateEvaluator):
         return mean_average_precision
 
 
-class CocoEvaluator(TemplateEvaluator):
+class CocoEvaluator(object):
     def __init__(self, annotation_file, generator=None, n_classes=80, set="test-dev2017", alg="dummy"):
         self.score = None
         self._generator = generator
@@ -716,7 +715,6 @@ class CocoEvaluator(TemplateEvaluator):
         # create a dictionnary with the ids as keys
         self.matching_dictionnary = {value[2]: [
             value[0], value[1]] for value in id_classes}
-
 
     def __call__(self, model, test_generator=None):
         if self._generator is None and test_generator is None:
@@ -762,21 +760,22 @@ class CocoEvaluator(TemplateEvaluator):
                     xmax = width
                 if ymax > height:
                     ymax = height
-                
-                prediction = {"image_id": image_id,"category_id": self.matching_dictionnary[class_id][0],"bbox": [xmin, ymin, xmax-xmin, ymax-ymin],"score":float(confidence)}
+
+                prediction = {"image_id": image_id, "category_id": self.matching_dictionnary[class_id][0], "bbox": [
+                    xmin, ymin, xmax-xmin, ymax-ymin], "score": float(confidence)}
 
                 results.append(prediction)
 
         with open("/tmp/output.json", "w") as file:
             json.dump(results, file)
 
-        cocoGt=COCO(self.annotation_file)
+        cocoGt = COCO(self.annotation_file)
 
-        cocoDt=cocoGt.loadRes("/tmp/output.json")
+        cocoDt = cocoGt.loadRes("/tmp/output.json")
 
         # imgIds=sorted(cocoGt.getImgIds())
 
-        cocoEval = COCOeval(cocoGt,cocoDt, "bbox")
+        cocoEval = COCOeval(cocoGt, cocoDt, "bbox")
         cocoEval.params.imgIds = imgIds
         cocoEval.evaluate()
         cocoEval.accumulate()
@@ -826,15 +825,16 @@ class CocoEvaluator(TemplateEvaluator):
                     xmax = width
                 if ymax > height:
                     ymax = height
-                
-                prediction = {"image_id": image_id,"category_id": self.matching_dictionnary[class_id][0],"bbox": [xmin, ymin, xmax-xmin, ymax-ymin],"score":float(confidence)}
+
+                prediction = {"image_id": image_id, "category_id": self.matching_dictionnary[class_id][0], "bbox": [
+                    xmin, ymin, xmax-xmin, ymax-ymin], "score": float(confidence)}
 
                 results.append(prediction)
-    
-        output_file = join(output_dir, "{}_{}_{}.json".format("detections", self.set, self.alg))
+
+        output_file = join(output_dir, "{}_{}_{}.json".format(
+            "detections", self.set, self.alg))
         with open(output_file, "w") as file_json:
             json.dump(results, file_json)
-
 
     def model_speed(self, model, test_generator=None, number_of_runs=10, iteration_per_run=1000):
 

@@ -1,12 +1,11 @@
 import numpy as np
 from matplotlib import pyplot as plt
-from template_keras.displayers import TemplateDisplayer
 
 import matplotlib
 matplotlib.use("Qt5Agg")
 
 
-class Displayer(TemplateDisplayer):
+class Displayer(object):
 
     def __init__(self):
         pass
@@ -18,7 +17,7 @@ class Displayer(TemplateDisplayer):
         pass
 
 
-class DisplayerObjects(TemplateDisplayer):
+class DisplayerObjects(object):
 
     def __init__(self, classes=None, confidence_threshold=0.5):
         if classes is None:
