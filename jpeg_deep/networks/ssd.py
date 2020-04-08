@@ -7,7 +7,6 @@ from keras.layers import Activation, Conv2D, MaxPooling2D, Reshape, Concatenate,
 from keras.regularizers import l2
 
 from jpeg_deep.layers.ssd_layers import AnchorBoxes, L2Normalization, DecodeDetections, DecodeDetectionsFast
-from jpeg_deep.layers import ResizeFeatures
 
 from .backbones.vgg import feature_map_rgb, feature_map_dct, feature_map_dct_deconv, feature_map_dct_y
 

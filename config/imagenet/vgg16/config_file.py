@@ -6,7 +6,7 @@ from keras.losses import categorical_crossentropy
 from keras.callbacks import ModelCheckpoint, TerminateOnNaN, EarlyStopping, ReduceLROnPlateau, TensorBoard
 
 from jpeg_deep.generators import RGBGenerator
-from jpeg_deep.networks import vggd
+from jpeg_deep.networks import VGG16, VGG16_conv
 from jpeg_deep.evaluation import Evaluator
 
 from albumentations import (
@@ -37,7 +37,7 @@ class TrainingConfiguration(object):
 
         # Network variables
         self._weights = None
-        self._network = vggd()
+        self._network = VGG16()
 
         # Training variables
         self._epochs = 120
@@ -53,11 +53,11 @@ class TrainingConfiguration(object):
         self.train_directory = join(
             environ["DATASET_PATH_TRAIN"], "imagenet/train")
         self.validation_directory = join(
-            environ["DATASET_PATH_TRAIN"], "imagenet/validation")
-        self.test_directory = join(
             environ["DATASET_PATH_VAL"], "imagenet/validation")
+        self.test_directory = join(
+            environ["DATASET_PATH_TEST"], "imagenet/validation")
         self.validation_split = 0.95
-        self.index_file = "/home/2017018/bdegue01/git/jpeg_deep/data/imagenet_class_index.json"
+        self.index_file = "data/imagenet_class_index.json"
 
         # Defining the transformations that will be applied to the inputs.
         self.train_transformations = [
@@ -69,8 +69,9 @@ class TrainingConfiguration(object):
         self.validation_transformations = [
             SmallestMaxSize(256), CenterCrop(224, 224)]
 
+        self.test_transformations = [SmallestMaxSize(256)]
+
         # Keras stuff
-        self.model_checkpoint = None
         self.reduce_lr_on_plateau = ReduceLROnPlateau(patience=7, verbose=1)
         self.terminate_on_nan = TerminateOnNaN()
         self.early_stopping = EarlyStopping(monitor='val_loss',
@@ -85,8 +86,6 @@ class TrainingConfiguration(object):
         self._validation_generator = None
         self._test_generator = None
 
-        self._horovod = None
-
     def prepare_runtime_checkpoints(self, directories_dir):
         log_dir = directories_dir["log_dir"]
         checkpoints_dir = directories_dir["checkpoints_dir"]
@@ -99,7 +98,6 @@ class TrainingConfiguration(object):
             TensorBoard(log_dir))
 
     def prepare_horovod(self, hvd):
-        self._horovod = hvd
         self.optimizer_parameters["lr"] = self.optimizer_parameters["lr"] * hvd.size()
         self._optimizer = SGD(**self.optimizer_parameters)
         self._optimizer = hvd.DistributedOptimizer(self._optimizer)

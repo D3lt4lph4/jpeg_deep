@@ -1,5 +1,5 @@
 import sys
-from os import mkdir, listdir, environ, makedirs
+from os import mkdir, listdir, environ, makedirs, getcwd
 from os.path import join, dirname, isfile, expanduser, basename, normpath
 from shutil import copyfile
 import argparse
@@ -11,7 +11,7 @@ from operator import itemgetter
 
 import keras.backend as K
 from keras.models import load_model
-
+sys.path.append(getcwd())
 from jpeg_deep.layers.ssd_layers import AnchorBoxes, DecodeDetections, L2Normalization
 
 import tensorflow as tf

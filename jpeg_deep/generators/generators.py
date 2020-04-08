@@ -42,7 +42,7 @@ def prepare_imagenet(index_file, data_directory):
     return association, classes, images_path
 
 
-class DCTGeneratorJPEG2DCT(object):
+class DCTGeneratorJPEG2DCT(Sequence):
     'Generates data in the DCT space for Keras. This generator makes usage of the [following](https://github.com/uber-research/jpeg2dct) repository to read the jpeg images in the correct format.'
 
     def __init__(self,
@@ -230,7 +230,7 @@ class DCTGeneratorJPEG2DCT(object):
             return [X_y, X_cb, X_cr], y
 
 
-class DummyGeneratorRGB(object):
+class DummyGeneratorRGB(Sequence):
     'Generates data in the DCT space for Keras.'
 
     def __init__(self,
@@ -267,7 +267,7 @@ class DummyGeneratorRGB(object):
         return X, y
 
 
-class DummyGeneratorDCT(objetc):
+class DummyGeneratorDCT(Sequence):
     'Generates data in the DCT space for Keras.'
 
     def __init__(self,
@@ -306,7 +306,7 @@ class DummyGeneratorDCT(objetc):
         return X, y
 
 
-class RGBGenerator(object):
+class RGBGenerator(Sequence):
     """ Generator for RGB images for the Imagenet dataset. The generator needs a folder with all the classes as well as the index file to generate the data.
 
     # Arguments

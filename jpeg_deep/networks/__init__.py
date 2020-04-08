@@ -1,6 +1,6 @@
 from .vgg import VGG16, VGG16_conv
-from .networks_dct import VGG16_dct, VGG16_dct_deconv, VGG16_dct_y
-from .networks_dct import VGG16_dct_conv, VGG16_dct_deconv_conv, VGG16_dct_y_conv
+from .vgg_dct import VGG16_dct, VGG16_dct_deconv, VGG16_dct_y
+from .vgg_dct import VGG16_dct_conv, VGG16_dct_deconv_conv, VGG16_dct_y_conv
 
 from .resnet import ResNet50
 from .resnet_dct import late_concat_rfa, late_concat_rfa_thinner
