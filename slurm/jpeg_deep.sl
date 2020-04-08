@@ -26,7 +26,6 @@ export PYTHONUSERBASE=/home/2017018/bdegue01/.virtualenvs/vgg_jpeg
 
 # required training variables
 export EXPERIMENTS_OUTPUT_DIRECTORY=$LOCAL_WORK_DIR/experiment
-export LOG_DIRECTORY=$LOCAL_WORK_DIR/logs
 export DATASET_PATH_TRAIN=/save/2017018/bdegue01/datasets
 export DATASET_PATH_VAL=/dlocal/home/2017018/bdegue01
 
