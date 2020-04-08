@@ -1,8 +1,10 @@
+
 import argparse
 import sys
 from os.path import join
 
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(
+    "Evaluate the result of a training given the parameters in the temp_config.py file.")
 parser.add_argument("experiment", help="The experiment directory.")
 parser.add_argument(
     "weights", help="The weights to be loaded into the network, should be in the checkpoint folder of the experiment.")

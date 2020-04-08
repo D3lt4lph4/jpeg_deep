@@ -13,7 +13,6 @@ import keras.backend as K
 from keras.models import load_model
 
 from jpeg_deep.layers.ssd_layers import AnchorBoxes, DecodeDetections, L2Normalization
-from jpeg_deep.losses.ssd_loss import SSDLoss
 
 import tensorflow as tf
 try:
@@ -94,7 +93,7 @@ if args.horovod:
 if (args.horovod and hvd.rank() == 0) or (not args.horovod):
     config.prepare_runtime_checkpoints(directories_dict)
 
-    # Saving the config file.
+    # Saving the config files, the temps file is here to modification on the fly if required after (for evaluation for instance).
     if args.restart:
         copyfile(join(args.restart, "config", "saved_config.py"),
                  join(config_output_dir, "saved_config.py"))
