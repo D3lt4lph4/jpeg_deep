@@ -1,11 +1,13 @@
 from os import environ
 from os.path import join
 
+import keras.backend as K
+
 from keras.optimizers import SGD
 from keras.losses import categorical_crossentropy
 from keras.callbacks import ModelCheckpoint, TerminateOnNaN, EarlyStopping, ReduceLROnPlateau, TensorBoard
 
-from jpeg_deep.networks import vggd_dct
+from jpeg_deep.networks import VGG16_dct, VGG16_dct_conv
 from jpeg_deep.evaluation import Evaluator
 from jpeg_deep.generators import DCTGeneratorJPEG2DCT
 
@@ -37,7 +39,7 @@ class TrainingConfiguration(object):
 
         # Network variables
         self._weights = None
-        self._network = vggd_dct()
+        self._network = VGG16_dct()
 
         # Training variables
         self._epochs = 180
@@ -55,9 +57,9 @@ class TrainingConfiguration(object):
         self.validation_directory = join(
             environ["DATASET_PATH_VAL"], "imagenet/validation")
         self.test_directory = join(
-            environ["DATASET_PATH_VAL"], "imagenet/validation")
+            environ["DATASET_PATH_TEST"], "imagenet/validation")
         self.validation_split = 0.95
-        self.index_file = "/home/2017018/bdegue01/git/jpeg_deep/data/imagenet_class_index.json"
+        self.index_file = "data/imagenet_class_index.json"
 
         # Defining the transformations that will be applied to the inputs.
         self.train_transformations = [
@@ -70,7 +72,6 @@ class TrainingConfiguration(object):
             SmallestMaxSize(256), CenterCrop(224, 224)]
 
         # Keras stuff
-        self.model_checkpoint = None
         self.reduce_lr_on_plateau = ReduceLROnPlateau(patience=5, verbose=1)
         self.terminate_on_nan = TerminateOnNaN()
         self.early_stopping = EarlyStopping(monitor='val_loss',
@@ -85,8 +86,6 @@ class TrainingConfiguration(object):
         self._validation_generator = None
         self._test_generator = None
 
-        self._horovod = None
-
     def prepare_runtime_checkpoints(self, directories_dir):
         log_dir = directories_dir["log_dir"]
         checkpoints_dir = directories_dir["checkpoints_dir"]
@@ -99,7 +98,6 @@ class TrainingConfiguration(object):
             TensorBoard(log_dir))
 
     def prepare_horovod(self, hvd):
-        self._horovod = hvd
         self.optimizer_parameters["lr"] = self.optimizer_parameters["lr"] * hvd.size()
         self._optimizer = SGD(**self.optimizer_parameters)
         self._optimizer = hvd.DistributedOptimizer(self._optimizer)
@@ -128,7 +126,8 @@ class TrainingConfiguration(object):
         ]
 
     def prepare_for_inference(self):
-        pass
+        K.clear_session()
+        self._network = VGG16_dct_conv()
 
     def prepare_evaluator(self):
         self._evaluator = Evaluator()

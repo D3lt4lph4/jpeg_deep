@@ -126,7 +126,8 @@ class TrainingConfiguration(object):
         ]
 
     def prepare_for_inference(self):
-        pass
+        K.clear_session()
+        self._network = VGG16_conv()
 
     def prepare_evaluator(self):
         self._evaluator = Evaluator()

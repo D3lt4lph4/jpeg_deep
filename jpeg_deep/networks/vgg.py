@@ -112,6 +112,7 @@ def VGG16(classes=1000):
 
     return model
 
+
 def VGG16_conv(classes=1000, input_dims=(None, None)):
     """Instantiates the VGG16 architecture.
         classes: optional number of classes to classify images
@@ -120,10 +121,7 @@ def VGG16_conv(classes=1000, input_dims=(None, None)):
     # Returns
         A Keras model instance.
     """
-    if K.image_data_format() == 'channels_last':
-        input_shape = (*input_dims, 3)
-    else:
-        input_shape = (3, *input_dims)
+    input_shape = (*input_dims, 3)
 
     model = Sequential()
     # Block 1
