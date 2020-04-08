@@ -19,6 +19,7 @@ from jpeg_deep.networks import vgga_dct_conv, vggd_dct_conv, vggd_dct_deconv_con
 
 
 def to_fully_conv(model):
+    """ This methods converts a sequential model to a fully convolutional model."""
 
     new_model = Sequential()
 
@@ -69,9 +70,7 @@ def to_fully_conv(model):
 
 def to_fully_conv_dct(model, model_type):
 
-    if model_type == "vgga":
-        new_model = vgga_dct_conv()
-    elif model_type == "vggd":
+    if model_type == "vgg16":
         new_model = vggd_dct_conv()
     else:
         new_model = vggd_dct_deconv_conv()
@@ -107,31 +106,30 @@ def to_fully_conv_dct(model, model_type):
     return new_model
 
 
-parser = ArgumentParser()
+parser = ArgumentParser(
+    description="Converts classification weights to fully convolutional network and to SSD backbone.")
 parser.add_argument(
-    "mt", help="The type of the model to convert, for now one of vgga/vggd.", type=str)
-parser.add_argument("wp", help="The weights to be converted", type=str)
-parser.add_argument("-dct", action="store_true")
+    "mt", help="The type of the model to convert, for now one of vgg16/deconv.", type=str)
+parser.add_argument(
+    "wp", help="The weights to be converted. The output will be saved in the same directory as the original weights.", type=str)
+parser.add_argument(
+    "-dct", help="If the network is a dct version of the vgg16 or not.", action="store_true")
 args = parser.parse_args()
 
-flag = False
-if args.mt == "vgga":
-    if args.dct:
-        model = vgga_dct(1000)
-    else:
-        model = vgga(1000)
-elif args.mt == "vggd":
+if args.mt == "vgg16":
     if args.dct:
         model = vggd_dct(1000)
     else:
         model = vggd(1000)
-else:
-    flag = True
+elif args.mt == "deconv":
     model = vggd_dct_deconv(1000)
+else:
+    raise RuntimeError(
+        "Expected one of vgg16/deconv for mt argument but {} found".format(args.mt))
 
 model.load_weights(args.wp)
 
-if args.dct or flag:
+if args.dct or args.mt == "deconv":
     new_model = to_fully_conv_dct(model, args.mt)
 else:
     new_model = to_fully_conv(model)
