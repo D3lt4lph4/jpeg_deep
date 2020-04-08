@@ -4,10 +4,10 @@ from os.path import join
 
 import sys
 
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser("Compute the average time required to run a batch of predictions")
 parser.add_argument("experiment", help="The experiment directory.")
 parser.add_argument("-nr", "--numberOfRun",
-                    help="The number of time the generator should be run, the results will be average on this number.", type=int, default=10)
+                    help="The number of time the generator should be run, the results will be averaged on this number.", type=int, default=10)
 parser.add_argument("-w", "--weights", help="The weights to load.", default=None)
 
 
