@@ -24,6 +24,9 @@ import tensorflow as tf
 class SSDLoss:
     '''
     The SSD loss, see https://arxiv.org/abs/1512.02325.
+
+    Reference:
+        https://github.com/pierluigiferrari/ssd_keras/blob/master/keras_loss_function/keras_ssd_loss.py
     '''
 
     def __init__(self,
