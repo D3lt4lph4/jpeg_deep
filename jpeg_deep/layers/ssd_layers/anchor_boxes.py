@@ -13,6 +13,9 @@ limitations under the License.
 '''
 
 from __future__ import division
+
+from typing import List
+
 import numpy as np
 import keras.backend as K
 from keras.engine.topology import InputSpec
@@ -45,39 +48,42 @@ class AnchorBoxes(Layer):
     Output shape:
         5D tensor of shape `(batch, height, width, n_boxes, 8)`. The last axis contains
         the four anchor box coordinates and the four variance values for each box.
+
+    Reference:
+        https://github.com/pierluigiferrari/ssd_keras/blob/master/keras_layers/keras_layer_AnchorBoxes.py
     '''
 
     def __init__(self,
-                 img_height,
-                 img_width,
-                 this_scale,
-                 next_scale,
-                 aspect_ratios=[0.5, 1.0, 2.0],
-                 two_boxes_for_ar1=True,
+                 img_height: int,
+                 img_width: int,
+                 this_scale: float,
+                 next_scale: float,
+                 aspect_ratios: List[float] = [0.5, 1.0, 2.0],
+                 two_boxes_for_ar1: bool = True,
                  this_steps=None,
                  this_offsets=None,
-                 clip_boxes=False,
-                 variances=[0.1, 0.1, 0.2, 0.2],
-                 coords='centroids',
-                 normalize_coords=False,
+                 clip_boxes: bool = False,
+                 variances: List[float] = [0.1, 0.1, 0.2, 0.2],
+                 coords: str = 'centroids',
+                 normalize_coords: bool = False,
                  **kwargs):
         '''
         All arguments need to be set to the same values as in the box encoding process, otherwise the behavior is undefined.
         Some of these arguments are explained in more detail in the documentation of the `SSDBoxEncoder` class.
         Arguments:
-            img_height (int): The height of the input images.
-            img_width (int): The width of the input images.
-            this_scale (float): A float in [0, 1], the scaling factor for the size of the generated anchor boxes
+            img_height: The height of the input images.
+            img_width: The width of the input images.
+            this_scale: A float in [0, 1], the scaling factor for the size of the generated anchor boxes
                 as a fraction of the shorter side of the input image.
-            next_scale (float): A float in [0, 1], the next larger scaling factor. Only relevant if
+            next_scale: A float in [0, 1], the next larger scaling factor. Only relevant if
                 `self.two_boxes_for_ar1 == True`.
-            aspect_ratios (list, optional): The list of aspect ratios for which default boxes are to be
+            aspect_ratios: The list of aspect ratios for which default boxes are to be
                 generated for this layer.
-            two_boxes_for_ar1 (bool, optional): Only relevant if `aspect_ratios` contains 1.
+            two_boxes_for_ar1: Only relevant if `aspect_ratios` contains 1.
                 If `True`, two default boxes will be generated for aspect ratio 1. The first will be generated
                 using the scaling factor for the respective layer, the second one will be generated using
                 geometric mean of said scaling factor and next bigger scaling factor.
-            clip_boxes (bool, optional): If `True`, clips the anchor box coordinates to stay within image boundaries.
+            clip_boxes: If `True`, clips the anchor box coordinates to stay within image boundaries.
             variances (list, optional): A list of 4 floats >0. The anchor box offset for each coordinate will be divided by
                 its respective variance value.
             coords (str, optional): The box coordinate format to be used internally in the model (i.e. this is not the input format

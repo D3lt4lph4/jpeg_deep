@@ -28,43 +28,46 @@ class DecodeDetections(Layer):
         3D tensor of shape `(batch_size, n_boxes, n_classes + 12)`.
     Output shape:
         3D tensor of shape `(batch_size, top_k, 6)`.
+
+    Reference:
+        https://github.com/pierluigiferrari/ssd_keras/blob/master/keras_layers/keras_layer_DecodeDetections.py
     '''
 
     def __init__(self,
-                 confidence_thresh=0.01,
-                 iou_threshold=0.45,
-                 top_k=200,
-                 nms_max_output_size=400,
-                 coords='centroids',
-                 normalize_coords=True,
-                 img_height=None,
-                 img_width=None,
+                 confidence_thresh: float = 0.01,
+                 iou_threshold: float = 0.45,
+                 top_k: int = 200,
+                 nms_max_output_size: int = 400,
+                 coords: str = 'centroids',
+                 normalize_coords: bool = True,
+                 img_height: int = None,
+                 img_width: int = None,
                  **kwargs):
         '''
         All default argument values follow the Caffe implementation.
         Arguments:
-            confidence_thresh (float, optional): A float in [0,1), the minimum classification confidence in a specific
+            confidence_thresh: A float in [0,1), the minimum classification confidence in a specific
                 positive class in order to be considered for the non-maximum suppression stage for the respective class.
                 A lower value will result in a larger part of the selection process being done by the non-maximum suppression
                 stage, while a larger value will result in a larger part of the selection process happening in the confidence
                 thresholding stage.
-            iou_threshold (float, optional): A float in [0,1]. All boxes with a Jaccard similarity of greater than `iou_threshold`
+            iou_threshold: A float in [0,1]. All boxes with a Jaccard similarity of greater than `iou_threshold`
                 with a locally maximal box will be removed from the set of predictions for a given class, where 'maximal' refers
                 to the box score.
-            top_k (int, optional): The number of highest scoring predictions to be kept for each batch item after the
+            top_k: The number of highest scoring predictions to be kept for each batch item after the
                 non-maximum suppression stage.
-            nms_max_output_size (int, optional): The maximum number of predictions that will be left after performing non-maximum
+            nms_max_output_size: The maximum number of predictions that will be left after performing non-maximum
                 suppression.
-            coords (str, optional): The box coordinate format that the model outputs. Must be 'centroids'
+            coords: The box coordinate format that the model outputs. Must be 'centroids'
                 i.e. the format `(cx, cy, w, h)` (box center coordinates, width, and height). Other coordinate formats are
                 currently not supported.
-            normalize_coords (bool, optional): Set to `True` if the model outputs relative coordinates (i.e. coordinates in [0,1])
+            normalize_coords: Set to `True` if the model outputs relative coordinates (i.e. coordinates in [0,1])
                 and you wish to transform these relative coordinates back to absolute coordinates. If the model outputs
                 relative coordinates, but you do not want to convert them back to absolute coordinates, set this to `False`.
                 Do not set this to `True` if the model already outputs absolute coordinates, as that would result in incorrect
                 coordinates. Requires `img_height` and `img_width` if set to `True`.
-            img_height (int, optional): The height of the input images. Only needed if `normalize_coords` is `True`.
-            img_width (int, optional): The width of the input images. Only needed if `normalize_coords` is `True`.
+            img_height: The height of the input images. Only needed if `normalize_coords` is `True`.
+            img_width: The width of the input images. Only needed if `normalize_coords` is `True`.
         '''
         if K.backend() != 'tensorflow':
             raise TypeError(
@@ -168,7 +171,7 @@ class DecodeDetections(Layer):
         classes = tf.expand_dims(f_pred[2], -1) + 1
 
         return tf.concat([classes, conf, f_pred[0]], axis=-1)
-       
+
     def compute_output_shape(self, input_shape):
         batch_size, n_boxes, last_axis = input_shape
         # Last axis: (class_ID, confidence, 4 box coordinates)
