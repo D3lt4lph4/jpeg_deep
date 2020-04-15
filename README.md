@@ -10,9 +10,8 @@ The following networks (and modified versions) are available for usage in the re
 - [ResNet50](https://arxiv.org/abs/1512.03385)
 - [SSD](https://arxiv.org/abs/1512.02325)
 
-For each of the classification networks, the fully convolutional equivalent is available.
 
-## Networks and limitations
+## Compressed representation and limitations
 
 ### Image Resizing
 
@@ -49,6 +48,10 @@ pip install pillow
 pip install opencv-python
 pip install jpeg2dct
 pip install albumentations
+pip install tqdm
+pip install bs4
+pip install cython
+pip install pycocotools
 ```
 
 ## Training
@@ -72,7 +75,7 @@ export EXPERIMENTS_OUTPUT_DIRECTORY=<path_to_output_directory>
 
 ### Starting the training
 
-Once you have defined all the variables and modified the config files to your needs, simply run the following command:
+Once you have defined all the variables and modified the config files to your needs, simply run the following command (you will need to update some of the parameters to when not using horovod):
 
 ```bash
 python training.py -c <config_dir_path> --no-horovod
