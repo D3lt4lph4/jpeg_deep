@@ -58,7 +58,6 @@ class TrainingConfiguration(object):
             environ["DATASET_PATH_VAL"], "imagenet/validation")
         self.test_directory = join(
             environ["DATASET_PATH_TEST"], "imagenet/validation")
-        self.validation_split = 0.95
         self.index_file = "data/imagenet_class_index.json"
 
         # Defining the transformations that will be applied to the inputs.
@@ -70,6 +69,8 @@ class TrainingConfiguration(object):
 
         self.validation_transformations = [
             SmallestMaxSize(256), CenterCrop(224, 224)]
+
+        self.test_transformations = [SmallestMaxSize(256)]
 
         # Keras stuff
         self.reduce_lr_on_plateau = ReduceLROnPlateau(patience=5, verbose=1)
@@ -106,22 +107,12 @@ class TrainingConfiguration(object):
 
         self._callbacks = [
             hvd.callbacks.BroadcastGlobalVariablesCallback(0),
-
-            # Note: This callback must be in the list before the ReduceLROnPlateau,
-            # TensorBoard or other metrics-based callbacks.
             hvd.callbacks.MetricAverageCallback(),
-
-            # Horovod: using `lr = 1.0 * hvd.size()` from the very beginning leads to worse final
-            # accuracy. Scale the learning rate `lr = 1.0` ---> `lr = 1.0 * hvd.size()` during
-            # the first five epochs. See https://arxiv.org/abs/1706.02677 for details.
             hvd.callbacks.LearningRateWarmupCallback(
                 warmup_epochs=5, verbose=1),
 
-            # Reduce the learning rate if training plateaues.
             self.reduce_lr_on_plateau,
-
             self.terminate_on_nan,
-
             self.early_stopping
         ]
 
@@ -134,7 +125,7 @@ class TrainingConfiguration(object):
 
     def prepare_testing_generator(self):
         self._test_generator = DCTGeneratorJPEG2DCT(
-            self.test_directory, self.index_file, None, 1)
+            self.test_directory, self.index_file, None, 1, shuffle=False, transforms=self.test_transformations)
 
     def prepare_training_generators(self):
         self._train_generator = DCTGeneratorJPEG2DCT(
