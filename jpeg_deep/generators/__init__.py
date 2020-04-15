@@ -1,6 +1,6 @@
-from .generators import DCTGeneratorJPEG2DCT
-from .generators import RGBGenerator
-from .generators import prepare_imagenet
+from .imagenet_generators import DCTGeneratorJPEG2DCT
+from .imagenet_generators import RGBGenerator
+from .imagenet_generators import prepare_imagenet
 from .voc_generator import VOCGenerator
 from .helper_ssd import SSDInputEncoder
 from .helper_ssd import BoxFilter, ImageValidator

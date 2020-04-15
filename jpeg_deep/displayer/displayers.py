@@ -16,6 +16,37 @@ class Displayer(object):
     def display_with_gt(self, predictions, inputs, groundtruth):
         pass
 
+class ImageNetDisplayer(object):
+    def __init__(self, index_file):
+        # Transform the dictionary on int based values
+        self.classes = {}
+        with open(index_file) as index:
+            data = json.load(index)
+            for key in data:
+                self.classes[int(key)] = data[key][1]
+        
+
+    def display(self, predictions, inputs):
+
+        # Iterate over the predictions
+        for k in range(len(predictions)):
+
+            plt.figure(figsize=(20, 12))
+            plt.imshow(inputs[k])
+
+            # Get the best prediction
+
+            # Write the prediction with the confidence on the image
+            label = '{}: {:.2f}'.format(self.classes[int(box[0])], box[1])
+            current_axis.add_patch(plt.Rectangle(
+                (xmin, ymin), xmax-xmin, ymax-ymin, color=color, fill=False, linewidth=2))
+            current_axis.text(xmin, ymin, label, size='x-large',
+                                color='white', bbox={'facecolor': color, 'alpha': 1.0})
+            # Display
+            plt.show()
+
+    def display_with_gt(self, predictions, inputs, groundtruth):
+        pass
 
 class DisplayerObjects(object):
 

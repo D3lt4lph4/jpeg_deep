@@ -41,7 +41,7 @@ source jpeg_deep/bin/activate
 
 cd ..
 
-# Installing all the dependencies (the code was tested with the specified version numbers)
+# Installing all the dependencies (the code was tested with the specified version numbers on python 3.+)
 pip install keras
 pip install tensorflow-gpu==1.14.0
 pip install pillow
@@ -78,7 +78,7 @@ export EXPERIMENTS_OUTPUT_DIRECTORY=<path_to_output_directory>
 Once you have defined all the variables and modified the config files to your needs, simply run the following command (you will need to update some of the parameters to when not using horovod):
 
 ```bash
-python training.py -c <config_dir_path> --no-horovod
+python scripts/training.py -c <config_dir_path> --no-horovod
 ```
 
 The config file in the <config_dir_path> needs to be named "config.py" for the script to run correctly.
@@ -89,23 +89,27 @@ For more details on classification training on ImageNet dataset, refer to this [
 
 The training script support the usage of horovod. An exemple file for training with horovod using slurm is provided [jpeg_deep.sl](slurm/jpeg_deep.sl).
 
-```
+```bash
 cd slurm
 sbatch jpeg_deep.sl
 ```
 
 If you do not run on a multi-cluster computation facility that uses slurm, please refer to the original [horovod git](https://github.com/horovod/horovod)
 
-## Inference
+## Predictions
 
 **No pre-trained weights are/will be made available.** To get this section running, you'll have to retrain the networks from scratch.
 
-Inference can be done using the [inference.py](inference.py) script. In order to use the script you have to first carry a training for at least one epoch (the inference pre-suppose that you have an experiment folder).
+Inference can be done using the [prediction.py](scripts/prediction.py) script. In order to use the script you have to first carry a training for at least one epoch (the prediction pre-suppose that you have an experiment folder).
 
-The inference will be done on the test set. You need to modify the config_temp.py file in the experiment generated folder in order to use a different dataset.
+The prediction will be done on the test set. You need to modify the config_temp.py file in the experiment generated folder in order to use a different dataset.
+
+**For the vgg16 based classifiers:** The prediction script uses the test generator specified in the config file to get the data. Hence, with the provided examples, you may need first to convert the weights to a fully convolutional network.
+
+Once this is done, simply run the following command:
 
 ```bash
-python scripts/inference.py <experiment_path> <weights_path>
+python scripts/prediction.py <experiment_path> <weights_path>
 ```
 
 ## Classification
@@ -139,3 +143,5 @@ The table below shows the results obtained compared with the state of the art. F
 ## Detection MS-COCO
 
 ### Details in the dataset path
+
+## Running the documentation for a deeper usage of the provided code

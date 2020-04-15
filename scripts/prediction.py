@@ -4,8 +4,6 @@ import argparse
 import sys
 
 parser = argparse.ArgumentParser("Runs a prediction pass on a trained network.")
-
-#parser.add_argument("model", help="The model to use, should contain the whole network.")
 parser.add_argument("experiment", help="The experiment directory.")
 parser.add_argument("weights", help="The weights to load.")
 parser.add_argument('-gt', '--groundTruth', action='store_true', help="If the ground truth should be displayed.")
