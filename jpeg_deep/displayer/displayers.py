@@ -16,7 +16,7 @@ class Displayer(object):
     def display_with_gt(self, predictions, inputs, groundtruth):
         pass
 
-class ImageNetDisplayer(object):
+class ImagenetDisplayer(object):
     def __init__(self, index_file):
         # Transform the dictionary on int based values
         self.classes = {}
