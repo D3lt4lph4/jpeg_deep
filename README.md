@@ -52,6 +52,9 @@ pip install tqdm
 pip install bs4
 pip install cython
 pip install pycocotools
+
+# If you intend to display stuff
+pip install PyQt5
 ```
 
 ## Training

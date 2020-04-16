@@ -321,6 +321,8 @@ class RGBGenerator(Sequence):
     @shuffle.setter
     def shuffle(self, value):
         self._shuffle = value
+        if self._shuffle == True:
+            np.random.shuffle(self.indexes)
 
     def __len__(self):
         'Denotes the number of batches per epoch'
@@ -383,4 +385,32 @@ class RGBGenerator(Sequence):
         return np.array(X), np.array(y)
 
     def get_raw_input_label(self, index):
-        return self.__getitem__(index)
+        'Generate one batch of data'
+        # Generate indexes of the batch
+        # We have to use modulo to avoid overflowing the index size if we have too many batches per epoch
+        index = index % self.batches_per_epoch
+        indexes = self.indexes[index * self.batch_size:(index + 1) *
+                               self._batch_size]
+
+        X = []
+        y = np.zeros((self._batch_size, self.number_of_classes),
+                     dtype=np.int32)
+
+        # iterate over the indexes to get the correct values
+        for i, k in enumerate(indexes):
+
+            # Get the index of the class for later usage
+            last_slash = self.images_path[k].rfind("/")
+            second_last_slash = self.images_path[k][:last_slash].rfind("/")
+            index_class = self.images_path[k][second_last_slash + 1:last_slash]
+
+            # Load the image in RGB
+
+            img = Image.open(self.images_path[k])
+
+            X.append(img)
+
+            # Setting the target class to 1
+            y[i, int(self.association[index_class])] = 1
+
+        return X, np.array(y)

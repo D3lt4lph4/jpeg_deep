@@ -1,8 +1,13 @@
-import numpy as np
-from matplotlib import pyplot as plt
+import json
 
-import matplotlib
-matplotlib.use("Qt5Agg")
+import numpy as np
+
+import cv2
+
+from PIL import ImageFont
+from PIL import ImageDraw 
+
+import matplotlib.pyplot as plt
 
 
 class Displayer(object):
@@ -31,19 +36,18 @@ class ImagenetDisplayer(object):
         # Iterate over the predictions
         for k in range(len(predictions)):
 
-            plt.figure(figsize=(20, 12))
-            plt.imshow(inputs[k])
+            # Display the image
+            img = inputs[k]#.astype(np.uint8)
 
             # Get the best prediction
+            idx = np.argmax(predictions[k])
 
             # Write the prediction with the confidence on the image
-            label = '{}: {:.2f}'.format(self.classes[int(box[0])], box[1])
-            current_axis.add_patch(plt.Rectangle(
-                (xmin, ymin), xmax-xmin, ymax-ymin, color=color, fill=False, linewidth=2))
-            current_axis.text(xmin, ymin, label, size='x-large',
-                                color='white', bbox={'facecolor': color, 'alpha': 1.0})
-            # Display
-            plt.show()
+            label = '{}: {:.2f}'.format(self.classes[int(idx)], predictions[k][idx])
+
+            draw = ImageDraw.Draw(img)
+            draw.text((0, 0),label,(255,255,255))
+            img.show()
 
     def display_with_gt(self, predictions, inputs, groundtruth):
         pass
