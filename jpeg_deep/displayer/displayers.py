@@ -2,11 +2,6 @@ import json
 
 import numpy as np
 
-import cv2
-
-from PIL import ImageFont
-from PIL import ImageDraw 
-
 import matplotlib.pyplot as plt
 
 
@@ -37,7 +32,7 @@ class ImagenetDisplayer(object):
         for k in range(len(predictions)):
 
             # Display the image
-            img = inputs[k]#.astype(np.uint8)
+            img = inputs[k]
 
             # Get the best prediction
             idx = np.argmax(predictions[k])
@@ -45,9 +40,9 @@ class ImagenetDisplayer(object):
             # Write the prediction with the confidence on the image
             label = '{}: {:.2f}'.format(self.classes[int(idx)], predictions[k][idx])
 
-            draw = ImageDraw.Draw(img)
-            draw.text((0, 0),label,(255,255,255))
-            img.show()
+            plt.figure(label)
+            plt.imshow(img)
+            plt.show()
 
     def display_with_gt(self, predictions, inputs, groundtruth):
         pass

@@ -385,14 +385,22 @@ class RGBGenerator(Sequence):
         return np.array(X), np.array(y)
 
     def get_raw_input_label(self, index):
-        'Generate one batch of data'
-        # Generate indexes of the batch
-        # We have to use modulo to avoid overflowing the index size if we have too many batches per epoch
+        """ Provide with the raw data, i.e displayable. Here we return the RGB image, same as the original __getitem__ function, without the preprocess input.
+
+        # Argument:
+            - index: The index of the batch of data to retreive from the generator.
+        
+        # Return:
+            Two values, the images and the associated labels.
+
+        """
         index = index % self.batches_per_epoch
         indexes = self.indexes[index * self.batch_size:(index + 1) *
                                self._batch_size]
 
-        X = []
+        # Generate data
+        if self.input_size is not None:
+            X = np.empty((self._batch_size, 224, 224, 3), dtype=np.uint8)
         y = np.zeros((self._batch_size, self.number_of_classes),
                      dtype=np.int32)
 
@@ -407,10 +415,18 @@ class RGBGenerator(Sequence):
             # Load the image in RGB
 
             img = Image.open(self.images_path[k])
+            img = img.convert("RGB")
+            img = np.asarray(img)
+            if self.transforms:
+                for transform in self.transforms:
+                    img = transform(image=img)['image']
 
-            X.append(img)
+            # If no input size is provided, we keep the size of the image (we have a batch size of one then).
+            if self.input_size is None:
+                X = np.empty((self._batch_size, *img.shape), dtype=np.uint8)
 
+            X[i] = img
             # Setting the target class to 1
             y[i, int(self.association[index_class])] = 1
 
-        return X, np.array(y)
+        return np.array(X), np.array(y)
