@@ -5,19 +5,26 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-class Displayer(object):
-
-    def __init__(self):
-        pass
-
-    def display(self, predictions, inputs):
-        pass
-
-    def display_with_gt(self, predictions, inputs, groundtruth):
-        pass
 
 class ImagenetDisplayer(object):
     def __init__(self, index_file):
+        """ Displayer for an imagenet based classifier.
+
+        # Argument:
+            - index_file: The json file containing the mapping of the index/classes (see details below).
+        
+        # Details:
+
+        ```json
+        {
+            "0": [
+                "n01440764",
+                "tench],
+            ...
+        }
+        ```
+
+        """
         # Transform the dictionary on int based values
         self.classes = {}
         with open(index_file) as index:
@@ -27,6 +34,15 @@ class ImagenetDisplayer(object):
         
 
     def display(self, predictions, inputs):
+        """ Function to display the predictions on top of the input image.
+
+        # Arguments:
+            - predictions: The predictions as returned by the classifiers, should be an array of size (batch_size, 1000)
+            - inputs: The inputs images to the classifier.
+        
+        # Return:
+            Nothing, will display all the predictions.
+        """
 
         # Iterate over the predictions
         for k in range(len(predictions)):
@@ -45,7 +61,35 @@ class ImagenetDisplayer(object):
             plt.show()
 
     def display_with_gt(self, predictions, inputs, groundtruth):
-        pass
+        """ Function to display the predictions on top of the input image. The ground truth will be added.
+
+        # Arguments:
+            - predictions: The predictions as returned by the classifiers, should be an array of size (batch_size, 1000)
+            - inputs: The inputs images to the classifier.
+            - groundtruth: The real label of the predictions
+        
+        # Return:
+            Nothing, will display all the predictions alongside the groundtruths.
+        """
+        # Iterate over the predictions
+        for k in range(len(predictions)):
+
+            # Display the image
+            img = inputs[k]
+
+            # Get the best prediction
+            idx_pred = np.argmax(predictions[k])
+            idx_gt = np.argmax(groundtruth[k])
+
+            # Write the prediction with the confidence on the image
+            label = 'Predicted: {}, {:.2f}'.format(self.classes[int(idx_pred)], predictions[k][idx_pred])
+            gt = 'Groundtruth: {}'.format(self.classes[int(idx_gt)])
+            
+            plt.figure("Image {}".format(k + 1))
+            plt.text(0,-30, gt)
+            plt.text(0,-15, label)
+            plt.imshow(img)
+            plt.show()
 
 class DisplayerObjects(object):
 
