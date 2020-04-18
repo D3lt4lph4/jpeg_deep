@@ -1,7 +1,9 @@
+from os import getcwd
 from os.path import join
 
 import argparse
 import sys
+sys.path.append(getcwd())
 
 parser = argparse.ArgumentParser("Runs a prediction pass on a trained network.")
 parser.add_argument("experiment", help="The experiment directory.")
