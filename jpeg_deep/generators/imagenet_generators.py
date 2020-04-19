@@ -65,7 +65,7 @@ class DCTGeneratorJPEG2DCT(Sequence):
                  shuffle: bool=True,
                  split_cbcr: bool=False,
                  only_y: bool=False,
-                 transforms: List[objects]=None):
+                 transforms: List[object]=None):
         """ Generates data in the DCT space for Keras. This generator makes usage of the [following](https://github.com/uber-research/jpeg2dct) repository to read the jpeg images in the correct format.
 
         # Arguments:
