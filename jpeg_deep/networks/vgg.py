@@ -8,10 +8,11 @@ from keras.regularizers import l2
 
 def VGG16(classes=1000):
     """Instantiates the VGG16 architecture.
-        classes: optional number of classes to classify images
-            into, only to be specified if `include_top` is True, and
-            if no `weights` argument is specified.
-    # Returns
+
+    # Argument:
+        - classes: The number of classes the network should predict.
+
+    # Returns:
         A Keras model instance.
     """
     if K.image_data_format() == 'channels_last':
@@ -114,11 +115,13 @@ def VGG16(classes=1000):
 
 
 def VGG16_conv(classes=1000, input_dims=(None, None)):
-    """Instantiates the VGG16 architecture.
-        classes: optional number of classes to classify images
-            into, only to be specified if `include_top` is True, and
-            if no `weights` argument is specified.
-    # Returns
+    """ This is a modified version of the VGG16 network to be fully convolutional.
+
+    # Arguments:
+        - classes: The number of classes to predict.
+        - input_dims: The dimension of the inputs (x, y).
+        
+    # Returns:
         A Keras model instance.
     """
     input_shape = (*input_dims, 3)

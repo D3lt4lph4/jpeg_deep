@@ -40,7 +40,7 @@ class ImageNetDisplayer(object):
             - predictions: The predictions as returned by the classifiers, should be an array of size (batch_size, 1000)
             - inputs: The inputs images to the classifier.
         
-        # Return:
+        # Returns:
             Nothing, will display all the predictions.
         """
 
@@ -68,7 +68,7 @@ class ImageNetDisplayer(object):
             - inputs: The inputs images to the classifier.
             - groundtruth: The real label of the predictions
         
-        # Return:
+        # Returns:
             Nothing, will display all the predictions alongside the groundtruths.
         """
         # Iterate over the predictions

@@ -30,7 +30,7 @@ def prepare_imagenet(index_file, data_directory):
         - index_file: The file with the mapping of the index to classes.
         - data_directory: The directory containing the data files (images)
 
-    # Return:
+    # Returns:
         Three values, a dictionnary of mappings "class_id :index", the list of classes sorted by id and the path to the images
 
     """
@@ -326,7 +326,7 @@ class RGBGenerator(Sequence):
         # Arguments:
             - index: The index of the batch to be returned.
         
-        # Return:
+        # Returns:
             The batch of data at index i, i.e: data, labels
         """
         # We have to use modulo to avoid overflowing the index size if we have too many batches per epoch
@@ -351,7 +351,7 @@ class RGBGenerator(Sequence):
         # Argument:
             - indexes: A list of indexes to the images to use in the batch of data.
         
-        # Return:
+        # Returns:
             Two values, the batch of images and the labels associated.
         """
         # If we have an input size, generate the matrix to hold the data, else wait for the image size to be known
@@ -396,7 +396,7 @@ class RGBGenerator(Sequence):
         # Argument:
             - index: The index of the batch of data to retreive from the generator.
         
-        # Return:
+        # Returns:
             Two values, the images and the associated labels.
 
         """
