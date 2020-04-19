@@ -1,22 +1,22 @@
-import os
+from typing import Tuple
 
 from keras import backend as K
-from keras.models import Sequential, Model
+from keras.models import Model
 from keras.layers import Input, BatchNormalization, Conv2D, MaxPooling2D, Flatten, Dense, Dropout, Conv2DTranspose, Concatenate, GlobalAveragePooling2D
-from keras import models
 from keras.regularizers import l2
 
 
-def VGG16_dct(classes=1000, input_shape=(28, 28)):
-    """Instantiates the VGG16 architecture.
-        classes: optional number of classes to classify images
-            into, only to be specified if `include_top` is True, and
-            if no `weights` argument is specified.
-    # Returns
+def VGG16_dct(classes: int=1000):
+    """Instantiates the VGG16 DCT architecture.
+
+    # Argument:
+        - classes: The number of classes the network should predict.
+
+    # Returns:
         A Keras model instance.
     """
-    input_shape_y = (*input_shape, 64)
-    input_shape_cbcr = (input_shape[0] // 2, input_shape[1] // 2, 128)
+    input_shape_y = (28, 28, 64)
+    input_shape_cbcr = (14, 14, 128)
 
     input_y = Input(input_shape_y)
     input_cbcr = Input(input_shape_cbcr)
@@ -85,12 +85,14 @@ def VGG16_dct(classes=1000, input_shape=(28, 28)):
     return Model(inputs=[input_y, input_cbcr], outputs=x)
 
 
-def VGG16_dct_conv(classes=1000, input_shape=None):
-    """Instantiates the VGG16 architecture.
-        classes: optional number of classes to classify images
-            into, only to be specified if `include_top` is True, and
-            if no `weights` argument is specified.
-    # Returns
+def VGG16_dct_conv(classes=1000, input_shape: Tuple[int]=None):
+    """ This is a modified version of the VGG16 DCT network to be fully convolutional.
+
+    # Arguments:
+        - classes: The number of classes to predict.
+        - input_shape: The dimension of the inputs (x, y).
+        
+    # Returns:
         A Keras model instance.
     """
     if input_shape is None:
@@ -167,11 +169,12 @@ def VGG16_dct_conv(classes=1000, input_shape=None):
 
 
 def VGG16_dct_deconv(classes=1000, input_shape=(28, 28)):
-    """Instantiates the VGG16 architecture.
-        classes: optional number of classes to classify images
-            into, only to be specified if `include_top` is True, and
-            if no `weights` argument is specified.
-    # Returns
+    """Instantiates the VGG16 DCT architecture.
+
+    # Argument:
+        - classes: The number of classes the network should predict.
+
+    # Returns:
         A Keras model instance.
     """
     input_shape_y = (*input_shape, 64)
@@ -242,11 +245,13 @@ def VGG16_dct_deconv(classes=1000, input_shape=(28, 28)):
 
 
 def VGG16_dct_deconv_conv(classes=1000, input_shape=None):
-    """Instantiates the VGG16 architecture.
-        classes: optional number of classes to classify images
-            into, only to be specified if `include_top` is True, and
-            if no `weights` argument is specified.
-    # Returns
+    """ This is a modified version of the VGG16 DCT network to be fully convolutional.
+
+    # Arguments:
+        - classes: The number of classes to predict.
+        - input_shape: The dimension of the inputs (x, y).
+        
+    # Returns:
         A Keras model instance.
     """
     if input_shape is None:
@@ -317,15 +322,16 @@ def VGG16_dct_deconv_conv(classes=1000, input_shape=None):
     return Model(inputs=[input_y, input_cb, input_cr], outputs=x)
 
 
-def VGG16_dct_y(classes=1000, input_shape=(28, 28)):
-    """Instantiates the VGG16 architecture.
-        classes: optional number of classes to classify images
-            into, only to be specified if `include_top` is True, and
-            if no `weights` argument is specified.
-    # Returns
+def VGG16_dct_y(classes=1000):
+    """Instantiates the VGG16 DCT architecture.
+
+    # Argument:
+        - classes: The number of classes the network should predict.
+
+    # Returns:
         A Keras model instance.
     """
-    input_shape_y = (*input_shape, 64)
+    input_shape_y = (28, 28, 64)
 
     input_y = Input(input_shape_y)
 
@@ -389,11 +395,13 @@ def VGG16_dct_y(classes=1000, input_shape=(28, 28)):
 
 
 def VGG16_dct_y_conv(classes=1000, input_shape=(None, None)):
-    """Instantiates the VGG16 architecture.
-        classes: optional number of classes to classify images
-            into, only to be specified if `include_top` is True, and
-            if no `weights` argument is specified.
-    # Returns
+    """ This is a modified version of the VGG16 DCT network to be fully convolutional.
+
+    # Arguments:
+        - classes: The number of classes to predict.
+        - input_shape: The dimension of the inputs (x, y). Can be (None, None).
+        
+    # Returns:
         A Keras model instance.
     """
     input_shape_y = (*input_shape, 64)
