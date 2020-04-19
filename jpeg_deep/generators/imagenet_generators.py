@@ -1,4 +1,8 @@
+from typing import Tuple, List
+
 import numpy as np
+
+
 import keras
 import os
 import json
@@ -20,6 +24,16 @@ from keras.utils import Sequence
 
 
 def prepare_imagenet(index_file, data_directory):
+    """ Helper function to parse the ImageNet class json file. And get the images in the dataset.
+
+    # Arguments:
+        - index_file: The file with the mapping of the index to classes.
+        - data_directory: The directory containing the data files (images)
+
+    # Return:
+        Three values, a dictionnary of mappings "class_id :index", the list of classes sorted by id and the path to the images
+
+    """
 
     association = {}
     with open(index_file) as index:
@@ -57,6 +71,7 @@ class DCTGeneratorJPEG2DCT(Sequence):
                  only_y=False,
                  validation=False,
                  transforms=None):
+        
 
         if input_size is None and batch_size is not 1:
             raise RuntimeError(
@@ -231,40 +246,31 @@ class DCTGeneratorJPEG2DCT(Sequence):
 
 
 class RGBGenerator(Sequence):
+    
+
+    def __init__(self,
+                 data_directory: str,
+                 index_file: str,
+                 input_size: Tuple[int, int]=(224, 224),
+                 batch_size: int=32,
+                 shuffle: bool=True,
+                 transforms: List[object]=None):
     """ Generator for RGB images for the Imagenet dataset. The generator needs a folder with all the classes as well as the index file to generate the data.
 
     # Arguments
         - data_directory: The folder containing all the classes' folders. One folder per class.
-        - index_file: The file containing the index of all the classes
-        - input_size: The size of the input, if None the batch_size should be one
+        - index_file: The json mapping file from index to classes.
+        - input_size: The size of the input, if None the batch_size should be one.
         - batch_size: The size of the batches to be generated.
-        - shuffle: If the batch should be shuffled. The validation batch is never shuffled.
-        - seed: The seed to use for shuffling the data. Should be the same for the training and validation generators.
-        - validation_split: The size of the split for the validation, in the range [0;1].
-        - validation: If this generator should use the validation split.
-        - transforms: The transformation to apply to the images.
+        - shuffle: If the batch should be shuffled.
+        - transforms: The transformations to apply to the images. Use albumentations as transformations.
     """
-
-    def __init__(self,
-                 data_directory,
-                 index_file,
-                 input_size=(224, 224),
-                 batch_size=32,
-                 shuffle=True,
-                 seed=333,
-                 validation_split=0.0,
-                 validation=False,
-                 transforms=None):
-
         if input_size is None and batch_size is not 1:
             raise RuntimeError(
                 "The when input_size is None, the batch size should be one.")
         # Process the index dictionary to get the matching name/class_id
         self.association, self.classes, self.images_path = prepare_imagenet(
             index_file, data_directory)
-
-        # self.classes = self.classes[:1000]
-        # self.images_path = self.images_path[:1000]
 
         # External data
         self._batch_size = batch_size
@@ -273,25 +279,12 @@ class RGBGenerator(Sequence):
 
         # Internal data
         self.input_size = input_size
-
-        # If no validation split, all in test
-        if validation_split == 0 or validation_split == 1:
-            self.indexes = np.arange(len(self.images_path))
-        else:
-            np.random.seed(seed)
-            full_indexes = np.arange(len(self.images_path))
-            np.random.shuffle(full_indexes)
-            split_index = int(validation_split * len(self.images_path))
-            if validation:
-                self.indexes = full_indexes[split_index:]
-            else:
-                self.indexes = full_indexes[:split_index]
-
-            # Re-set the seed to random
-            np.random.seed(None)
-
         self.transforms = transforms
         self.number_of_classes = len(self.classes)
+
+        # Indexes for the images, will be used to generate the batches of data
+        self.indexes = np.arange(len(self.images_path))
+
         # An epoch sees all the images
         self.batches_per_epoch = len(self.indexes) // self._batch_size
 
@@ -325,62 +318,75 @@ class RGBGenerator(Sequence):
             np.random.shuffle(self.indexes)
 
     def __len__(self):
-        'Denotes the number of batches per epoch'
         return self.batches_per_epoch
 
-    def __getitem__(self, index):
-        'Generate one batch of data'
-        # Generate indexes of the batch
+    def __getitem__(self, index: int):
+        """ Returns the batch of data of index i. 
+
+        # Arguments:
+            - index: The index of the batch to be returned.
+        
+        # Return:
+            The batch of data at index i, i.e: data, labels
+        """
         # We have to use modulo to avoid overflowing the index size if we have too many batches per epoch
         index = index % self.batches_per_epoch
         indexes = self.indexes[index * self.batch_size:(index + 1) *
                                self._batch_size]
 
         # Generate data
-        X, y = self.__data_generation(indexes)
+        X, y = self._data_generation(indexes)
 
         return X, y
 
     def on_epoch_end(self):
-        'Updates indexes after each epoch'
+        """ Update function run by Keras at the end of each epoch. Will shuffle the images if shuffle was set as true.
+        """
         if self._shuffle == True:
             np.random.shuffle(self.indexes)
 
-    def __data_generation(self, indexes):
-        # X : (n_samples, *dim, n_channels)
-        'Generates data containing batch_size samples'
+    def _data_generation(self, indexes):
+        """ Internal function used to generate the batch of data.
 
-        # Two inputs for the data of one image.
+        # Argument:
+            - indexes: A list of indexes to the images to use in the batch of data.
+        
+        # Return:
+            Two values, the batch of images and the labels associated.
+        """
+        # If we have an input size, generate the matrix to hold the data, else wait for the image size to be known
         if self.input_size is not None:
             X = np.empty((self._batch_size, 224, 224, 3), dtype=np.int32)
         y = np.zeros((self._batch_size, self.number_of_classes),
                      dtype=np.int32)
 
-        # iterate over the indexes to get the correct values
+        # iterate over the indexes to get the data points
         for i, k in enumerate(indexes):
 
-            # Get the index of the class for later usage
+            # Get the index of the class to set the label value
             last_slash = self.images_path[k].rfind("/")
             second_last_slash = self.images_path[k][:last_slash].rfind("/")
             index_class = self.images_path[k][second_last_slash + 1:last_slash]
 
-            # Load the image in RGB
+            # Setting the target class to 1
+            y[i, int(self.association[index_class])] = 1
 
+            # Load the image
             img = Image.open(self.images_path[k])
             img = img.convert("RGB")
             img = np.asarray(img)
+
+            # Apply the transformations if any
             if self.transforms:
                 for transform in self.transforms:
                     img = transform(image=img)['image']
 
-            # If no input size is provided, we keep the size of the image (we have a batch size of one then).
+            # If no input size, set the X matrix to the image size
             if self.input_size is None:
                 X = np.empty((self._batch_size, *img.shape), dtype=np.int32)
 
+            # Apply the usual preprocessing
             X[i] = preprocess_input(img)
-
-            # Setting the target class to 1
-            y[i, int(self.association[index_class])] = 1
 
         return np.array(X), np.array(y)
 
@@ -394,39 +400,43 @@ class RGBGenerator(Sequence):
             Two values, the images and the associated labels.
 
         """
+        # We have to use modulo to avoid overflowing the index size if we have too many batches per epoch
         index = index % self.batches_per_epoch
         indexes = self.indexes[index * self.batch_size:(index + 1) *
                                self._batch_size]
 
-        # Generate data
+        # If we have an input size, generate the matrix to hold the data, else wait for the image size to be known
         if self.input_size is not None:
             X = np.empty((self._batch_size, 224, 224, 3), dtype=np.uint8)
         y = np.zeros((self._batch_size, self.number_of_classes),
                      dtype=np.int32)
 
-        # iterate over the indexes to get the correct values
+        # iterate over the indexes to get the data points
         for i, k in enumerate(indexes):
 
-            # Get the index of the class for later usage
+            # Get the index of the class to set the label value
             last_slash = self.images_path[k].rfind("/")
             second_last_slash = self.images_path[k][:last_slash].rfind("/")
             index_class = self.images_path[k][second_last_slash + 1:last_slash]
 
-            # Load the image in RGB
+            # Setting the target class to 1
+            y[i, int(self.association[index_class])] = 1
 
+            # Load the image
             img = Image.open(self.images_path[k])
             img = img.convert("RGB")
             img = np.asarray(img)
+
+            # Apply the transformations if any. Careful, if they are not determinate, the displayed images will not be the ones fed to the network
             if self.transforms:
                 for transform in self.transforms:
                     img = transform(image=img)['image']
 
-            # If no input size is provided, we keep the size of the image (we have a batch size of one then).
+            # If no input size, set the X matrix to the image size
             if self.input_size is None:
                 X = np.empty((self._batch_size, *img.shape), dtype=np.uint8)
 
+            # As we want displayable, do not do the preprocessing
             X[i] = img
-            # Setting the target class to 1
-            y[i, int(self.association[index_class])] = 1
 
         return np.array(X), np.array(y)
