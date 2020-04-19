@@ -255,16 +255,16 @@ class RGBGenerator(Sequence):
                  batch_size: int=32,
                  shuffle: bool=True,
                  transforms: List[object]=None):
-    """ Generator for RGB images for the Imagenet dataset. The generator needs a folder with all the classes as well as the index file to generate the data.
+        """ Generator for RGB images for the Imagenet dataset. The generator needs a folder with all the classes as well as the index file to generate the data.
 
-    # Arguments
-        - data_directory: The folder containing all the classes' folders. One folder per class.
-        - index_file: The json mapping file from index to classes.
-        - input_size: The size of the input, if None the batch_size should be one.
-        - batch_size: The size of the batches to be generated.
-        - shuffle: If the batch should be shuffled.
-        - transforms: The transformations to apply to the images. Use albumentations as transformations.
-    """
+        # Arguments
+            - data_directory: The folder containing all the classes' folders. One folder per class.
+            - index_file: The json mapping file from index to classes.
+            - input_size: The size of the input, if None the batch_size should be one.
+            - batch_size: The size of the batches to be generated.
+            - shuffle: If the batch should be shuffled.
+            - transforms: The transformations to apply to the images. Use albumentations as transformations.
+        """
         if input_size is None and batch_size is not 1:
             raise RuntimeError(
                 "The when input_size is None, the batch size should be one.")
