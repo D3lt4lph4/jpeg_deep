@@ -103,7 +103,9 @@ If you do not run on a multi-cluster computation facility that uses slurm, pleas
 
 **No pre-trained weights are/will be made available.** To get this section running, you'll have to retrain the networks from scratch.
 
-Inference can be done using the [prediction.py](scripts/prediction.py) script. In order to use the script you have to first carry a training for at least one epoch (the prediction pre-suppose that you have an experiment folder).
+### Display the results
+
+Displaying the results can be done using the [prediction.py](scripts/prediction.py) script. In order to use the script you have to first carry a training for at least one epoch (the prediction pre-suppose that you have an experiment folder).
 
 The prediction will be done on the test set. You need to modify the config_temp.py file in the experiment generated folder in order to use a different dataset.
 
@@ -115,26 +117,53 @@ Once this is done, simply run the following command:
 python scripts/prediction.py <experiment_path> <weights_path>
 ```
 
-## Classification
+### Prediction time
+
+To do
+
+## Classification on ImageNet
 
 ### Results
 
-The table below shows the results obtained compared with the state of the art. For the training, the ImageNet train set was used as training and the ImageNet validation set was used as validation.
+The table below shows the results obtained (accuracy) compared with the state of the art. All the presented results are on the validation dataset. All the FPS were calculated using a NVIDIA GTX 1080 and using the [prediction_time.py](scripts/prediction_time.py) script. Batch size was set to 8.
 
-| RGB Newtorks| top-1 | top-5 |
-|:-:|:-:|:-:|
-| VGG16 (official) | 27.0 | 8.8 |
-| VGG16 (retrained) | 28.1 | 9.2 |
-| ResNet50 (official) | 20.74 | 5.25 |
-| ResNet50 (retrained) | 25.27 | 7.67 |
+| Official Newtorks | top-1 | top-5 | FPS |
+|:-|:-:|:-:|:-:|
+| [VGG16](https://arxiv.org/abs/1409.1556) | 73.0 | 91.2 | N/A |
+| [VGG-DCT](https://arxiv.org/abs/1904.08408) | 42.0 | 66.9 | N/A |
+| [ResNet50](https://arxiv.org/abs/1904.08408) | 75.78 | 92.65 | N/A |
+| [LC-RFA](https://arxiv.org/abs/1904.08408) | 75.92 | 92.81 | N/A |
+| [LC-RFA-Thinner](https://arxiv.org/abs/1904.08408) | 75.39 | 92.57 | N/A |
+| [Deconvolution-RFA](https://arxiv.org/abs/1904.08408) | 76.06 | 92.02 | N/A |
 
-| DCT Newtorks| top-1 | top-5 |
-|:-:|:-:|:-:|
-| VGG D DCT | 34.5 | 13.6 |
-| ResNet lcrfa | - | - |
-| ResNet lcrfat | 25.38 | 7.67 |
+| VGG based Newtorks (our trainings) | top-1 | top-5 | FPS |
+|:-|:-:|:-:|:-:|
+| VGG16 | 71.9 | 90.8 | 267 |
+| VGG-DCT | 65.5 | 86.4 | 553 |
+| VGG-DCT | 62.6 | 84.6 | 583 |
+| VGG-DCT | 65.9 | 86.7 | 571 |
+
+| ResNet50 based Newtorks (our trainings) | top-1 | top-5 | FPS |
+|:-|:-:|:-:|:-:|
+| ResNet50 | 74.73 | 92.33 | 324 |
+| LC-RFA | **74.82** | **92.58** | 318 |
+| LC-RFA Y | 73.25 | 91.40 | 329 |
+| LC-RFA-Thinner | 74.62 | 92.33 | 389 |
+| LC-RFA-Thinner Y | 72.48 | 91.04 | 395 |
+| Deconvolution-RFA | 74.55 | 92.39 | 313 |
 
 ### Training on ImageNet
+
+The dataset can be downloaded [here](https://arxiv.org/abs/1904.08408). Choose the version that suits your needs, I used the 2012 (Object Detection) data.
+
+Once the data is downloaded, to use the provided generators, it should be stored following this tree (as long as you have separeted train and validation folders you should be okay)
+
+```text
+
+```
+
+Then you'll just need to set the configuration files to fit your needs and follow the procedure described in the [training](##Training) section. Keep in mind that the provided configuration files were used in a distributed training, hence the hyper parameters fit this particular settings. If you don't train that way, you'll want to change them.
+
 
 
 
