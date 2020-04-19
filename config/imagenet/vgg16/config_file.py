@@ -1,6 +1,8 @@
 from os.path import join
 from os import environ
 
+import keras.backend as K
+
 from keras.optimizers import SGD
 from keras.losses import categorical_crossentropy
 from keras.callbacks import ModelCheckpoint, TerminateOnNaN, EarlyStopping, ReduceLROnPlateau, TensorBoard
@@ -8,6 +10,7 @@ from keras.callbacks import ModelCheckpoint, TerminateOnNaN, EarlyStopping, Redu
 from jpeg_deep.generators import RGBGenerator
 from jpeg_deep.networks import VGG16, VGG16_conv
 from jpeg_deep.evaluation import Evaluator
+from jpeg_deep.displayer import ImagenetDisplayer
 
 from albumentations import (
     HorizontalFlip,
@@ -84,6 +87,9 @@ class TrainingConfiguration(object):
         self._train_generator = None
         self._validation_generator = None
         self._test_generator = None
+
+        # Stuff for display
+        self._displayer = ImagenetDisplayer(self.index_file)
 
     def prepare_runtime_checkpoints(self, directories_dir):
         log_dir = directories_dir["log_dir"]
