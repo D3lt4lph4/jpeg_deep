@@ -33,7 +33,7 @@ class TrainingConfiguration(object):
 
         # Variables for comet.ml
         self._project_name = "jpeg_deep"
-        self._workspace = "classification_rgb"
+        self._workspace = "classification_vgg"
 
         # Network variables
         self._weights = None
