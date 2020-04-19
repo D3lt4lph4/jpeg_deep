@@ -1,6 +1,8 @@
 from os.path import join
 from os import environ
 
+import keras.backend as K
+
 from keras.optimizers import SGD
 from keras.losses import categorical_crossentropy
 from keras.callbacks import ModelCheckpoint, TensorBoard
@@ -120,7 +122,8 @@ class TrainingConfiguration(object):
         ]
 
     def prepare_for_inference(self):
-        pass
+        K.clear_session()
+        self._network = ResNet50(input_shape=(None, None))
 
     def prepare_evaluator(self):
         self._evaluator = Evaluator()
