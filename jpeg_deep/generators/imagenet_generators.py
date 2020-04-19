@@ -57,21 +57,27 @@ def prepare_imagenet(index_file, data_directory):
 
 
 class DCTGeneratorJPEG2DCT(Sequence):
-    'Generates data in the DCT space for Keras. This generator makes usage of the [following](https://github.com/uber-research/jpeg2dct) repository to read the jpeg images in the correct format.'
-
     def __init__(self,
-                 data_directory,
-                 index_file,
-                 input_size=(28, 28),
-                 batch_size=32,
-                 shuffle=True,
-                 seed=333,
-                 validation_split=0.0,
-                 split_cbcr=False,
-                 only_y=False,
-                 validation=False,
-                 transforms=None):
-        
+                 data_directory: str,
+                 index_file: str,
+                 input_size: Tuple[int, int]=(28, 28),
+                 batch_size: int=32,
+                 shuffle: bool=True,
+                 split_cbcr: bool=False,
+                 only_y: bool=False,
+                 transforms: List[objects]=None):
+        """ Generates data in the DCT space for Keras. This generator makes usage of the [following](https://github.com/uber-research/jpeg2dct) repository to read the jpeg images in the correct format.
+
+        # Arguments:
+            - data_directory: The directory containing the images.
+            - index_file: The file containing the mappings index => classes.
+            - input_size: The size of the input, should be the size of the original picture / 8.
+            - batch_size: The size of the batches to be returned by the generator.
+            - shuffle: If the data is to be shuffle.
+            - split_cbcr: If the cb and cr component should be grouped or split in two vectors.
+            - only_y: If only the Y input should be returned.
+            - transforms: The transformations to apply to the images. Use albumentations as transformations.
+        """
 
         if input_size is None and batch_size is not 1:
             raise RuntimeError(
@@ -91,25 +97,12 @@ class DCTGeneratorJPEG2DCT(Sequence):
         self.input_size = input_size
         self.split_cbcr = split_cbcr
         self.only_y = only_y
-
-        # If no validation split, all in test
-        if validation_split == 0 or validation_split == 1:
-            self.indexes = np.arange(len(self.images_path))
-        else:
-            np.random.seed(seed)
-            full_indexes = np.arange(len(self.images_path))
-            np.random.shuffle(full_indexes)
-            split_index = int(validation_split * len(self.images_path))
-            if validation:
-                self.indexes = full_indexes[split_index:]
-            else:
-                self.indexes = full_indexes[:split_index]
-
-            # Re-set the seed to random
-            np.random.seed(None)
-
         self.transforms = transforms
         self.number_of_classes = len(self.classes)
+
+        # Indexes for the images, will be used to generate the batches of data
+        self.indexes = np.arange(len(self.images_path))
+
         # An epoch sees all the images
         self.batches_per_epoch = len(self.indexes) // self._batch_size
 
@@ -150,28 +143,40 @@ class DCTGeneratorJPEG2DCT(Sequence):
         return self.batches_per_epoch
 
     def __getitem__(self, index):
-        'Generate one batch of data'
-        # Generate indexes of the batch
+        """ Returns the batch of data of index i. 
+
+        # Arguments:
+            - index: The index of the batch to be returned.
+        
+        # Returns:
+            The batch of data at index i, i.e: data, labels
+        """
         # We have to use modulo to avoid overflowing the index size if we have too many batches per epoch
         index = index % self.batches_per_epoch
         indexes = self.indexes[index * self.batch_size:(index + 1) *
                                self._batch_size]
 
         # Generate data
-        X, y = self.__data_generation(indexes)
+        X, y = self._data_generation(indexes)
 
         return X, y
 
     def on_epoch_end(self):
-        'Updates indexes after each epoch'
+        """ Update function run by Keras at the end of each epoch. Will shuffle the images if shuffle was set as true.
+        """
         if self._shuffle == True:
             np.random.shuffle(self.indexes)
 
-    def __data_generation(self, indexes):
-        # X : (n_samples, *dim, n_channels)
-        'Generates data containing batch_size samples'
+    def _data_generation(self, indexes):
+        """ Internal function used to generate the batch of data.
 
-        # Two inputs for the data of one image.
+        # Argument:
+            - indexes: A list of indexes to the images to use in the batch of data.
+        
+        # Returns:
+            Two values, the batch of images and the labels associated.
+        """
+        # Prepare the matrices to hold the data.
         if self.input_size is not None:
             X_y = np.empty(
                 (self._batch_size, *self.input_size, 64), dtype=np.int32)
@@ -186,7 +191,7 @@ class DCTGeneratorJPEG2DCT(Sequence):
         y = np.zeros((self._batch_size, self.number_of_classes),
                      dtype=np.int32)
 
-        # iterate over the indexes to get the correct values
+        # Iterate over the indexes to get the data
         for i, k in enumerate(indexes):
 
             # Get the index of the class for later usage
@@ -194,18 +199,22 @@ class DCTGeneratorJPEG2DCT(Sequence):
             second_last_slash = self.images_path[k][:last_slash].rfind("/")
             index_class = self.images_path[k][second_last_slash + 1:last_slash]
 
-            # Load the image in RGB
+            # Load the image
             img = cv2.imread(self.images_path[k])
 
+            # Apply the transformations
             if self.transforms:
                 for transform in self.transforms:
                     img = transform(image=img)['image']
 
+            # Save the data to re-open it
             _, buffer = cv2.imencode(".jpg", img)
             io_buf = BytesIO(buffer)
 
+            # Read the data from the buffer
             dct_y, dct_cb, dct_cr = loads(io_buf.getvalue())
 
+            # If the size of the input is not specified, create the matrices and load the data
             if self.input_size is None:
                 if not self.split_cbcr:
                     X_cbcr = np.empty(
@@ -224,6 +233,7 @@ class DCTGeneratorJPEG2DCT(Sequence):
                 X_y[i, :dct_y.shape[0], :dct_y.shape[1], :] = dct_y
 
             else:
+                # load the data in the matrices
                 try:
                     X_y[i] = dct_y
                     if not self.split_cbcr:
@@ -232,6 +242,7 @@ class DCTGeneratorJPEG2DCT(Sequence):
                         X_cb[i] = dct_cb
                         X_cr[i] = dct_cr
                 except Exception as e:
+                    # Debug, should not go there anymore
                     raise Exception(str(e) + str(self.images_path[k]))
 
             # Setting the target class to 1
@@ -244,6 +255,56 @@ class DCTGeneratorJPEG2DCT(Sequence):
         else:
             return [X_y, X_cb, X_cr], y
 
+    def get_raw_input_label(self, index):
+        """ Provide with the raw data, i.e displayable. Here we return the RGB image, same as the original __getitem__ function, without the preprocess input.
+
+        # Argument:
+            - index: The index of the batch of data to retreive from the generator.
+        
+        # Returns:
+            Two values, the images and the associated labels.
+
+        """
+        # We have to use modulo to avoid overflowing the index size if we have too many batches per epoch
+        index = index % self.batches_per_epoch
+        indexes = self.indexes[index * self.batch_size:(index + 1) *
+                               self._batch_size]
+
+        # If we have an input size, generate the matrix to hold the data, else wait for the image size to be known
+        if self.input_size is not None:
+            X = np.empty((self._batch_size, 224, 224, 3), dtype=np.uint8)
+        y = np.zeros((self._batch_size, self.number_of_classes),
+                     dtype=np.int32)
+
+        # iterate over the indexes to get the data points
+        for i, k in enumerate(indexes):
+
+            # Get the index of the class to set the label value
+            last_slash = self.images_path[k].rfind("/")
+            second_last_slash = self.images_path[k][:last_slash].rfind("/")
+            index_class = self.images_path[k][second_last_slash + 1:last_slash]
+
+            # Setting the target class to 1
+            y[i, int(self.association[index_class])] = 1
+
+            # Load the image
+            img = Image.open(self.images_path[k])
+            img = img.convert("RGB")
+            img = np.asarray(img)
+
+            # Apply the transformations if any. Careful, if they are not determinate, the displayed images will not be the ones fed to the network
+            if self.transforms:
+                for transform in self.transforms:
+                    img = transform(image=img)['image']
+
+            # If no input size, set the X matrix to the image size
+            if self.input_size is None:
+                X = np.empty((self._batch_size, *img.shape), dtype=np.uint8)
+
+            # As we want displayable, do not do the preprocessing
+            X[i] = img
+
+        return np.array(X), np.array(y)
 
 class RGBGenerator(Sequence):
     
