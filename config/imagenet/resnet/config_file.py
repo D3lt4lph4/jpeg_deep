@@ -35,7 +35,7 @@ class TrainingConfiguration(object):
 
         # Variables for comet.ml
         self._project_name = "jpeg-deep"
-        self._workspace = "classification_rgb"
+        self._workspace = "classification_resnet50"
 
         # Network variables
         self._weights = None
@@ -53,13 +53,12 @@ class TrainingConfiguration(object):
         self._metrics = ['accuracy', 'top_k_categorical_accuracy']
 
         self.train_directory = join(
-            environ["DATASET_PATH_TRAIN"], "imagenet/train")
+            environ["DATASET_PATH_TRAIN"], "train")
         self.validation_directory = join(
-            environ["DATASET_PATH_TRAIN"], "imagenet/validation")
+            environ["DATASET_PATH_VAL"], "validation")
         self.test_directory = join(
-            environ["DATASET_PATH_VAL"], "imagenet/validation")
-        self.validation_split = 0.95
-        self.index_file = "/home/2017018/bdegue01/git/jpeg_deep/data/imagenet_class_index.json"
+            environ["DATASET_PATH_TEST"], "validation")
+        self.index_file = "data/imagenet_class_index.json"
 
         # Defining the transformations that will be applied to the inputs.
         self.train_transformations = [
@@ -71,13 +70,17 @@ class TrainingConfiguration(object):
         self.validation_transformations = [
             SmallestMaxSize(256), CenterCrop(224, 224)]
 
+        self.test_transformations = [SmallestMaxSize(256)]
+
+        # Keras stuff
         self._callbacks = []
 
         self._train_generator = None
         self._validation_generator = None
         self._test_generator = None
-
-        self._horovod = None
+        
+        # Stuff for display
+        self._displayer = ImageNetDisplayer(self.index_file)
 
     def prepare_runtime_checkpoints(self, directories_dir):
         log_dir = directories_dir["log_dir"]
@@ -91,7 +94,6 @@ class TrainingConfiguration(object):
             TensorBoard(log_dir))
 
     def prepare_horovod(self, hvd):
-        self._horovod = hvd
         self.optimizer_parameters["lr"] = self.optimizer_parameters["lr"] * hvd.size()
         self._optimizer = SGD(**self.optimizer_parameters)
         self._optimizer = hvd.DistributedOptimizer(self._optimizer)
@@ -106,7 +108,7 @@ class TrainingConfiguration(object):
             hvd.callbacks.LearningRateWarmupCallback(
                 warmup_epochs=5, verbose=1),
 
-            # Reduce the learning rate with the original schedules 
+            # Reduce the learning rate with the original schedules
             hvd.callbacks.LearningRateScheduleCallback(
                 start_epoch=5, end_epoch=30, multiplier=1.),
             hvd.callbacks.LearningRateScheduleCallback(
@@ -125,7 +127,7 @@ class TrainingConfiguration(object):
 
     def prepare_testing_generator(self):
         self._test_generator = RGBGenerator(
-            self.test_directory, self.index_file, None, 1)
+            self.test_directory, self.index_file, None, 1, shuffle=False, transforms=self.test_transformations)
 
     def prepare_training_generators(self):
         self._train_generator = RGBGenerator(
