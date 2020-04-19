@@ -10,7 +10,7 @@ from keras.callbacks import ModelCheckpoint, TerminateOnNaN, EarlyStopping, Redu
 from jpeg_deep.generators import RGBGenerator
 from jpeg_deep.networks import VGG16, VGG16_conv
 from jpeg_deep.evaluation import Evaluator
-from jpeg_deep.displayer import ImagenetDisplayer
+from jpeg_deep.displayer import ImageNetDisplayer
 
 from albumentations import (
     HorizontalFlip,
@@ -89,7 +89,7 @@ class TrainingConfiguration(object):
         self._test_generator = None
 
         # Stuff for display
-        self._displayer = ImagenetDisplayer(self.index_file)
+        self._displayer = ImageNetDisplayer(self.index_file)
 
     def prepare_runtime_checkpoints(self, directories_dir):
         log_dir = directories_dir["log_dir"]

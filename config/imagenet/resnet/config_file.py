@@ -8,6 +8,7 @@ from keras.callbacks import ModelCheckpoint, TensorBoard
 from jpeg_deep.generators import RGBGenerator
 from jpeg_deep.networks import ResNet50
 from jpeg_deep.evaluation import Evaluator
+from jpeg_deep.displayer import ImageNetDisplayer
 
 from albumentations import (
     HorizontalFlip,
@@ -100,17 +101,12 @@ class TrainingConfiguration(object):
         self._callbacks = [
             hvd.callbacks.BroadcastGlobalVariablesCallback(0),
 
-            # Note: This callback must be in the list before the ReduceLROnPlateau,
-            # TensorBoard or other metrics-based callbacks.
             hvd.callbacks.MetricAverageCallback(),
 
-            # Horovod: using `lr = 1.0 * hvd.size()` from the very beginning leads to worse final
-            # accuracy. Scale the learning rate `lr = 1.0` ---> `lr = 1.0 * hvd.size()` during
-            # the first five epochs. See https://arxiv.org/abs/1706.02677 for details.
             hvd.callbacks.LearningRateWarmupCallback(
                 warmup_epochs=5, verbose=1),
 
-            # Reduce the learning rate if training plateaues.
+            # Reduce the learning rate with the original schedules 
             hvd.callbacks.LearningRateScheduleCallback(
                 start_epoch=5, end_epoch=30, multiplier=1.),
             hvd.callbacks.LearningRateScheduleCallback(

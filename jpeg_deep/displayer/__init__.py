@@ -1,2 +1,2 @@
 from .displayers import DisplayerObjects
-from .displayers import ImagenetDisplayer
+from .displayers import ImageNetDisplayer

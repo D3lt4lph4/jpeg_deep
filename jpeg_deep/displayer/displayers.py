@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 
 
-class ImagenetDisplayer(object):
+class ImageNetDisplayer(object):
     def __init__(self, index_file):
         """ Displayer for an imagenet based classifier.
 
