@@ -1,4 +1,4 @@
-import os
+from typing import Tuple
 
 from keras import backend as K
 from keras.models import Sequential, Model
@@ -6,7 +6,7 @@ from keras.layers import Input, BatchNormalization, Conv2D, MaxPooling2D, Flatte
 from keras.regularizers import l2
 
 
-def VGG16(classes=1000):
+def VGG16(classes: int=1000):
     """Instantiates the VGG16 architecture.
 
     # Argument:
@@ -114,12 +114,12 @@ def VGG16(classes=1000):
     return model
 
 
-def VGG16_conv(classes=1000, input_dims=(None, None)):
+def VGG16_conv(classes: int=1000, input_dims: Tuple[int]=(None, None)):
     """ This is a modified version of the VGG16 network to be fully convolutional.
 
     # Arguments:
         - classes: The number of classes to predict.
-        - input_dims: The dimension of the inputs (x, y).
+        - input_dims: The dimension of the inputs (x, y). Can be (None, None).
         
     # Returns:
         A Keras model instance.
