@@ -10,6 +10,7 @@ from keras.callbacks import ModelCheckpoint, TerminateOnNaN, EarlyStopping, Redu
 from jpeg_deep.networks import VGG16_dct, VGG16_dct_conv
 from jpeg_deep.evaluation import Evaluator
 from jpeg_deep.generators import DCTGeneratorJPEG2DCT
+from jpeg_deep.displayer import ImageNetDisplayer
 
 from albumentations import (
     HorizontalFlip,
@@ -53,11 +54,11 @@ class TrainingConfiguration(object):
         self._metrics = ['accuracy', 'top_k_categorical_accuracy']
 
         self.train_directory = join(
-            environ["DATASET_PATH_TRAIN"], "imagenet/train")
+            environ["DATASET_PATH_TRAIN"], "train")
         self.validation_directory = join(
-            environ["DATASET_PATH_VAL"], "imagenet/validation")
+            environ["DATASET_PATH_VAL"], "validation")
         self.test_directory = join(
-            environ["DATASET_PATH_TEST"], "imagenet/validation")
+            environ["DATASET_PATH_TEST"], "validation")
         self.index_file = "data/imagenet_class_index.json"
 
         # Defining the transformations that will be applied to the inputs.
@@ -86,6 +87,8 @@ class TrainingConfiguration(object):
         self._train_generator = None
         self._validation_generator = None
         self._test_generator = None
+
+        self._displayer = ImageNetDisplayer(self.index_file)
 
     def prepare_runtime_checkpoints(self, directories_dir):
         log_dir = directories_dir["log_dir"]
