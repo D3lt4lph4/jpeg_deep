@@ -1,13 +1,16 @@
 from os import environ
 from os.path import join
 
+import keras.backend as K
+
 from keras.optimizers import SGD
 from keras.losses import categorical_crossentropy
 from keras.callbacks import ModelCheckpoint, TerminateOnNaN, EarlyStopping, ReduceLROnPlateau, TensorBoard
 
-from jpeg_deep.networks import vggd_dct_y
+from jpeg_deep.networks import VGG16_dct_y, VGG16_dct_y_conv
 from jpeg_deep.evaluation import Evaluator
 from jpeg_deep.generators import DCTGeneratorJPEG2DCT
+from jpeg_deep.displayer import ImageNetDisplayer
 
 from albumentations import (
     HorizontalFlip,
@@ -25,7 +28,7 @@ from albumentations import (
 class TrainingConfiguration(object):
     def __init__(self):
         # Variables to hold the description of the experiment
-        self.description = "Training configuration file for the DCT version of the  VGGA network."
+        self.description = ""
 
         # System dependent variable
         self._workers = 5
@@ -33,11 +36,11 @@ class TrainingConfiguration(object):
 
         # Variables for comet.ml
         self._project_name = "jpeg_deep"
-        self._workspace = "classification_dct"
+        self._workspace = "classification_vgg_dct_y"
 
         # Network variables
         self._weights = None
-        self._network = vggd_dct_y()
+        self._network = VGG16_dct_y()
 
         # Training variables
         self._epochs = 180
@@ -51,13 +54,12 @@ class TrainingConfiguration(object):
         self._metrics = ['accuracy', 'top_k_categorical_accuracy']
 
         self.train_directory = join(
-            environ["DATASET_PATH_TRAIN"], "imagenet/train")
+            environ["DATASET_PATH_TRAIN"], "train")
         self.validation_directory = join(
-            environ["DATASET_PATH_VAL"], "imagenet/validation")
+            environ["DATASET_PATH_VAL"], "validation")
         self.test_directory = join(
-            environ["DATASET_PATH_VAL"], "imagenet/validation")
-        self.validation_split = 0.95
-        self.index_file = "/home/2017018/bdegue01/git/jpeg_deep/data/imagenet_class_index.json"
+            environ["DATASET_PATH_TEST"], "validation")
+        self.index_file = "data/imagenet_class_index.json"
 
         # Defining the transformations that will be applied to the inputs.
         self.train_transformations = [
@@ -69,8 +71,9 @@ class TrainingConfiguration(object):
         self.validation_transformations = [
             SmallestMaxSize(256), CenterCrop(224, 224)]
 
+        self.test_transformations = [SmallestMaxSize(256)]
+
         # Keras stuff
-        self.model_checkpoint = None
         self.reduce_lr_on_plateau = ReduceLROnPlateau(patience=5, verbose=1)
         self.terminate_on_nan = TerminateOnNaN()
         self.early_stopping = EarlyStopping(monitor='val_loss',
@@ -85,7 +88,7 @@ class TrainingConfiguration(object):
         self._validation_generator = None
         self._test_generator = None
 
-        self._horovod = None
+        self._displayer = ImageNetDisplayer(self.index_file)
 
     def prepare_runtime_checkpoints(self, directories_dir):
         log_dir = directories_dir["log_dir"]
@@ -99,7 +102,6 @@ class TrainingConfiguration(object):
             TensorBoard(log_dir))
 
     def prepare_horovod(self, hvd):
-        self._horovod = hvd
         self.optimizer_parameters["lr"] = self.optimizer_parameters["lr"] * hvd.size()
         self._optimizer = SGD(**self.optimizer_parameters)
         self._optimizer = hvd.DistributedOptimizer(self._optimizer)
@@ -108,34 +110,25 @@ class TrainingConfiguration(object):
 
         self._callbacks = [
             hvd.callbacks.BroadcastGlobalVariablesCallback(0),
-
-            # Note: This callback must be in the list before the ReduceLROnPlateau,
-            # TensorBoard or other metrics-based callbacks.
             hvd.callbacks.MetricAverageCallback(),
-
-            # Horovod: using `lr = 1.0 * hvd.size()` from the very beginning leads to worse final
-            # accuracy. Scale the learning rate `lr = 1.0` ---> `lr = 1.0 * hvd.size()` during
-            # the first five epochs. See https://arxiv.org/abs/1706.02677 for details.
             hvd.callbacks.LearningRateWarmupCallback(
                 warmup_epochs=5, verbose=1),
 
-            # Reduce the learning rate if training plateaues.
             self.reduce_lr_on_plateau,
-
             self.terminate_on_nan,
-
             self.early_stopping
         ]
 
     def prepare_for_inference(self):
-        pass
+        K.clear_session()
+        self._network = VGG16_dct_y_conv()
 
     def prepare_evaluator(self):
         self._evaluator = Evaluator()
 
     def prepare_testing_generator(self):
         self._test_generator = DCTGeneratorJPEG2DCT(
-            self.test_directory, self.index_file, None, 1, only_y=True)
+            self.test_directory, self.index_file, None, 1, shuffle=False, transforms=self.test_transformations, only_y=True)
 
     def prepare_training_generators(self):
         self._train_generator = DCTGeneratorJPEG2DCT(
