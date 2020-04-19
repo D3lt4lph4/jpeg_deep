@@ -1,19 +1,20 @@
-import os
-import warnings
+from typing import List, Tuple
 
 from keras.regularizers import l2
 from keras.layers import Conv2D, BatchNormalization, Activation, add
 
 
-def identity_block(input_tensor, kernel_size, filters, stage, block, kernel_reg=0.00005):
-    """The identity block is the block that has no conv layer at shortcut.
+def identity_block(input_tensor: object, kernel_size: int, filters: List[int], stage: str, block, kernel_reg: int=0.00005):
+    """ The identity block as described in the ResNet paper.
+
     # Arguments
-        input_tensor: input tensor
-        kernel_size: default 3, the kernel size of
-            middle conv layer at main path
-        filters: list of integers, the filters of 3 conv layer at main path
-        stage: integer, current stage label, used for generating layer names
-        block: 'a','b'..., current block label, used for generating layer names
+        - input_tensor: The input tensor.
+        - kernel_size: The size of the kernel to use for the convolutions
+        - filters: A list with the size of the different filters, should contain three numbers
+        - stage: The name of the stage, used for generating layer names
+        - block: 'a','b'..., current block label, used for generating layer names
+        - kernel_reg: The regularization factor to use
+
     # Returns
         Output tensor for the block.
     """
@@ -51,27 +52,26 @@ def identity_block(input_tensor, kernel_size, filters, stage, block, kernel_reg=
     return x
 
 
-def conv_block(input_tensor,
-               kernel_size,
-               filters,
-               stage,
-               block,
-               strides=(2, 2),
+def conv_block(input_tensor: object,
+               kernel_size: int,
+               filters: List[int],
+               stage: str,
+               block: str,
+               strides: Tuple[int, int]=(2, 2),
                kernel_reg=0.00005):
-    """A block that has a conv layer at shortcut.
+    """ The convolution block as described in the ResNet paper.
+
     # Arguments
-        input_tensor: input tensor
-        kernel_size: default 3, the kernel size of
-            middle conv layer at main path
-        filters: list of integers, the filters of 3 conv layer at main path
-        stage: integer, current stage label, used for generating layer names
-        block: 'a','b'..., current block label, used for generating layer names
-        strides: Strides for the first conv layer in the block.
+        - input_tensor: The input tensor.
+        - kernel_size: The size of the kernel to use for the convolutions
+        - filters: A list with the size of the different filters, should contain three numbers
+        - stage: The name of the stage, used for generating layer names
+        - block: 'a','b'..., current block label, used for generating layer names
+        - stride: The stride to use for the convolution
+        - kernel_reg: The regularization factor to use
+
     # Returns
         Output tensor for the block.
-    Note that from stage 3,
-    the first conv layer at main path is with strides=(2, 2)
-    And the shortcut should have strides=(2, 2) as well
     """
     filters1, filters2, filters3 = filters
     bn_axis = 3

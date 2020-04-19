@@ -4,8 +4,7 @@
     https://arxiv.org/abs/1512.03385) (CVPR 2016 Best Paper Award)
 Adapted from code contributed by BigMoyan.
 """
-import os
-import warnings
+from typing import Tuple
 
 from keras.regularizers import l2
 from keras import layers
@@ -15,16 +14,14 @@ from keras import models
 from .resnet_blocks import identity_block, conv_block
 
 
-def ResNet50(classes=1000, input_shape=(224, 224)):
-    """Instantiates the ResNet50 architecture.
-    Optionally loads weights pre-trained on ImageNet.
-    Note that the data format convention used by the model is
-    the one specified in your Keras config at `~/.keras/keras.json`.
+def ResNet50(classes: int=1000, input_shape: Tuple[int]=(224, 224)):
+    """ Instantiates the ResNet50 architecture.
+
     # Arguments
-        classes: optional number of classes to classify images
-            into, only to be specified if `include_top` is True, and
-            if no `weights` argument is specified.
-    # Returns
+        - classes: The number of classes to predict.
+        - input_shape: The size of the inputs (x, y).
+
+    # Returns:
         A Keras model instance.
     """
     img_input = layers.Input(shape=(*input_shape, 3))
