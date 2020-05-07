@@ -135,8 +135,8 @@ The table below shows the results obtained (accuracy) compared with the state of
 |:-|:-:|:-:|:-:|
 | VGG16 | 71.9 | 90.8 | 267 |
 | VGG-DCT | 65.5 | 86.4 | 553 |
-| VGG-DCT | 62.6 | 84.6 | 583 |
-| VGG-DCT | 65.9 | 86.7 | 571 |
+| VGG-DCT Y | 62.6 | 84.6 | 583 |
+| VGG-DCT Deconvolution | 65.9 | 86.7 | 571 |
 
 | ResNet50 based Newtorks (our trainings) | top-1 | top-5 | FPS |
 |:-|:-:|:-:|:-:|
@@ -154,13 +154,29 @@ The dataset can be downloaded [here](https://arxiv.org/abs/1904.08408). Choose t
 Once the data is downloaded, to use the provided generators, it should be stored following this tree (as long as you have separeted train and validation folders you should be okay)
 
 ```text
-
+imagenet
+|
+|_ train
+|  |_ n01440764
+|  |_ n01443537
+|  |_ ...
+|
+|_ validation
+   |_ n01440764
+   |_ n01443537
+   |_ ...
 ```
 
-Then you'll just need to set the configuration files to fit your needs and follow the procedure described in the [training](##Training) section. Keep in mind that the provided configuration files were used in a distributed training, hence the hyper parameters fit this particular settings. If you don't train that way, you'll want to change them.
+Then you'll just need to set the configuration files to fit your needs and follow the procedure described in the [training](##Training) section. Keep in mind that the provided configuration files were used in a distributed training, hence the hyper parameters fit this particular settings. If you don't train that way, you'll need to change them.
 
+Also the system variable should be set to the ImageNet folder (if you use the provided config files)
 
-
+```bash
+# Setting the main dirs for the training datasets
+export DATASET_PATH_TRAIN=<path_to_train_directory>/imagebet
+export DATASET_PATH_VAL=<path_to_validation_directory>/imagebet
+export DATASET_PATH_TEST=<path_to_test_directory>/imagebet
+```
 
 ## Detection (Pascal VOC)
 
