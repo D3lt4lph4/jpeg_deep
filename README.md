@@ -15,14 +15,14 @@ All the networks proposed in this repository are modified versions of the three 
 1. [Installation](#Installation])
 2. [Training](#Training)
 3. [Prediction](#Predict)
-4. [Classification (ImageNet)](#Predict)
+4. [Classification (ImageNet)](#Classification-ImageNet)
 5. [Detection (PascalVOC)](#Detection-(PascalVOC))
 6. [Detection (MS-COCO)](#Detection-(MS-COCO))
 7. [Method limitations](#Method-limitations)
 
 ## Installation
 
-The installation steps are the same for classification and detection:
+The provided code can be used directly or install as a package. The following steps are to install the dependencies in a virtual env:
 
 ```bash
 # Making virtualenv
@@ -44,19 +44,16 @@ pip install tqdm
 pip install bs4
 pip install cython
 pip install pycocotools
-
-# If you intend to display stuff
-pip install PyQt5
+pip install matplotlib
 ```
 
 ## Training
 
-The training uses a system of config files and experiments. The aim is to help saving the parameters of a run.
-Example config files are available in the config folder. The config files defines all the training and testing parameters. 
+The training uses a system of configuration files and experiments. This system aims to help saving the parameters of a given run. On start of the training, an experiment folder will be created with copies of the configuration files, weights and logs. Example config files are available in the config folder. The config files defines all the training and testing parameters.
 
 ### System variables
 
-To simplify deployment on different machines, the following variables need to be defined (see Classification and Detection section for details in the dataset_path):
+To simplify deployment on different machines, the following variables need to be defined (see the Classification/Detections sections for details in the dataset_path):
 
 ```bash
 # Setting the main dirs for the training datasets
@@ -78,11 +75,11 @@ python scripts/training.py -c <config_dir_path> --no-horovod
 
 The config file in the <config_dir_path> needs to be named "config.py" for the script to run correctly.
 
-For more details on classification training on ImageNet dataset, refer to this [section](##classification), for more details for training on Pascal VOC dataset, refer to this [section](##Detection-Pascal-VOC) and for more details for training MS-COCO dataset, refer to this [section](##Detection-MS-COCO)
+For more details on classification training on ImageNet dataset, refer to this [section](#Classification-ImageNet), for more details for training on Pascal VOC dataset, refer to this [section](#Detection-(PascalVOC)) and for more details for training MS-COCO dataset, refer to this [section](#Detection-(MS-COCO))
 
 ### Training using horovod
 
-The training script support the usage of horovod. An exemple file for training with horovod using slurm is provided [jpeg_deep.sl](slurm/jpeg_deep.sl).
+The training script support the usage of horovod. I highly recommend to train on multiple GPUs for the classification given the size of the dataset. An exemple file for training with horovod using slurm is provided [jpeg_deep.sl](slurm/jpeg_deep.sl).
 
 ```bash
 cd slurm
@@ -101,7 +98,7 @@ Displaying the results can be done using the [prediction.py](scripts/prediction.
 
 The prediction will be done on the test set. You need to modify the config_temp.py file in the experiment generated folder in order to use a different dataset.
 
-**For the vgg16 based classifiers:** The prediction script uses the test generator specified in the config file to get the data. Hence, with the provided examples, you may need first to convert the weights to a fully convolutional network.
+**For the vgg16 based classifiers:** The prediction script uses the test generator specified in the config file to get the data. Hence, with the provided examples, you may need first to convert the weights to a fully convolutional version of the network. This can be done using the [classification2ssd.py](scripts/classification2ssd.py) script.
 
 Once this is done, simply run the following command:
 
@@ -111,7 +108,13 @@ python scripts/prediction.py <experiment_path> <weights_path>
 
 ### Prediction time
 
-To do
+We also provide with a way to test the speed of the trained networks. This is done using the [prediction_time.py](scripts/prediction_time.py) script.
+
+In order to test the speed of the networks, a batch of data is preloaded into memory then prediction is run over this batch for P times, and the overall is done N times. Results is then the averaged time. You may or may not load weights.
+
+```bash
+python scripts/prediction_time.py <experiment_path> -nr 10 -w <weights_path>
+```
 
 ## Classification (ImageNet)
 
