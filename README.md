@@ -4,29 +4,21 @@ This repository provides code to train and used neural network on compressed JPE
 
 This implementation relies on the module [jpeg2dct](https://github.com/uber-research/jpeg2dct) from uber research team. The SSD used in this repository was taken from [this repository](https://github.com/pierluigiferrari/ssd_keras) and then modified.
 
-The following networks (and modified versions) are available for usage in the repository:
+All the networks proposed in this repository are modified versions of the three following architectures
 
 - [VGG16](https://arxiv.org/abs/1409.1556)
 - [ResNet50](https://arxiv.org/abs/1512.03385)
 - [SSD](https://arxiv.org/abs/1512.02325)
 
+## Summary
 
-## Compressed representation and limitations
-
-### Image Resizing
-
-Using the compressed representation of the data brings some limitations. The main limitation discussed here is the resizing of the input data. Resizing images in the RGB domain is straightforward whereas resizing in the DCT domain is more complicated. The following list of articles explore the possibility to resize images directly in the frequency domain:
-
-- [On Resizing Images In The DCT Domain](https://ieeexplore.ieee.org/document/1421685)
-- [Image Resizing In The Discrete Cosine Transform Domain](https://ieeexplore.ieee.org/document/537460)
-- [Fast Image Resizing in Discrete Cosine Transform Domain with Spatial Relationship between DCT Block and its Sub-Blocks](https://ieeexplore.ieee.org/document/4590237)
-- [Design and Analysis of an Image Resizing Filter in the Block-DCT Domain](https://www.researchgate.net/publication/3308607_Design_and_Analysis_of_an_Image_Resizing_Filter_in_the_Block-DCT_Domain)
-
-These methods are so far not implemented in this repository.
- 
-### Training Pipeline
-
-The second limitation is for training. Data-augmentation has to be carried in the RGB domain, thus the data-augmentation pipeline is the following one: JPEG => RGB => data-augmentation => JPEG => Compressed Input. This slows down the training.
+1. [Installation](#Installation])
+2. [Training](#Training)
+3. [Prediction](#Predict)
+4. [Classification (ImageNet)](#Predict)
+5. [Detection (PascalVOC)](#Detection-(PascalVOC))
+6. [Detection (MS-COCO)](#Detection-(MS-COCO))
+7. [Method limitations](#Method-limitations)
 
 ## Installation
 
@@ -99,7 +91,7 @@ sbatch jpeg_deep.sl
 
 If you do not run on a multi-cluster computation facility that uses slurm, please refer to the original [horovod git](https://github.com/horovod/horovod)
 
-## Predictions
+## Predict
 
 **No pre-trained weights are/will be made available.** To get this section running, you'll have to retrain the networks from scratch.
 
@@ -121,7 +113,7 @@ python scripts/prediction.py <experiment_path> <weights_path>
 
 To do
 
-## Classification on ImageNet
+## Classification (ImageNet)
 
 ### Results
 
@@ -167,13 +159,31 @@ Then you'll just need to set the configuration files to fit your needs and follo
 
 
 
-## Detection Pascal VOC
+## Detection (Pascal VOC)
 
 ### Details in the dataset path
 
 
-## Detection MS-COCO
+## Detection (MS-COCO)
 
 ### Details in the dataset path
 
 ## Running the documentation for a deeper usage of the provided code
+
+
+## Method limitations
+
+### Image Resizing
+
+Using the compressed representation of the data brings some limitations. The main limitation discussed here is the resizing of the input data. Resizing images in the RGB domain is straightforward whereas resizing in the DCT domain is more complicated. The following list of articles explore the possibility to resize images directly in the frequency domain:
+
+- [On Resizing Images In The DCT Domain](https://ieeexplore.ieee.org/document/1421685)
+- [Image Resizing In The Discrete Cosine Transform Domain](https://ieeexplore.ieee.org/document/537460)
+- [Fast Image Resizing in Discrete Cosine Transform Domain with Spatial Relationship between DCT Block and its Sub-Blocks](https://ieeexplore.ieee.org/document/4590237)
+- [Design and Analysis of an Image Resizing Filter in the Block-DCT Domain](https://www.researchgate.net/publication/3308607_Design_and_Analysis_of_an_Image_Resizing_Filter_in_the_Block-DCT_Domain)
+
+These methods are so far not implemented in this repository.
+ 
+### Training Pipeline
+
+The second limitation is for training. Data-augmentation has to be carried in the RGB domain, thus the data-augmentation pipeline is the following one: JPEG => RGB => data-augmentation => JPEG => Compressed Input. This slows down the training.
