@@ -10,3 +10,4 @@ pages:
   - Introduction: displayer/index.md
   - Displayers: displayer/displayers.md
   - Evaluators: evaluation/evaluators.md
+  - Layers: layers/layers.md

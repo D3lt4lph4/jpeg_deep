@@ -53,7 +53,7 @@ class Evaluator(object):
             - iteration_per_run: The number of batch predictions that will be done for each of the run.
             - verbose:Verbose mode of the function.
         
-        # Return:
+        # Returns:
             Nothing, will print information about the prediction speed of the network.
 
         """
@@ -210,7 +210,7 @@ class PascalEvaluator(object):
             - generator: The generator from which we will get the data (batch size of 1 only supported).
             - output_dir: Where to output the results.
         
-        # Return:
+        # Returns:
             Nothing, a folder with the results will be created.
         
         """
@@ -287,7 +287,7 @@ class PascalEvaluator(object):
             - iteration_per_run: The number of batch predictions that will be done for each of the run.
             - verbose:Verbose mode of the function.
         
-        # Return:
+        # Returns:
             Nothing, will print information about the prediction speed of the network.
 
         """
@@ -340,7 +340,7 @@ class PascalEvaluator(object):
             - sorting_algorithm: Which sorting algorithm the matching algorithm should use. This argument accepts any valid sorting algorithm for Numpy's `argsort()` function.
             - verbose: If `True`, will print out the progress during runtime.
         
-        # Return:
+        # Returns:
             Four nested lists containing the true positives, false positives, cumulative true positives, and cumulative false positives for each class.
         '''
 
@@ -762,7 +762,7 @@ class CocoEvaluator(object):
             - generator: The generator from which we will get the data (batch size of 1 only supported).
             - output_dir: Where to output the results.
         
-        # Return:
+        # Returns:
             Nothing, a folder with the results will be created.
         
         """
@@ -830,7 +830,7 @@ class CocoEvaluator(object):
             - iteration_per_run: The number of batch predictions that will be done for each of the run.
             - verbose:Verbose mode of the function.
         
-        # Return:
+        # Returns:
             Nothing, will print information about the prediction speed of the network.
 
         """

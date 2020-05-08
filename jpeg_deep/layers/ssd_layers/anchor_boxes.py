@@ -60,8 +60,8 @@ class AnchorBoxes(Layer):
                  next_scale: float,
                  aspect_ratios: List[float] = [0.5, 1.0, 2.0],
                  two_boxes_for_ar1: bool = True,
-                 this_steps=None,
-                 this_offsets=None,
+                 this_steps:float=None,
+                 this_offsets:float=None,
                  clip_boxes: bool = False,
                  variances: List[float] = [0.1, 0.1, 0.2, 0.2],
                  coords: str = 'centroids',
@@ -70,27 +70,18 @@ class AnchorBoxes(Layer):
         '''
         All arguments need to be set to the same values as in the box encoding process, otherwise the behavior is undefined.
         Some of these arguments are explained in more detail in the documentation of the `SSDBoxEncoder` class.
-        Arguments:
-            img_height: The height of the input images.
-            img_width: The width of the input images.
-            this_scale: A float in [0, 1], the scaling factor for the size of the generated anchor boxes
-                as a fraction of the shorter side of the input image.
-            next_scale: A float in [0, 1], the next larger scaling factor. Only relevant if
-                `self.two_boxes_for_ar1 == True`.
-            aspect_ratios: The list of aspect ratios for which default boxes are to be
-                generated for this layer.
-            two_boxes_for_ar1: Only relevant if `aspect_ratios` contains 1.
-                If `True`, two default boxes will be generated for aspect ratio 1. The first will be generated
-                using the scaling factor for the respective layer, the second one will be generated using
-                geometric mean of said scaling factor and next bigger scaling factor.
-            clip_boxes: If `True`, clips the anchor box coordinates to stay within image boundaries.
-            variances (list, optional): A list of 4 floats >0. The anchor box offset for each coordinate will be divided by
-                its respective variance value.
-            coords (str, optional): The box coordinate format to be used internally in the model (i.e. this is not the input format
-                of the ground truth labels). Can be either 'centroids' for the format `(cx, cy, w, h)` (box center coordinates, width, and height),
-                'corners' for the format `(xmin, ymin, xmax,  ymax)`, or 'minmax' for the format `(xmin, xmax, ymin, ymax)`.
-            normalize_coords (bool, optional): Set to `True` if the model uses relative instead of absolute coordinates,
-                i.e. if the model predicts box coordinates within [0,1] instead of absolute coordinates.
+        
+        # Arguments:
+            - img_height: The height of the input images.
+            - img_width: The width of the input images.
+            - this_scale: A float in [0, 1], the scaling factor for the size of the generated anchor boxes as a fraction of the shorter side of the input image.
+            - next_scale: A float in [0, 1], the next larger scaling factor. Only relevant if `self.two_boxes_for_ar1 == True`.
+            - aspect_ratios: The list of aspect ratios for which default boxes are to be generated for this layer.
+            - two_boxes_for_ar1: Only relevant if `aspect_ratios` contains 1. If `True`, two default boxes will be generated for aspect ratio 1. The first will be generated using the scaling factor for the respective layer, the second one will be generated using geometric mean of said scaling factor and next bigger scaling factor.
+            - clip_boxes: If `True`, clips the anchor box coordinates to stay within image boundaries.
+            - variances: A list of 4 floats >0. The anchor box offset for each coordinate will be divided by its respective variance value.
+            - coords: The box coordinate format to be used internally in the model (i.e. this is not the input format of the ground truth labels). Can be either 'centroids' for the format `(cx, cy, w, h)` (box center coordinates, width, and height), 'corners' for the format `(xmin, ymin, xmax,  ymax)`, or 'minmax' for the format `(xmin, xmax, ymin, ymax)`.
+            - normalize_coords: Set to `True` if the model predicts box coordinates within [0,1] instead of absolute coordinates.
         '''
         if K.backend() != 'tensorflow':
             raise TypeError(
@@ -103,7 +94,9 @@ class AnchorBoxes(Layer):
         if len(variances) != 4:
             raise ValueError(
                 "4 variance values must be pased, but {} values were received.".format(len(variances)))
+
         variances = np.array(variances)
+
         if np.any(variances <= 0):
             raise ValueError(
                 "All variances must be >0, but the variances given are {}".format(variances))
@@ -131,18 +124,15 @@ class AnchorBoxes(Layer):
         self.input_spec = [InputSpec(shape=input_shape)]
         super(AnchorBoxes, self).build(input_shape)
 
-    def call(self, x, mask=None):
+    def call(self, x: object, mask: object=None):
         '''
-        Return an anchor box tensor based on the shape of the input tensor.
-        The logic implemented here is identical to the logic in the module `ssd_box_encode_decode_utils.py`.
-        Note that this tensor does not participate in any graph computations at runtime. It is being created
-        as a constant once during graph creation and is just being output along with the rest of the model output
-        during runtime. Because of this, all logic is implemented as Numpy array operations and it is sufficient
+        Return an anchor box tensor based on the shape of the input tensor. Note that this tensor does not participate in any graph computations at runtime. Because of this, all logic is implemented as Numpy array operations and it is sufficient
         to convert the resulting Numpy array into a Keras tensor at the very end before outputting it.
-        Arguments:
-            x (tensor): 4D tensor of shape `(batch, channels, height, width)` if `dim_ordering = 'th'`
-                or `(batch, height, width, channels)` if `dim_ordering = 'tf'`. The input for this
+        
+        # Arguments:
+            - x (tensor): 4D tensor of shape `(batch, height, width, channels)` if `dim_ordering = 'tf'`. The input for this
                 layer must be the output of the localization predictor layer.
+            - mask: ?
         '''
 
         # Compute box width and height for each aspect ratio
@@ -250,7 +240,7 @@ class AnchorBoxes(Layer):
         # as `boxes_tensor` and simply contains the same 4 variance values for every position in the last axis.
         # Has shape `(feature_map_height, feature_map_width, n_boxes, 4)`
         variances_tensor = np.zeros_like(boxes_tensor)
-        variances_tensor += self.variances  # Long live broadcasting
+        variances_tensor += self.variances
         # Now `boxes_tensor` becomes a tensor of shape `(feature_map_height, feature_map_width, n_boxes, 8)`
         boxes_tensor = np.concatenate(
             (boxes_tensor, variances_tensor), axis=-1)
@@ -263,12 +253,27 @@ class AnchorBoxes(Layer):
 
         return boxes_tensor
 
-    def compute_output_shape(self, input_shape):
+    def compute_output_shape(self, input_shape: object):
+        """ Compute the output shape of the layer.
+
+        # Argument:
+            - input_shape: The input shape of the layer.
+        
+        # Returns:
+            The output shape of the layer.
+
+        """
         batch_size, feature_map_height, feature_map_width, feature_map_channels = input_shape
 
         return (batch_size, feature_map_height, feature_map_width, self.n_boxes, 8)
 
     def get_config(self):
+        """ Returns the configuration arguments of the layer.
+        
+        # Returns:
+            A dictionnary of all the configuration parameters of the layer.
+
+        """
         config = {
             'img_height': self.img_height,
             'img_width': self.img_width,
@@ -276,6 +281,8 @@ class AnchorBoxes(Layer):
             'next_scale': self.next_scale,
             'aspect_ratios': list(self.aspect_ratios),
             'two_boxes_for_ar1': self.two_boxes_for_ar1,
+            'this_steps': self.this_steps,
+            'this_offsets': self.this_offsets,
             'clip_boxes': self.clip_boxes,
             'variances': list(self.variances),
             'coords': self.coords,

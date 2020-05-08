@@ -45,29 +45,16 @@ class DecodeDetections(Layer):
                  **kwargs):
         '''
         All default argument values follow the Caffe implementation.
-        Arguments:
-            confidence_thresh: A float in [0,1), the minimum classification confidence in a specific
-                positive class in order to be considered for the non-maximum suppression stage for the respective class.
-                A lower value will result in a larger part of the selection process being done by the non-maximum suppression
-                stage, while a larger value will result in a larger part of the selection process happening in the confidence
-                thresholding stage.
-            iou_threshold: A float in [0,1]. All boxes with a Jaccard similarity of greater than `iou_threshold`
-                with a locally maximal box will be removed from the set of predictions for a given class, where 'maximal' refers
-                to the box score.
-            top_k: The number of highest scoring predictions to be kept for each batch item after the
-                non-maximum suppression stage.
-            nms_max_output_size: The maximum number of predictions that will be left after performing non-maximum
-                suppression.
-            coords: The box coordinate format that the model outputs. Must be 'centroids'
-                i.e. the format `(cx, cy, w, h)` (box center coordinates, width, and height). Other coordinate formats are
-                currently not supported.
-            normalize_coords: Set to `True` if the model outputs relative coordinates (i.e. coordinates in [0,1])
-                and you wish to transform these relative coordinates back to absolute coordinates. If the model outputs
-                relative coordinates, but you do not want to convert them back to absolute coordinates, set this to `False`.
-                Do not set this to `True` if the model already outputs absolute coordinates, as that would result in incorrect
-                coordinates. Requires `img_height` and `img_width` if set to `True`.
-            img_height: The height of the input images. Only needed if `normalize_coords` is `True`.
-            img_width: The width of the input images. Only needed if `normalize_coords` is `True`.
+        # Arguments:
+            - confidence_thresh: A float in [0,1), the minimum classification confidence in a specific positive class in order to be considered for the non-maximum suppression stage for the respective class.
+            - iou_threshold: A float in [0,1]. All boxes with a Jaccard similarity of greater than `iou_threshold` with a locally maximal box will be removed from the set of predictions for a given class, where 'maximal' refers to the box score.
+            - top_k: The number of highest scoring predictions to be kept for each batch item after the non-maximum suppression stage.
+            - nms_max_output_size: The maximum number of predictions that will be left after performing non-maximum suppression.
+            - coords: The box coordinate format that the model outputs. Must be 'centroids' i.e. the format `(cx, cy, w, h)` (box center coordinates, width, and height). Other coordinate formats are currently not supported.
+            - normalize_coords: Set to `True` if the model outputs relative coordinates (i.e. coordinates in [0,1])
+                and you wish to transform these relative coordinates back to absolute coordinates. Requires `img_height` and `img_width` if set to `True`.
+            - img_height: The height of the input images. Only needed if `normalize_coords` is `True`.
+            - img_width: The width of the input images. Only needed if `normalize_coords` is `True`.
         '''
         if K.backend() != 'tensorflow':
             raise TypeError(
@@ -113,7 +100,7 @@ class DecodeDetections(Layer):
 
     def call(self, y_pred, mask=None):
         '''
-        Returns:
+        # Returns:
             3D tensor of shape `(batch_size, top_k, 6)`. The second axis is zero-padded
             to always yield `top_k` predictions per batch item. The last axis contains
             the coordinates for each predicted box in the format
@@ -173,11 +160,26 @@ class DecodeDetections(Layer):
         return tf.concat([classes, conf, f_pred[0]], axis=-1)
 
     def compute_output_shape(self, input_shape):
+        """ Compute the output shape of the layer.
+
+        # Argument:
+            - input_shape: The input shape of the layer.
+        
+        # Returns:
+            The output shape of the layer.
+
+        """
         batch_size, n_boxes, last_axis = input_shape
         # Last axis: (class_ID, confidence, 4 box coordinates)
         return (batch_size, self.tf_top_k, 6)
 
     def get_config(self):
+        """ Returns the configuration arguments of the layer.
+        
+        # Returns:
+            A dictionnary of all the configuration parameters of the layer.
+
+        """
         config = {
             'confidence_thresh': self.confidence_thresh,
             'iou_threshold': self.iou_threshold,
