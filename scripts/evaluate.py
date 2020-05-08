@@ -34,7 +34,6 @@ evaluator = config.evaluator
 
 if not args.submission:
     evaluator(model, config.test_generator)
-    print(evaluator)
     # If anything to display, apart from the results (graphs,...)
     evaluator.display_results()
 else:
