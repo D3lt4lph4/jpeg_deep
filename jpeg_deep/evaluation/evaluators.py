@@ -2,6 +2,9 @@ import sys
 import numpy as np
 import time
 import json
+
+from typing import List, Dict
+
 from statistics import mean, stdev
 from PIL import Image
 
@@ -20,7 +23,10 @@ import tensorflow as tf
 
 
 class Evaluator(object):
-    def __init__(self, generator=None):
+    def __init__(self, generator:object=None):
+        """ General purpose evaluator. To be used when the calculation is run directly by keras.
+
+        """
         self.score = None
         self._generator = generator
         self.runs = False
@@ -37,7 +43,20 @@ class Evaluator(object):
 
         self.score = model.evaluate_generator(self._generator, verbose=1)
 
-    def model_speed(self, model, test_generator=None, number_of_runs=10, iteration_per_run=200, verbose=False):
+    def model_speed(self, model:object, test_generator:object=None, number_of_runs:int=10, iteration_per_run:int=200, verbose:bool=False):
+        """ Compute the speed of the network in FPS.
+
+        # Arguments:
+            - model: The model to use for prediction (keras model)
+            - generator: The generator from which we will get the data (batch size of 1 only supported).
+            - number_of_runs: The number of run to be done.
+            - iteration_per_run: The number of batch predictions that will be done for each of the run.
+            - verbose:Verbose mode of the function.
+        
+        # Return:
+            Nothing, will print information about the prediction speed of the network.
+
+        """
 
         if self._generator is None and test_generator is None:
             raise RuntimeError(
@@ -63,46 +82,30 @@ class Evaluator(object):
         print("The number of FPS for the tested network was {}.".format(
             self._generator.batch_size * iteration_per_run / mean(times)))
 
-    def make_runs(self, model, test_generator=None, number_of_runs=10):
-
-        if self._generator is None and test_generator is None:
-            raise RuntimeError(
-                "A generator should be specified using the init or parameters."
-            )
-
-        scores = []
-        self.runs = True
-
-        if test_generator is not None:
-            self._generator = test_generator
-
-        if test_generator is not None:
-            for i in range(number_of_runs):
-                scores.append(model.evaluate_generator(self._generator))
-        else:
-            for i in range(number_of_runs):
-                scores.append(model.evaluate_generator(self._generator))
-
-        self.score = np.mean(np.array(scores), axis=0)
-        self.number_of_runs = number_of_runs
-
-    def __str__(self):
-        if self.runs:
-            return "Number of runs: {}\nAverage score: {}".format(
-                self.number_of_runs, self.score)
-        else:
-            return "The evaluated score is {}.".format(self.score)
-
     @property
     def test_generator(self):
         return self._generator
 
     def display_results(self):
-        print("The evaluated score is {}.".format(self.score))
+        """ Function to display more information about the prediction (graphs, ...).
+
+        Not implemented.
+        """
+        pass
 
 
 class PascalEvaluator(object):
-    def __init__(self, generator=None, n_classes=20, ignore_flagged_boxes=True, challenge="VOC2007", set_type="test"):
+    def __init__(self, generator: object=None, n_classes:int=20, ignore_flagged_boxes:bool=True, challenge:str="VOC2007", set_type:str="test"):
+        """ Evaluator for the Pascal VOC dataset.
+
+        # Arguments:
+            - generator: The generator that will provide with the data, should not be shuffled. Only supported with a batch size of 1 for now.
+            - n_classes: The number of classes (without background).
+            - ignore_flagged_boxes: If the flagged boxes should be ignored for evaluation (i.e difficult, truncated, ...)
+            - challenge: The name of the challenge, will be used in case of generation of predictions for the submission of results.
+            - set_type: The type of the set to use for evaluation (i.e train, val, test).
+
+        """
         self.score = None
         self._generator = generator
         self.n_classes = n_classes
@@ -199,7 +202,18 @@ class PascalEvaluator(object):
         print(average_precisions)
         print(mean_average_precision)
 
-    def predict_for_submission(self, model, generator=None, output_dir="."):
+    def predict_for_submission(self, model: object, generator: object=None, output_dir:str="."):
+        """ Function to create the file for submission on the evaluation servers.
+
+        # Arguments:
+            - model: The model to use for prediction (keras model)
+            - generator: The generator from which we will get the data (batch size of 1 only supported).
+            - output_dir: Where to output the results.
+        
+        # Return:
+            Nothing, a folder with the results will be created.
+        
+        """
         if self._generator is None and generator is None:
             raise RuntimeError(
                 "A generator should be specified using the init or parameters."
@@ -263,7 +277,20 @@ class PascalEvaluator(object):
                     class_file.write(
                         "{} {:.6f} {:.6f} {:.6f} {:.6f} {:.6f}\n".format(*prediction))
 
-    def model_speed(self, model, test_generator=None, number_of_runs=10, iteration_per_run=200, verbose=False):
+    def model_speed(self, model: object, test_generator: object=None, number_of_runs: int=10, iteration_per_run:int=200, verbose:bool=False):
+        """ Compute the speed of the network in FPS.
+
+        # Arguments:
+            - model: The model to use for prediction (keras model)
+            - generator: The generator from which we will get the data (batch size of 1 only supported).
+            - number_of_runs: The number of run to be done.
+            - iteration_per_run: The number of batch predictions that will be done for each of the run.
+            - verbose:Verbose mode of the function.
+        
+        # Return:
+            Nothing, will print information about the prediction speed of the network.
+
+        """
 
         if self._generator is None and test_generator is None:
             raise RuntimeError(
@@ -280,7 +307,6 @@ class PascalEvaluator(object):
 
         for _ in it:
             start_time = time.time()
-            p = []
             for _ in range(iteration_per_run):
                 results = []
                 pred = model.predict(X)
@@ -292,77 +318,30 @@ class PascalEvaluator(object):
         print("The number of FPS for the tested network was {}.".format(
             self._generator.batch_size * iteration_per_run / mean(times)))
 
-    def make_runs(self, model, test_generator=None, number_of_runs=10):
-
-        if self._generator is None and test_generator is None:
-            raise RuntimeError(
-                "A generator should be specified using the init or parameters."
-            )
-
-        scores = []
-        self.runs = True
-
-        if test_generator is not None:
-            self._generator = test_generator
-
-        if test_generator is not None:
-            for i in range(number_of_runs):
-                scores.append(model.evaluate_generator(self._generator))
-        else:
-            for i in range(number_of_runs):
-                scores.append(model.evaluate_generator(self._generator))
-
-        self.score = np.mean(np.array(scores), axis=0)
-        self.number_of_runs = number_of_runs
-
-    def __str__(self):
-        if self.runs:
-            return "Number of runs: {}\nAverage score: {}".format(
-                self.number_of_runs, self.score)
-        else:
-            return "The evaluated score is {}.".format(self.score)
-
     @property
     def test_generator(self):
         return self._generator
 
-    def display_results(self):
-        print("The evaluated score is {}.".format(self.score))
-
     def match_predictions(self,
-                          prediction_results,
-                          ignore_neutral_boxes=True,
-                          matching_iou_threshold=0.5,
-                          border_pixels='include',
-                          sorting_algorithm='quicksort',
-                          verbose=True):
+                          prediction_results:object,
+                          ignore_neutral_boxes:bool=True,
+                          matching_iou_threshold:float=0.5,
+                          border_pixels:str='include',
+                          sorting_algorithm:str='quicksort',
+                          verbose:bool=True):
         '''
         Matches predictions to ground truth boxes.
-        Note that `predict_on_dataset()` must be called before calling this method.
-        Arguments:
-            ignore_neutral_boxes (bool, optional): In case the data generator provides annotations indicating whether a ground truth
-                bounding box is supposed to either count or be neutral for the evaluation, this argument decides what to do with these
-                annotations. If `False`, even boxes that are annotated as neutral will be counted into the evaluation. If `True`,
-                neutral boxes will be ignored for the evaluation. An example for evaluation-neutrality are the ground truth boxes
-                annotated as "difficult" in the Pascal VOC datasets, which are usually treated as neutral for the evaluation.
-            matching_iou_threshold (float, optional): A prediction will be considered a true positive if it has a Jaccard overlap
-                of at least `matching_iou_threshold` with any ground truth bounding box of the same class.
-            border_pixels (str, optional): How to treat the border pixels of the bounding boxes.
-                Can be 'include', 'exclude', or 'half'. If 'include', the border pixels belong
-                to the boxes. If 'exclude', the border pixels do not belong to the boxes.
-                If 'half', then one of each of the two horizontal and vertical borders belong
-                to the boxex, but not the other.
-            sorting_algorithm (str, optional): Which sorting algorithm the matching algorithm should use. This argument accepts
-                any valid sorting algorithm for Numpy's `argsort()` function. You will usually want to choose between 'quicksort'
-                (fastest and most memory efficient, but not stable) and 'mergesort' (slight slower and less memory efficient, but stable).
-                The official Matlab evaluation algorithm uses a stable sorting algorithm, so this algorithm is only guaranteed
-                to behave identically if you choose 'mergesort' as the sorting algorithm, but it will almost always behave identically
-                even if you choose 'quicksort' (but no guarantees).
-            verbose (bool, optional): If `True`, will print out the progress during runtime.
-            ret (bool, optional): If `True`, returns the true and false positives.
-        Returns:
-            None by default. Optionally, four nested lists containing the true positives, false positives, cumulative true positives,
-            and cumulative false positives for each class.
+
+        # Arguments:
+            - prediction_results: Prediction results for an image.
+            - ignore_neutral_boxes: If marked boxes should be ignored when matching prediction and groundtruth.
+            - matching_iou_threshold: IoU threshold above which a groundtruth and a prediction are considered for matching.
+            - border_pixels: How to treat the border pixels of the bounding boxes. Can be 'include', 'exclude', or 'half'. If 'include', the border pixels belong to the boxes. If 'exclude', the border pixels do not belong to the boxes. If 'half', then one of each of the two horizontal and vertical borders belong to the boxes, but not the other.
+            - sorting_algorithm: Which sorting algorithm the matching algorithm should use. This argument accepts any valid sorting algorithm for Numpy's `argsort()` function.
+            - verbose: If `True`, will print out the progress during runtime.
+        
+        # Return:
+            Four nested lists containing the true positives, false positives, cumulative true positives, and cumulative false positives for each class.
         '''
 
         class_id_gt = 0
@@ -527,27 +506,20 @@ class PascalEvaluator(object):
 
         return true_positives, false_positives, cumulative_true_positives, cumulative_false_positives
 
-    def compute_precision_recall(self, ctp, cfp, ngpc, verbose=True, ret=True):
+    def compute_precision_recall(self, cumulative_true_positives: object, cumulative_false_positives: object, num_gt_per_class: object, verbose: bool=True):
         '''
-        Computes the precisions and recalls for all classes.
-        Note that `match_predictions()` must be called before calling this method.
-        Arguments:
-            verbose (bool, optional): If `True`, will print out the progress during runtime.
-            ret (bool, optional): If `True`, returns the precisions and recalls.
-        Returns:
-            None by default. Optionally, two nested lists containing the cumulative precisions and recalls for each class.
+        Computes the cumulative precisions and recalls for all classes, i.e precision and recall at all the points.
+
+        # Arguments:
+            - cumulative_true_positives: The cumulative true positive as output by `match_predictions`
+            - cumulative_false_positives: The cumulative false positive as output by `match_predictions`
+            - num_gt_per_class: The number of groundtruth boxes per class.
+            - verbose: If `True`, will print out the progress during runtime.
+
+        # Returns:
+            Two nested lists containing the cumulative precisions and recalls for each class.
         '''
-        cumulative_true_positives = ctp
-        cumulative_false_positives = cfp
-        num_gt_per_class = ngpc
-        if (cumulative_true_positives is None) or (cumulative_false_positives is None):
-            raise ValueError(
-                "True and false positives not available. You must run `match_predictions()` before you call this method.")
-
-        if (num_gt_per_class is None):
-            raise ValueError(
-                "Number of ground truth boxes per class not available. You must run `get_num_gt_per_class()` before you call this method.")
-
+    
         cumulative_precisions = [[]]
         cumulative_recalls = [[]]
 
@@ -574,32 +546,20 @@ class PascalEvaluator(object):
 
         return cumulative_precisions, cumulative_recalls
 
-    def compute_average_precisions(self, cp, cr, mode='sample', num_recall_points=11, verbose=True, ret=True):
+    def compute_average_precisions(self, cumulative_precisions: List, cumulative_recalls: List, mode:str='sample', num_recall_points:int=11, verbose:bool=True):
         '''
-        Computes the average precision for each class.
-        Can compute the Pascal-VOC-style average precision in both the pre-2010 (k-point sampling)
-        and post-2010 (integration) algorithm versions.
-        Note that `compute_precision_recall()` must be called before calling this method.
-        Arguments:
-            mode (str, optional): Can be either 'sample' or 'integrate'. In the case of 'sample', the average precision will be computed
-                according to the Pascal VOC formula that was used up until VOC 2009, where the precision will be sampled for `num_recall_points`
-                recall values. In the case of 'integrate', the average precision will be computed according to the Pascal VOC formula that
-                was used from VOC 2010 onward, where the average precision will be computed by numerically integrating over the whole
-                preciscion-recall curve instead of sampling individual points from it. 'integrate' mode is basically just the limit case
-                of 'sample' mode as the number of sample points increases. For details, see the references below.
-            num_recall_points (int, optional): Only relevant if mode is 'sample'. The number of points to sample from the precision-recall-curve
-                to compute the average precisions. In other words, this is the number of equidistant recall values for which the resulting
-                precision will be computed. 11 points is the value used in the official Pascal VOC pre-2010 detection evaluation algorithm.
-            verbose (bool, optional): If `True`, will print out the progress during runtime.
-            ret (bool, optional): If `True`, returns the average precisions.
-        Returns:
-            None by default. Optionally, a list containing average precision for each class.
-        References:
-            http://host.robots.ox.ac.uk/pascal/VOC/voc2012/htmldoc/devkit_doc.html#sec:ap
-        '''
-        cumulative_precisions = cp
-        cumulative_recalls = cr
+        Computes the average precision for each class. Can compute the Pascal-VOC-style average precision in both the pre-2010 (k-point sampling) and post-2010 (integration) algorithm versions.
+    
+        # Arguments:
+            - cumulative_precisions: A nested list of the cumulative precisions values (one list per class).
+            - cumulative_recalls: A nested list of the cumulative recall values (one list per class).
+            - mode: Can be either 'sample' or 'integrate'. In the case of 'sample', the average precision will be computed according to the Pascal VOC formula that was used up until VOC 2009. In the case of 'integrate', the average precision will be computed according to the Pascal VOC formula that was used from VOC 2010 onward.
+            - num_recall_points: Only relevant if mode is 'sample'. The number of points to sample from the precision-recall-curve to compute the average precisions. Eleven points is the value used in the official Pascal VOC pre-2010 detection evaluation algorithm.
+            - verbose: If `True`, will print out the progress during runtime.
 
+        # Returns:
+            A list containing average precision for each class.
+        '''
         average_precisions = [0.0]
 
         # Iterate over all classes.
@@ -615,10 +575,10 @@ class PascalEvaluator(object):
 
             if mode == 'sample':
 
+                # For all the recall points
                 for t in np.linspace(start=0, stop=1, num=num_recall_points, endpoint=True):
 
                     cum_prec_recall_greater_t = cumulative_precision[cumulative_recall >= t]
-
                     if cum_prec_recall_greater_t.size == 0:
                         precision = 0.0
                     else:
@@ -669,33 +629,48 @@ class PascalEvaluator(object):
 
         return average_precisions
 
-    def compute_mean_average_precision(self, ap, ret=True):
+    def compute_mean_average_precision(self, average_precisions):
         '''
         Computes the mean average precision over all classes.
-        Note that `compute_average_precisions()` must be called before calling this method.
-        Arguments:
-            ret (bool, optional): If `True`, returns the mean average precision.
-        Returns:
-            A float, the mean average precision, by default. Optionally, None.
-        '''
-        average_precisions = ap
 
+        # Arguments:
+            average_precisions: A list of all the average precision for each of the classes.
+        
+        # Returns:
+            A float, the mean average precision.
+        '''
         # The first element is for the background class, so skip it.
         mean_average_precision = np.average(average_precisions[1:])
 
         return mean_average_precision
+    
+
+    def display_results(self):
+        """ Function to display more information about the prediction (graphs, ...).
+
+        Not implemented.
+        """
+        pass
 
 
 class CocoEvaluator(object):
-    def __init__(self, annotation_file, generator=None, n_classes=80, set="test-dev2017", alg="dummy"):
+    def __init__(self, annotation_file:str, generator:object=None, set:str="test-dev2017", network_name:str="dummy"):
+        """ Evaluator for the MS-COCO dataset.
+
+        # Arguments:
+            - annotation_file: The file containing all the annotation for the images. Should be set even for prediction on the test dataset as it is used to extract information from the COCO api.
+            - generator: The generator that will be used to run the predictions.
+            - set: The name of the set that will be used for prediction. This argument is used to set the name of the results file in case of submission.
+            - network_name: The name of the network that will be used for prediction. This argument is used to set the name of the results file in case of submission.
+
+        """
         self.score = None
         self._generator = generator
-        self.n_classes = n_classes
         self.annotation_file = annotation_file
         self.runs = False
         self.number_of_runs = None
         self.set = set
-        self.alg = alg
+        self.network_name = network_name
 
         # Getting the dictionnary matching the class/id
         self.coco = COCO(annotation_file)
@@ -773,15 +748,24 @@ class CocoEvaluator(object):
 
         cocoDt = cocoGt.loadRes("/tmp/output.json")
 
-        # imgIds=sorted(cocoGt.getImgIds())
-
         cocoEval = COCOeval(cocoGt, cocoDt, "bbox")
         cocoEval.params.imgIds = imgIds
         cocoEval.evaluate()
         cocoEval.accumulate()
         cocoEval.summarize()
 
-    def predict_for_submission(self, model, generator=None, output_dir="."):
+    def predict_for_submission(self, model: object, generator: object=None, output_dir:str="."):
+        """ Function to create the file for submission on the evaluation servers.
+
+        # Arguments:
+            - model: The model to use for prediction (keras model)
+            - generator: The generator from which we will get the data (batch size of 1 only supported).
+            - output_dir: Where to output the results.
+        
+        # Return:
+            Nothing, a folder with the results will be created.
+        
+        """
         if self._generator is None and generator is None:
             raise RuntimeError(
                 "A generator should be specified using the init or parameters."
@@ -832,11 +816,24 @@ class CocoEvaluator(object):
                 results.append(prediction)
 
         output_file = join(output_dir, "{}_{}_{}.json".format(
-            "detections", self.set, self.alg))
+            "detections", self.set, self.network_name))
         with open(output_file, "w") as file_json:
             json.dump(results, file_json)
 
-    def model_speed(self, model, test_generator=None, number_of_runs=10, iteration_per_run=1000):
+    def model_speed(self, model:object, test_generator:object=None, number_of_runs:int=10, iteration_per_run:int=200, verbose:bool=False):
+        """ Compute the speed of the network in FPS.
+
+        # Arguments:
+            - model: The model to use for prediction (keras model)
+            - generator: The generator from which we will get the data (batch size of 1 only supported).
+            - number_of_runs: The number of run to be done.
+            - iteration_per_run: The number of batch predictions that will be done for each of the run.
+            - verbose:Verbose mode of the function.
+        
+        # Return:
+            Nothing, will print information about the prediction speed of the network.
+
+        """
 
         if self._generator is None and test_generator is None:
             raise RuntimeError(
@@ -849,6 +846,8 @@ class CocoEvaluator(object):
 
         X, _ = self._generator.__getitem__(0)
 
+        it = tqdm(range(number_of_runs)) if verbose else range(number_of_runs)
+
         for _ in tqdm(range(number_of_runs)):
             start_time = time.time()
             for _ in range(iteration_per_run):
@@ -860,39 +859,13 @@ class CocoEvaluator(object):
         print("The number of FPS for the tested network was {}.".format(
             self._generator.batch_size * iteration_per_run / mean(times)))
 
-    def make_runs(self, model, test_generator=None, number_of_runs=10):
-
-        if self._generator is None and test_generator is None:
-            raise RuntimeError(
-                "A generator should be specified using the init or parameters."
-            )
-
-        scores = []
-        self.runs = True
-
-        if test_generator is not None:
-            self._generator = test_generator
-
-        if test_generator is not None:
-            for i in range(number_of_runs):
-                scores.append(model.evaluate_generator(self._generator))
-        else:
-            for i in range(number_of_runs):
-                scores.append(model.evaluate_generator(self._generator))
-
-        self.score = np.mean(np.array(scores), axis=0)
-        self.number_of_runs = number_of_runs
-
-    def __str__(self):
-        if self.runs:
-            return "Number of runs: {}\nAverage score: {}".format(
-                self.number_of_runs, self.score)
-        else:
-            return "The evaluated score is {}.".format(self.score)
-
     @property
     def test_generator(self):
         return self._generator
 
     def display_results(self):
-        print("The evaluated score is {}.".format(self.score))
+        """ Function to display more information about the prediction (graphs, ...).
+
+        Not implemented.
+        """
+        pass
