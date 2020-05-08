@@ -8,4 +8,5 @@ pages:
 - Home: index.md
 - Displayers:
   - Introduction: displayer/index.md
-  - Displayers: displayer/displayer.md
+  - Displayers: displayer/displayers.md
+  - Evaluators: evaluation/evaluators.md
