@@ -266,18 +266,18 @@ mkdocs serve
 
 ## Method limitations
 
-Finally, the method 
+The presented method has some limitations especially for general purpose deployments. The two main issues I see are described hereafter.
 
 ### Image Resizing
 
-Using the compressed representation of the data brings some limitations. The main limitation discussed here is the resizing of the input data. Resizing images in the RGB domain is straightforward whereas resizing in the DCT domain is more complicated. The following list of articles explore the possibility to resize images directly in the frequency domain:
+Resizing images in the RGB domain is straightforward whereas resizing in the DCT domain is more complicated. Although theoretically doable, methods for such usage are not implemented. The following list of articles explore the possibility to resize images directly in the frequency domain:
 
 - [On Resizing Images In The DCT Domain](https://ieeexplore.ieee.org/document/1421685)
 - [Image Resizing In The Discrete Cosine Transform Domain](https://ieeexplore.ieee.org/document/537460)
 - [Fast Image Resizing in Discrete Cosine Transform Domain with Spatial Relationship between DCT Block and its Sub-Blocks](https://ieeexplore.ieee.org/document/4590237)
 - [Design and Analysis of an Image Resizing Filter in the Block-DCT Domain](https://www.researchgate.net/publication/3308607_Design_and_Analysis_of_an_Image_Resizing_Filter_in_the_Block-DCT_Domain)
 
-These methods are so far not implemented in this repository.
+For classification, the impact is limited as long as the images are about the same size as the original training images. This is due to the fact that the network can be made fully convolutionnals. For detection, this is a bit more complicated as the SSD in the presented implementation does not scale well (although it should theoretically be able to do so). This is due to the original design of the network and the need for padding layers. I intend to test modified version of the network if I find some time to do so.
  
 ### Training Pipeline
 
