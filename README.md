@@ -245,18 +245,23 @@ export DATASET_PATH_TEST=<path_to_test_directory>/VOCdevkit
 
 ## Running the documentation for a deeper usage of the provided code
 
-I know from experience that diving into ones code to adapt to its own project is often hard and confusing at first. To help you if you ever want to toy with the code, a built-in documentation is provided. It uses a modify version of the keras documentation generator ([here]()).
+I know from experience that diving into ones code to adapt to its own project is often hard and confusing at first. To help you if you ever want to toy with the code, a built-in documentation is provided. It uses a modify version of the keras documentation generator ([here](https://github.com/D3lt4lph4/pythondoc)).
 
 To generate the documentation:
 
 ```bash
+pip install mkdocs
 
+cd docs
+
+python autogen.py
 ```
 
 To display the documentation:
 
 ```bash
-
+# From root of the repository
+mkdocs serve
 ```
 
 ## Method limitations
