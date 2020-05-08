@@ -1,0 +1,11 @@
+site_name: Template example for simple doc generation 
+
+theme: readthedocs
+
+docs_dir: docs/sources
+
+pages:
+- Home: index.md
+- Displayers:
+  - Introduction: displayer/index.md
+  - Displayers: displayer/displayer.md

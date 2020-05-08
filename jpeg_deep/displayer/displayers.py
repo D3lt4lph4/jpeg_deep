@@ -4,10 +4,10 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
-
+from typing import List
 
 class ImageNetDisplayer(object):
-    def __init__(self, index_file):
+    def __init__(self, index_file: str):
         """ Displayer for an imagenet based classifier.
 
         # Argument:
@@ -15,11 +15,12 @@ class ImageNetDisplayer(object):
         
         # Details:
 
+        Details of the content of the index file:
         ```json
         {
             "0": [
                 "n01440764",
-                "tench],
+                "tench"],
             ...
         }
         ```
@@ -33,7 +34,7 @@ class ImageNetDisplayer(object):
                 self.classes[int(key)] = data[key][1]
         
 
-    def display(self, predictions, inputs):
+    def display(self, predictions: object, inputs: object):
         """ Function to display the predictions on top of the input image.
 
         # Arguments:
@@ -60,13 +61,13 @@ class ImageNetDisplayer(object):
             plt.imshow(img)
             plt.show()
 
-    def display_with_gt(self, predictions, inputs, groundtruth):
+    def display_with_gt(self, prediction: object, inputs: object, groundtruth: object):
         """ Function to display the predictions on top of the input image. The ground truth will be added.
 
         # Arguments:
-            - predictions: The predictions as returned by the classifiers, should be an array of size (batch_size, 1000)
+            - predictions: The predictions as returned by the classifiers, should be an array of size (batch_size, 1000).
             - inputs: The inputs images to the classifier.
-            - groundtruth: The real label of the predictions
+            - groundtruth: The real label of the predictions, should be an array of size (batch_size, 1000).
         
         # Returns:
             Nothing, will display all the predictions alongside the groundtruths.
@@ -92,8 +93,13 @@ class ImageNetDisplayer(object):
             plt.show()
 
 class DisplayerObjects(object):
+    def __init__(self, classes: List[str]=None, confidence_threshold: float=0.5):
+        """ Displayer detection tasks.
 
-    def __init__(self, classes=None, confidence_threshold=0.5):
+        # Argument:
+            - classes: A list of all the classes to be predicted, should be in the same order as the labels. If None, will use the Pascal VOC classes.
+            - confidence_threshold: The threshold under which objects will not be considered as detection.
+        """
         if classes is None:
             self.classes = ['background',
                             'aeroplane', 'bicycle', 'bird', 'boat',
@@ -105,9 +111,18 @@ class DisplayerObjects(object):
             self.classes = classes
 
         self.confidence_threshold = confidence_threshold
-        self.colors = plt.cm.hsv(np.linspace(0, 1, 21)).tolist()
+        self.colors = plt.cm.hsv(np.linspace(0, 1, len(self.classes))).tolist()
 
-    def display(self, predictions, inputs):
+    def display(self, predictions: object, inputs: object):
+        """ Function to display the predictions on top of the input image.
+
+        # Arguments:
+            - predictions: The predictions as returned by the detection network, should be an array of size (batch_size, n_boxes, 6), (prediction, confidence, x_min, y_min, x_max, y_max).
+            - inputs: The inputs images to the detector.
+        
+        # Returns:
+            Nothing, will display all the predictions.
+        """
         y_pred_thresh = [predictions[k][predictions[k, :, 1] >
                                         self.confidence_threshold] for k in range(predictions.shape[0])]
         for k in range(len(predictions)):
@@ -148,5 +163,15 @@ class DisplayerObjects(object):
 
             plt.show()
 
-    def display_with_gt(self, predictions, inputs, groundtruth):
+    def display_with_gt(self, predictions: object, inputs: object, groundtruth: object):
+        """ Function to display the predictions on top of the input image. The ground truth will be added.
+
+        # Arguments:
+            - predictions: The predictions as returned by the classifiers, should be an array of size (batch_size, n_boxes, 6), (prediction, confidence, x_min, y_min, x_max, y_max).
+            - inputs: The inputs images to the classifier.
+            - groundtruth: The real label of the predictions, should be an array of size (batch_size, n_boxes, 6), (prediction, confidence, x_min, y_min, x_max, y_max).
+        
+        # Returns:
+            Nothing, will display all the predictions alongside the groundtruths.
+        """
         pass

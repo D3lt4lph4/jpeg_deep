@@ -118,7 +118,7 @@ python scripts/prediction_time.py <experiment_path> -nr 10 -w <weights_path>
 
 ## Classification (ImageNet)
 
-### Results
+### Results on ImageNet
 
 The table below shows the results obtained (accuracy) compared with the state of the art. All the presented results are on the validation dataset. All the FPS were calculated using a NVIDIA GTX 1080 and using the [prediction_time.py](scripts/prediction_time.py) script. Batch size was set to 8.
 
@@ -173,24 +173,95 @@ Also the system variable should be set to the ImageNet folder (if you use the pr
 
 ```bash
 # Setting the main dirs for the training datasets
-export DATASET_PATH_TRAIN=<path_to_train_directory>/imagebet
-export DATASET_PATH_VAL=<path_to_validation_directory>/imagebet
-export DATASET_PATH_TEST=<path_to_test_directory>/imagebet
+export DATASET_PATH_TRAIN=<path_to_train_directory>/imagenet
+export DATASET_PATH_VAL=<path_to_validation_directory>/imagenet
+export DATASET_PATH_TEST=<path_to_test_directory>/imagenet
 ```
 
 ## Detection (Pascal VOC)
 
-### Details in the dataset path
+### Results on the PASCAL VOC dataset
 
+Results for training on the Pascal VOC dataset are presented bellow. Networks were either trained on the 2007 train/val set (07) or 2007+2012 train/val sets (07+12) and evaluated on the 2007 test set.
+
+| Official Networks | mAP (07) | mAP (07+12) | FPS |
+|:-|:-:|:-:|:-:|
+| SSD300 | 68.0 | 74.3 | N/A |
+| SSD300 DCT | 39.2 | 47.8 | N/A |
+
+| Networks, VGG based (our trainings) | mAP (07) | mAP (07+12) | FPS |
+|:-|:-:|:-:|:-:|
+| SSD300 | 65.0 | 74.0 | 102 |
+| SSD300 DCT | 48.9 | 60.0 | 262 |
+| SSD300 DCT Y | 50.7 | 59.8 | 278 |
+| SSD300 DCT Deconvolution | 38.4 | 53.5 | 282 |
+
+| Network, ResNet50 based (our trainings) | mAP (07) | mAP (07+12) | FPS |
+|:-|:-:|:-:|:-:|
+| SSD300-Resnet50 (retrained) | 61.3 | 73.1 | 108 |
+| SSD300 DCT LC-RFA | 61.7 | 70.7 | 110 |
+| SSD300 DCT LC-RFA Y | 62.1 | 71.0 | 109 |
+| SSD300 DCT LC-RFA-Thinner | 58.5 | 67.5 | 176 |
+| SSD300 DCT LC-RFA-Thinner Y | 60.6 | 70.2 | 174 |
+| SSD300 DCT Deconvolution-RFA | 54.7 | 68.8 | 104 |
+
+### Training on the PASCAL VOC dataset
+
+The data can be downloaded on the [official](http://host.robots.ox.ac.uk:8080/pascal/VOC/) website.
+
+After downloading you should have directories following this architecture:
+
+```text
+VOCdevkit
+|
+|_ VOC2007
+|  |_ Annotations
+|  |_ ImageSets
+|  |_ JPEGImages
+|  |_ ...
+|
+|_ VOC2012
+   |_ Annotations
+   |_ ImageSets
+   |_ JPEGImages
+   |_ ...
+```
+
+Then you'll just need to set the configuration files to fit your needs and follow the procedure described in the [training](##Training) section. The hyper-parameters provided for the training were not used in a parallel setting.
+
+Also the system variable should be set to the Pascal VOC folder (if you use the provided config files)
+
+```bash
+# Setting the main dirs for the training datasets
+export DATASET_PATH_TRAIN=<path_to_train_directory>/VOCdevkit
+export DATASET_PATH_VAL=<path_to_validation_directory>/VOCdevkit
+export DATASET_PATH_TEST=<path_to_test_directory>/VOCdevkit
+```
 
 ## Detection (MS-COCO)
 
 ### Details in the dataset path
 
+
 ## Running the documentation for a deeper usage of the provided code
 
+I know from experience that diving into ones code to adapt to its own project is often hard and confusing at first. To help you if you ever want to toy with the code, a built-in documentation is provided. It uses a modify version of the keras documentation generator ([here]()).
+
+To generate the documentation:
+
+```bash
+
+```
+
+To display the documentation:
+
+```bash
+
+```
 
 ## Method limitations
+
+Finally, the method 
 
 ### Image Resizing
 
