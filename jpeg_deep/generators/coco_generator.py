@@ -55,12 +55,11 @@ class COCOGenerator(object):
                  shuffle: bool = True,
                  label_encoder: object = None,
                  transforms: List[object] = None,
-
                  images_path: List[str] = None,
                  dct: bool = False,
                  mode: str = "train",
-                 split_cbcr=False,
-                 only_y=False,
+                 split_cbcr: bool=False,
+                 only_y: bool=False,
                  labels_output_format: List[str] = (
                      'class_id', 'xmin', 'ymin', 'xmax', 'ymax')):
         '''

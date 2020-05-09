@@ -6,7 +6,7 @@ from keras.models import Model
 from keras.layers import Activation, Conv2D, MaxPooling2D, Reshape, Concatenate, ZeroPadding2D
 from keras.regularizers import l2
 
-from jpeg_deep.layers.ssd_layers import AnchorBoxes, L2Normalization, DecodeDetections, DecodeDetectionsFast
+from jpeg_deep.layers.ssd_layers import AnchorBoxes, L2Normalization, DecodeDetections
 
 from .backbones.vgg import feature_map_rgb, feature_map_dct, feature_map_dct_deconv, feature_map_dct_y
 
@@ -21,7 +21,7 @@ def SSD300(n_classes: int = 20,
            top_k: int = 200,
            nms_max_output_size: int = 400,
            dct: bool = False,
-           scales=None,
+           scales:int=None,
            rescale_position: int = 0,
            image_shape: Tuple[int, int] = (300, 300)):
     '''
@@ -293,13 +293,6 @@ def SSD300(n_classes: int = 20,
                                                top_k=top_k,
                                                nms_max_output_size=nms_max_output_size,
                                                name='decoded_predictions')(predictions)
-        model = Model(inputs=input_layer, outputs=decoded_predictions)
-    elif mode == "inference_fast":
-        decoded_predictions = DecodeDetectionsFast(img_height=300, img_width=300, confidence_thresh=confidence_thresh,
-                                                   iou_threshold=iou_threshold,
-                                                   top_k=top_k,
-                                                   nms_max_output_size=nms_max_output_size,
-                                                   name='decoded_predictions')(predictions)
         model = Model(inputs=input_layer, outputs=decoded_predictions)
     else:
         raise ValueError(

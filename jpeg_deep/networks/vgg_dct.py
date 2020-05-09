@@ -85,7 +85,7 @@ def VGG16_dct(classes: int=1000):
     return Model(inputs=[input_y, input_cbcr], outputs=x)
 
 
-def VGG16_dct_conv(classes=1000, input_shape: Tuple[int]=None):
+def VGG16_dct_conv(classes:int=1000, input_shape: Tuple[int]=None):
     """ This is a modified version of the VGG16 DCT network to be fully convolutional.
 
     # Arguments:
@@ -168,7 +168,7 @@ def VGG16_dct_conv(classes=1000, input_shape: Tuple[int]=None):
     return Model(inputs=[input_y, input_cbcr], outputs=x)
 
 
-def VGG16_dct_deconv(classes=1000, input_shape=(28, 28)):
+def VGG16_dct_deconv(classes:int=1000, input_shape:Tuple[int]=(28, 28)):
     """Instantiates the VGG16 DCT architecture.
 
     # Argument:
@@ -244,7 +244,7 @@ def VGG16_dct_deconv(classes=1000, input_shape=(28, 28)):
     return Model(inputs=[input_y, input_cb, input_cr], outputs=x)
 
 
-def VGG16_dct_deconv_conv(classes=1000, input_shape=None):
+def VGG16_dct_deconv_conv(classes:int=1000, input_shape:Tuple[int]=None):
     """ This is a modified version of the VGG16 DCT network to be fully convolutional.
 
     # Arguments:
@@ -322,7 +322,7 @@ def VGG16_dct_deconv_conv(classes=1000, input_shape=None):
     return Model(inputs=[input_y, input_cb, input_cr], outputs=x)
 
 
-def VGG16_dct_y(classes=1000):
+def VGG16_dct_y(classes:int=1000):
     """Instantiates the VGG16 DCT architecture.
 
     # Argument:
@@ -394,7 +394,7 @@ def VGG16_dct_y(classes=1000):
     return Model(input_y, outputs=x)
 
 
-def VGG16_dct_y_conv(classes=1000, input_shape=(None, None)):
+def VGG16_dct_y_conv(classes:int=1000, input_shape:Tuple[int]=(None, None)):
     """ This is a modified version of the VGG16 DCT network to be fully convolutional.
 
     # Arguments:

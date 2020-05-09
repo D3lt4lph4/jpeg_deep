@@ -21,9 +21,9 @@ import numpy as np
 import cv2
 import inspect
 
-from jpeg_deep.tranformations import ConvertColor, ConvertDataType, ConvertTo3Channels, RandomBrightness, RandomContrast, RandomHue, RandomSaturation, RandomChannelSwap
-from jpeg_deep.tranformations import PatchCoordinateGenerator, RandomPatch, RandomPatchInf
-from jpeg_deep.tranformations import ResizeRandomInterp, RandomFlip
+from jpeg_deep.transformations import ConvertColor, ConvertDataType, ConvertTo3Channels, RandomBrightness, RandomContrast, RandomHue, RandomSaturation, RandomChannelSwap
+from jpeg_deep.transformations import PatchCoordinateGenerator, RandomPatch, RandomPatchInf
+from jpeg_deep.transformations import ResizeRandomInterp, RandomFlip
 from jpeg_deep.generators import BoundGenerator, BoxFilter, ImageValidator
 
 

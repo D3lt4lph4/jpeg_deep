@@ -46,8 +46,8 @@ class VOCGenerator(object):
                  label_encoder: object = None,
                  transforms: List[object] = None,
                  dct: bool = False,
-                 split_cbcr=False,
-                 only_y=False,
+                 split_cbcr: bool=False,
+                 only_y: bool=False,
                  train_mode: bool = True,
                  labels_output_format: List[str] = (
                      'class_id', 'xmin', 'ymin', 'xmax', 'ymax')):

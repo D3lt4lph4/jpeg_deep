@@ -10,7 +10,7 @@ from jpeg_deep.generators import COCOGenerator
 from jpeg_deep.evaluation import CocoEvaluator
 
 from jpeg_deep.generators import SSDInputEncoder
-from jpeg_deep.tranformations import SSDDataAugmentation, ConvertTo3Channels, Resize
+from jpeg_deep.transformations import SSDDataAugmentation, ConvertTo3Channels, Resize
 from jpeg_deep.losses import SSDLoss
 
 

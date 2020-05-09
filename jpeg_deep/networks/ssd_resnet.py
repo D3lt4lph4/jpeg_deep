@@ -24,7 +24,7 @@ def SSD300_resnet(n_classes: int = 20,
                   top_k: int = 200,
                   nms_max_output_size: int = 400,
                   dct: bool = False,
-                  scales=None,
+                  scales: int=None,
                   image_shape: Tuple[int, int] = (300, 300)):
     '''
     Builds a ssd network, the network built can either be an RGB or DCT network. For more details on the architecture, see [the article](https://arxiv.org/abs/1512.02325v5).

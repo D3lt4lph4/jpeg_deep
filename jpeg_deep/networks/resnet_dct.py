@@ -7,6 +7,8 @@ Adapted from code contributed by BigMoyan.
 import os
 import warnings
 
+from typing import Tuple
+
 from keras.regularizers import l2
 from keras.layers import Input, BatchNormalization, Concatenate, GlobalAveragePooling2D, Dense, Conv2DTranspose
 from keras.models import Model
@@ -14,7 +16,7 @@ from keras.models import Model
 from .resnet_blocks import identity_block, conv_block
 
 
-def late_concat_rfa(input_shape=(28, 28), classes: int = 1000):
+def late_concat_rfa(input_shape: Tuple[int]=(28, 28), classes: int = 1000):
     if input_shape is None:
         input_shape_y = (None, None, 64)
         input_shape_cbcr = (None, None, 128)
@@ -69,7 +71,7 @@ def late_concat_rfa(input_shape=(28, 28), classes: int = 1000):
     return model
 
 
-def late_concat_rfa_thinner(input_shape=(28, 28), classes=1000):
+def late_concat_rfa_thinner(input_shape: Tuple[int]=(28, 28), classes:int=1000):
     if input_shape is None:
         input_shape_y = (None, None, 64)
         input_shape_cbcr = (None, None, 128)
@@ -125,7 +127,7 @@ def late_concat_rfa_thinner(input_shape=(28, 28), classes=1000):
     return model
 
 
-def deconvolution_rfa(input_shape=(28, 28), classes: int = 1000):
+def deconvolution_rfa(input_shape: Tuple[int]=(28, 28), classes: int = 1000):
     if input_shape is None:
         input_shape_y = (None, None, 64)
         input_shape_cb = (None, None, 64)
@@ -178,7 +180,7 @@ def deconvolution_rfa(input_shape=(28, 28), classes: int = 1000):
     return model
 
 
-def late_concat_rfa_y(input_shape=(28, 28), classes: int = 1000):
+def late_concat_rfa_y(input_shape: Tuple[int]=(28, 28), classes: int = 1000):
     if input_shape is None:
         input_shape_y = (None, None, 64)
     else:
@@ -222,7 +224,7 @@ def late_concat_rfa_y(input_shape=(28, 28), classes: int = 1000):
     return model
 
 
-def late_concat_rfa_y_thinner(input_shape=(28, 28), classes=1000):
+def late_concat_rfa_y_thinner(input_shape: Tuple[int]=(28, 28), classes:int=1000):
     if input_shape is None:
         input_shape_y = (None, None, 64)
     else:

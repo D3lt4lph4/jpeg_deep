@@ -10,4 +10,9 @@ pages:
   - Introduction: displayer/index.md
   - Displayers: displayer/displayers.md
   - Evaluators: evaluation/evaluators.md
+  - Generators: generators/generators.md
   - Layers: layers/layers.md
+  - Losses: losses/losses.md
+  - Networks: networks/networks.md
+  - Transformations: transformations/transformations.md
+  - Utils: utils/utils.md
