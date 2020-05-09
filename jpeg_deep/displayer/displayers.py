@@ -37,8 +37,8 @@ class ImageNetDisplayer(object):
         """ Function to display the predictions on top of the input image.
 
         # Arguments:
-            - predictions: The predictions as returned by the classifiers, should be an array of size (batch_size, 1000)
-            - inputs: The inputs images to the classifier.
+            - predictions: The predictions as returned by the classifiers, should be an array of size (batch_size, 1000).
+            - inputs: The images input to the classifier.
         
         # Returns:
             Nothing, will display all the predictions.
@@ -117,7 +117,7 @@ class DisplayerObjects(object):
         """ Function to display the predictions on top of the input image.
 
         # Arguments:
-            - predictions: The predictions as returned by the detection network, should be an array of size (batch_size, n_boxes, 6), (prediction, confidence, x_min, y_min, x_max, y_max).
+            - predictions: The predictions as returned by the detection network, should be an array of size (batch_size, n_boxes, 6). Last dim is (prediction, confidence, x_min, y_min, x_max, y_max).
             - inputs: The inputs images to the detector.
         
         # Returns:
@@ -163,12 +163,12 @@ class DisplayerObjects(object):
             plt.show()
 
     def display_with_gt(self, predictions: object, inputs: object, groundtruth: object):
-        """ Function to display the predictions on top of the input image. The ground truth will be added.
+        """ Function to display the predictions on top of the input image. The ground truth will be added (Not implemented).
 
         # Arguments:
-            - predictions: The predictions as returned by the classifiers, should be an array of size (batch_size, n_boxes, 6), (prediction, confidence, x_min, y_min, x_max, y_max).
+            - predictions: The predictions as returned by the classifiers, should be an array of size (batch_size, n_boxes, 6). Last dim is  (prediction, confidence, x_min, y_min, x_max, y_max).
             - inputs: The inputs images to the classifier.
-            - groundtruth: The real label of the predictions, should be an array of size (batch_size, n_boxes, 6), (prediction, confidence, x_min, y_min, x_max, y_max).
+            - groundtruth: The real label of the predictions, should be an array of size (batch_size, n_boxes, 6). Last dim is (prediction, confidence, x_min, y_min, x_max, y_max).
         
         # Returns:
             Nothing, will display all the predictions alongside the groundtruths.
