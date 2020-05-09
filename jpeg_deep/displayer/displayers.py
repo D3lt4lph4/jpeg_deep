@@ -24,9 +24,8 @@ class ImageNetDisplayer(object):
             ...
         }
         ```
-
         """
-        # Transform the dictionary on int based values
+        # Extract the relevent information from the index file.
         self.classes = {}
         with open(index_file) as index:
             data = json.load(index)
@@ -48,7 +47,7 @@ class ImageNetDisplayer(object):
         # Iterate over the predictions
         for k in range(len(predictions)):
 
-            # Display the image
+            # Image to display
             img = inputs[k]
 
             # Get the best prediction
@@ -75,11 +74,12 @@ class ImageNetDisplayer(object):
         # Iterate over the predictions
         for k in range(len(predictions)):
 
-            # Display the image
+            # Image to display
             img = inputs[k]
 
             # Get the best prediction
             idx_pred = np.argmax(predictions[k])
+            # Get the actual label
             idx_gt = np.argmax(groundtruth[k])
 
             # Write the prediction with the confidence on the image
@@ -94,10 +94,10 @@ class ImageNetDisplayer(object):
 
 class DisplayerObjects(object):
     def __init__(self, classes: List[str]=None, confidence_threshold: float=0.5):
-        """ Displayer detection tasks.
+        """ Displayer for detection tasks.
 
         # Argument:
-            - classes: A list of all the classes to be predicted, should be in the same order as the labels. If None, will use the Pascal VOC classes.
+            - classes: A list of all the classes to be predicted, should be in the same order as the labels. If None, we will use the Pascal VOC classes.
             - confidence_threshold: The threshold under which objects will not be considered as detection.
         """
         if classes is None:
@@ -123,6 +123,7 @@ class DisplayerObjects(object):
         # Returns:
             Nothing, will display all the predictions.
         """
+        # Filter out the predictions with confidence lower than threshold
         y_pred_thresh = [predictions[k][predictions[k, :, 1] >
                                         self.confidence_threshold] for k in range(predictions.shape[0])]
         for k in range(len(predictions)):
@@ -132,8 +133,6 @@ class DisplayerObjects(object):
             plt.imshow(inputs[k])
 
             current_axis = plt.gca()
-
-            print(y_pred_thresh[k])
 
             for box in y_pred_thresh[k]:
                 # Transform the predicted bounding boxes for the 300x300 image to the original image dimensions.
