@@ -97,7 +97,7 @@ class DisplayerObjects(object):
         """ Displayer for detection tasks.
 
         # Argument:
-            - classes: A list of all the classes to be predicted, should be in the same order as the labels. If None, we will use the Pascal VOC classes.
+            - classes: A list of all the classes to be predicted, should be in the same order as the labels. If None, uses the Pascal VOC classes.
             - confidence_threshold: The threshold under which objects will not be considered as detection.
         """
         if classes is None:
