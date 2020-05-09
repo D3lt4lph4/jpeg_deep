@@ -398,7 +398,7 @@ def parse_all_classes_module(to_be_detailled):
                         # Ignoring the properties
                         if isinstance(function[1], property):
                             continue
-                        if not isinstance(f, types.FunctionType):
+                        if not callable(function[1]):
                             continue
                         subblock = parse_function(function[1],
                                                   '###',
