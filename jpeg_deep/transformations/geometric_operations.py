@@ -20,6 +20,7 @@ limitations under the License.
 '''
 
 from __future__ import division
+from typing import List, Dict, Tuple
 import numpy as np
 import cv2
 import random
@@ -27,28 +28,26 @@ import random
 from jpeg_deep.generators import BoxFilter, ImageValidator
 
 class Resize:
-    '''
-    Resizes images to a specified height and width in pixels.
-    '''
-
     def __init__(self,
-                 height,
-                 width,
-                 interpolation_mode=cv2.INTER_LINEAR,
-                 box_filter=None,
-                 labels_format={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
+                 height: int,
+                 width: int,
+                 interpolation_mode: int=cv2.INTER_LINEAR,
+                 box_filter: object=None,
+                 labels_format: Dict={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
         '''
-        Arguments:
-            height (int): The desired height of the output images in pixels.
-            width (int): The desired width of the output images in pixels.
-            interpolation_mode (int, optional): An integer that denotes a valid
+        Resizes images to a specified height and width in pixels.
+
+        # Arguments:
+            - height: The desired height of the output images in pixels.
+            - width: The desired width of the output images in pixels.
+            - interpolation_mode: An integer that denotes a valid
                 OpenCV interpolation mode. For example, integers 0 through 5 are
                 valid interpolation modes.
-            box_filter (BoxFilter, optional): Only relevant if ground truth bounding boxes are given.
+            - box_filter: Only relevant if ground truth bounding boxes are given.
                 A `BoxFilter` object to filter out bounding boxes that don't meet the given criteria
                 after the transformation. Refer to the `BoxFilter` documentation for details. If `None`,
                 the validity of the bounding boxes is not checked.
-            labels_format (dict, optional): A dictionary that defines which index in the last axis of the labels
+            - labels_format: A dictionary that defines which index in the last axis of the labels
                 of an image contains which bounding box coordinate. The dictionary maps at least the keywords
                 'xmin', 'ymin', 'xmax', and 'ymax' to their respective indices within last axis of the labels array.
         '''
@@ -102,33 +101,31 @@ class Resize:
                 return image, labels
 
 class ResizeRandomInterp:
-    '''
-    Resizes images to a specified height and width in pixels using a radnomly
-    selected interpolation mode.
-    '''
-
     def __init__(self,
-                 height,
-                 width,
-                 interpolation_modes=[cv2.INTER_NEAREST,
+                 height:int,
+                 width:int,
+                 interpolation_modes: List=[cv2.INTER_NEAREST,
                                       cv2.INTER_LINEAR,
                                       cv2.INTER_CUBIC,
                                       cv2.INTER_AREA,
                                       cv2.INTER_LANCZOS4],
-                 box_filter=None,
-                 labels_format={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
+                 box_filter: object=None,
+                 labels_format: Dict={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
         '''
-        Arguments:
-            height (int): The desired height of the output image in pixels.
-            width (int): The desired width of the output image in pixels.
-            interpolation_modes (list/tuple, optional): A list/tuple of integers
+        Resizes images to a specified height and width in pixels using a radnomly
+        selected interpolation mode.
+
+        # Arguments:
+            - height: The desired height of the output image in pixels.
+            - width: The desired width of the output image in pixels.
+            - interpolation_modes: A list/tuple of integers
                 that represent valid OpenCV interpolation modes. For example,
                 integers 0 through 5 are valid interpolation modes.
-            box_filter (BoxFilter, optional): Only relevant if ground truth bounding boxes are given.
+            - box_filter: Only relevant if ground truth bounding boxes are given.
                 A `BoxFilter` object to filter out bounding boxes that don't meet the given criteria
                 after the transformation. Refer to the `BoxFilter` documentation for details. If `None`,
                 the validity of the bounding boxes is not checked.
-            labels_format (dict, optional): A dictionary that defines which index in the last axis of the labels
+            - labels_format: A dictionary that defines which index in the last axis of the labels
                 of an image contains which bounding box coordinate. The dictionary maps at least the keywords
                 'xmin', 'ymin', 'xmax', and 'ymax' to their respective indices within last axis of the labels array.
         '''
@@ -150,19 +147,18 @@ class ResizeRandomInterp:
         return self.resize(image, labels, return_inverter)
 
 class Flip:
-    '''
-    Flips images horizontally or vertically.
-    '''
     def __init__(self,
-                 dim='horizontal',
-                 labels_format={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
+                 dim: str='horizontal',
+                 labels_format: Dict={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
         '''
-        Arguments:
-            dim (str, optional): Can be either of 'horizontal' and 'vertical'.
+        Flips images horizontally or vertically.
+
+        # Arguments:
+            - dim: Can be either of 'horizontal' and 'vertical'.
                 If 'horizontal', images will be flipped horizontally, i.e. along
                 the vertical axis. If 'horizontal', images will be flipped vertically,
                 i.e. along the horizontal axis.
-            labels_format (dict, optional): A dictionary that defines which index in the last axis of the labels
+            - labels_format: A dictionary that defines which index in the last axis of the labels
                 of an image contains which bounding box coordinate. The dictionary maps at least the keywords
                 'xmin', 'ymin', 'xmax', and 'ymax' to their respective indices within last axis of the labels array.
         '''
@@ -197,23 +193,22 @@ class Flip:
                 return image, labels
 
 class RandomFlip:
-    '''
-    Randomly flips images horizontally or vertically. The randomness only refers
-    to whether or not the image will be flipped.
-    '''
     def __init__(self,
-                 dim='horizontal',
-                 prob=0.5,
-                 labels_format={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
+                 dim:str='horizontal',
+                 prob:float=0.5,
+                 labels_format:Dict={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
         '''
-        Arguments:
-            dim (str, optional): Can be either of 'horizontal' and 'vertical'.
+        Randomly flips images horizontally or vertically. The randomness only refers
+        to whether or not the image will be flipped.
+
+        # Arguments:
+            - dim: Can be either of 'horizontal' and 'vertical'.
                 If 'horizontal', images will be flipped horizontally, i.e. along
                 the vertical axis. If 'horizontal', images will be flipped vertically,
                 i.e. along the horizontal axis.
-            prob (float, optional): `(1 - prob)` determines the probability with which the original,
+            - prob: `(1 - prob)` determines the probability with which the original,
                 unaltered image is returned.
-            labels_format (dict, optional): A dictionary that defines which index in the last axis of the labels
+            - labels_format: A dictionary that defines which index in the last axis of the labels
                 of an image contains which bounding box coordinate. The dictionary maps at least the keywords
                 'xmin', 'ymin', 'xmax', and 'ymax' to their respective indices within last axis of the labels array.
         '''
@@ -233,35 +228,33 @@ class RandomFlip:
             return image, labels
 
 class Translate:
-    '''
-    Translates images horizontally and/or vertically.
-    '''
-
     def __init__(self,
-                 dy,
-                 dx,
-                 clip_boxes=True,
-                 box_filter=None,
-                 background=(0,0,0),
-                 labels_format={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
+                 dy: float,
+                 dx: float,
+                 clip_boxes: bool=True,
+                 box_filter: object=None,
+                 background: Tuple=(0,0,0),
+                 labels_format: Dict={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
         '''
-        Arguments:
-            dy (float): The fraction of the image height by which to translate images along the
+        Translates images horizontally and/or vertically.
+
+        # Arguments
+            - dy: The fraction of the image height by which to translate images along the
                 vertical axis. Positive values translate images downwards, negative values
                 translate images upwards.
-            dx (float): The fraction of the image width by which to translate images along the
+            - dx: The fraction of the image width by which to translate images along the
                 horizontal axis. Positive values translate images to the right, negative values
                 translate images to the left.
-            clip_boxes (bool, optional): Only relevant if ground truth bounding boxes are given.
+            - clip_boxes: Only relevant if ground truth bounding boxes are given.
                 If `True`, any ground truth bounding boxes will be clipped to lie entirely within the
                 image after the translation.
-            box_filter (BoxFilter, optional): Only relevant if ground truth bounding boxes are given.
+            - box_filter: Only relevant if ground truth bounding boxes are given.
                 A `BoxFilter` object to filter out bounding boxes that don't meet the given criteria
                 after the transformation. Refer to the `BoxFilter` documentation for details. If `None`,
                 the validity of the bounding boxes is not checked.
-            background (list/tuple, optional): A 3-tuple specifying the RGB color value of the
+            - background: A 3-tuple specifying the RGB color value of the
                 background pixels of the translated images.
-            labels_format (dict, optional): A dictionary that defines which index in the last axis of the labels
+            - labels_format: A dictionary that defines which index in the last axis of the labels
                 of an image contains which bounding box coordinate. The dictionary maps at least the keywords
                 'xmin', 'ymin', 'xmax', and 'ymax' to their respective indices within last axis of the labels array.
         '''
@@ -319,52 +312,50 @@ class Translate:
             return image, labels
 
 class RandomTranslate:
-    '''
-    Randomly translates images horizontally and/or vertically.
-    '''
-
     def __init__(self,
-                 dy_minmax=(0.03,0.3),
-                 dx_minmax=(0.03,0.3),
-                 prob=0.5,
-                 clip_boxes=True,
-                 box_filter=None,
-                 image_validator=None,
-                 n_trials_max=3,
-                 background=(0,0,0),
-                 labels_format={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
+                 dy_minmax: Tuple=(0.03,0.3),
+                 dx_minmax: Tuple=(0.03,0.3),
+                 prob: float=0.5,
+                 clip_boxes:bool=True,
+                 box_filter:object=None,
+                 image_validator: object=None,
+                 n_trials_max: int=3,
+                 background: Tuple=(0,0,0),
+                 labels_format: Dict={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
         '''
-        Arguments:
-            dy_minmax (list/tuple, optional): A 2-tuple `(min, max)` of non-negative floats that
+        Randomly translates images horizontally and/or vertically.
+
+        # Arguments:
+            - dy_minmax: A 2-tuple `(min, max)` of non-negative floats that
                 determines the minimum and maximum relative translation of images along the vertical
                 axis both upward and downward. That is, images will be randomly translated by at least
                 `min` and at most `max` either upward or downward. For example, if `dy_minmax == (0.05,0.3)`,
                 an image of size `(100,100)` will be translated by at least 5 and at most 30 pixels
                 either upward or downward. The translation direction is chosen randomly.
-            dx_minmax (list/tuple, optional): A 2-tuple `(min, max)` of non-negative floats that
+            - dx_minmax: A 2-tuple `(min, max)` of non-negative floats that
                 determines the minimum and maximum relative translation of images along the horizontal
                 axis both to the left and right. That is, images will be randomly translated by at least
                 `min` and at most `max` either left or right. For example, if `dx_minmax == (0.05,0.3)`,
                 an image of size `(100,100)` will be translated by at least 5 and at most 30 pixels
                 either left or right. The translation direction is chosen randomly.
-            prob (float, optional): `(1 - prob)` determines the probability with which the original,
+            - prob: `(1 - prob)` determines the probability with which the original,
                 unaltered image is returned.
-            clip_boxes (bool, optional): Only relevant if ground truth bounding boxes are given.
+            - clip_boxes: Only relevant if ground truth bounding boxes are given.
                 If `True`, any ground truth bounding boxes will be clipped to lie entirely within the
                 image after the translation.
-            box_filter (BoxFilter, optional): Only relevant if ground truth bounding boxes are given.
+            - box_filter: Only relevant if ground truth bounding boxes are given.
                 A `BoxFilter` object to filter out bounding boxes that don't meet the given criteria
                 after the transformation. Refer to the `BoxFilter` documentation for details. If `None`,
                 the validity of the bounding boxes is not checked.
-            image_validator (ImageValidator, optional): Only relevant if ground truth bounding boxes are given.
+            - image_validator: Only relevant if ground truth bounding boxes are given.
                 An `ImageValidator` object to determine whether a translated image is valid. If `None`,
                 any outcome is valid.
-            n_trials_max (int, optional): Only relevant if ground truth bounding boxes are given.
+            - n_trials_max: Only relevant if ground truth bounding boxes are given.
                 Determines the maxmial number of trials to produce a valid image. If no valid image could
                 be produced in `n_trials_max` trials, returns the unaltered input image.
-            background (list/tuple, optional): A 3-tuple specifying the RGB color value of the
+            - background: A 3-tuple specifying the RGB color value of the
                 background pixels of the translated images.
-            labels_format (dict, optional): A dictionary that defines which index in the last axis of the labels
+            - labels_format: A dictionary that defines which index in the last axis of the labels
                 of an image contains which bounding box coordinate. The dictionary maps at least the keywords
                 'xmin', 'ymin', 'xmax', and 'ymax' to their respective indices within last axis of the labels array.
         '''
@@ -449,29 +440,27 @@ class RandomTranslate:
             return image, labels
 
 class Scale:
-    '''
-    Scales images, i.e. zooms in or out.
-    '''
-
     def __init__(self,
-                 factor,
-                 clip_boxes=True,
-                 box_filter=None,
-                 background=(0,0,0),
-                 labels_format={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
+                 factor: float,
+                 clip_boxes: bool=True,
+                 box_filter: object=None,
+                 background: Tuple=(0,0,0),
+                 labels_format: Dict={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
         '''
-        Arguments:
-            factor (float): The fraction of the image size by which to scale images. Must be positive.
-            clip_boxes (bool, optional): Only relevant if ground truth bounding boxes are given.
+        Scales images, i.e. zooms in or out.
+        
+        # Arguments
+            - factor: The fraction of the image size by which to scale images. Must be positive.
+            - clip_boxes: Only relevant if ground truth bounding boxes are given.
                 If `True`, any ground truth bounding boxes will be clipped to lie entirely within the
                 image after the translation.
-            box_filter (BoxFilter, optional): Only relevant if ground truth bounding boxes are given.
+            - box_filter: Only relevant if ground truth bounding boxes are given.
                 A `BoxFilter` object to filter out bounding boxes that don't meet the given criteria
                 after the transformation. Refer to the `BoxFilter` documentation for details. If `None`,
                 the validity of the bounding boxes is not checked.
-            background (list/tuple, optional): A 3-tuple specifying the RGB color value of the potential
+            - background: A 3-tuple specifying the RGB color value of the potential
                 background pixels of the scaled images.
-            labels_format (dict, optional): A dictionary that defines which index in the last axis of the labels
+            - labels_format: A dictionary that defines which index in the last axis of the labels
                 of an image contains which bounding box coordinate. The dictionary maps at least the keywords
                 'xmin', 'ymin', 'xmax', and 'ymax' to their respective indices within last axis of the labels array.
         '''
@@ -534,44 +523,42 @@ class Scale:
             return image, labels
 
 class RandomScale:
-    '''
-    Randomly scales images.
-    '''
-
     def __init__(self,
-                 min_factor=0.5,
-                 max_factor=1.5,
-                 prob=0.5,
-                 clip_boxes=True,
-                 box_filter=None,
-                 image_validator=None,
-                 n_trials_max=3,
-                 background=(0,0,0),
-                 labels_format={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
+                 min_factor: float=0.5,
+                 max_factor: float=1.5,
+                 prob: float=0.5,
+                 clip_boxes: bool=True,
+                 box_filter: object=None,
+                 image_validator: object=None,
+                 n_trials_max: int=3,
+                 background: Tuple=(0,0,0),
+                 labels_format: Dict={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
         '''
-        Arguments:
-            min_factor (float, optional): The minimum fraction of the image size by which to scale images.
+        Randomly scales images.
+
+        # Arguments:
+            - min_factor: The minimum fraction of the image size by which to scale images.
                 Must be positive.
-            max_factor (float, optional): The maximum fraction of the image size by which to scale images.
+            - max_factor: The maximum fraction of the image size by which to scale images.
                 Must be positive.
-            prob (float, optional): `(1 - prob)` determines the probability with which the original,
+            - prob: `(1 - prob)` determines the probability with which the original,
                 unaltered image is returned.
-            clip_boxes (bool, optional): Only relevant if ground truth bounding boxes are given.
+            - clip_boxes: Only relevant if ground truth bounding boxes are given.
                 If `True`, any ground truth bounding boxes will be clipped to lie entirely within the
                 image after the translation.
-            box_filter (BoxFilter, optional): Only relevant if ground truth bounding boxes are given.
+            - box_filter: Only relevant if ground truth bounding boxes are given.
                 A `BoxFilter` object to filter out bounding boxes that don't meet the given criteria
                 after the transformation. Refer to the `BoxFilter` documentation for details. If `None`,
                 the validity of the bounding boxes is not checked.
-            image_validator (ImageValidator, optional): Only relevant if ground truth bounding boxes are given.
+            - image_validator: Only relevant if ground truth bounding boxes are given.
                 An `ImageValidator` object to determine whether a scaled image is valid. If `None`,
                 any outcome is valid.
-            n_trials_max (int, optional): Only relevant if ground truth bounding boxes are given.
+            - n_trials_max: Only relevant if ground truth bounding boxes are given.
                 Determines the maxmial number of trials to produce a valid image. If no valid image could
                 be produced in `n_trials_max` trials, returns the unaltered input image.
-            background (list/tuple, optional): A 3-tuple specifying the RGB color value of the potential
+            - background: A 3-tuple specifying the RGB color value of the potential
                 background pixels of the scaled images.
-            labels_format (dict, optional): A dictionary that defines which index in the last axis of the labels
+            - labels_format: A dictionary that defines which index in the last axis of the labels
                 of an image contains which bounding box coordinate. The dictionary maps at least the keywords
                 'xmin', 'ymin', 'xmax', and 'ymax' to their respective indices within last axis of the labels array.
         '''
@@ -659,18 +646,16 @@ class RandomScale:
             return image, labels
 
 class Rotate:
-    '''
-    Rotates images counter-clockwise by 90, 180, or 270 degrees.
-    '''
-
     def __init__(self,
-                 angle,
-                 labels_format={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
+                 angle: int,
+                 labels_format: Dict={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
         '''
-        Arguments:
-            angle (int): The angle in degrees by which to rotate the images counter-clockwise.
+        Rotates images counter-clockwise by 90, 180, or 270 degrees.
+
+        # Arguments:
+            - angle: The angle in degrees by which to rotate the images counter-clockwise.
                 Only 90, 180, and 270 are valid values.
-            labels_format (dict, optional): A dictionary that defines which index in the last axis of the labels
+            - labels_format: A dictionary that defines which index in the last axis of the labels
                 of an image contains which bounding box coordinate. The dictionary maps at least the keywords
                 'xmin', 'ymin', 'xmax', and 'ymax' to their respective indices within last axis of the labels array.
         '''
@@ -739,21 +724,20 @@ class Rotate:
             return image, labels
 
 class RandomRotate:
-    '''
-    Randomly rotates images counter-clockwise.
-    '''
 
     def __init__(self,
-                 angles=[90, 180, 270],
-                 prob=0.5,
-                 labels_format={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
+                 angles: List=[90, 180, 270],
+                 prob: float=0.5,
+                 labels_format: Dict={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
         '''
-        Arguments:
-            angle (list): The list of angles in degrees from which one is randomly selected to rotate
+        Randomly rotates images counter-clockwise.
+
+        # Arguments
+            - angle: The list of angles in degrees from which one is randomly selected to rotate
                 the images counter-clockwise. Only 90, 180, and 270 are valid values.
-            prob (float, optional): `(1 - prob)` determines the probability with which the original,
+            - prob: `(1 - prob)` determines the probability with which the original,
                 unaltered image is returned.
-            labels_format (dict, optional): A dictionary that defines which index in the last axis of the labels
+            - labels_format: A dictionary that defines which index in the last axis of the labels
                 of an image contains which bounding box coordinate. The dictionary maps at least the keywords
                 'xmin', 'ymin', 'xmax', and 'ymax' to their respective indices within last axis of the labels array.
         '''

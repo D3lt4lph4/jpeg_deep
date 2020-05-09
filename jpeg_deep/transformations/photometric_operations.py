@@ -17,25 +17,23 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+from typing import Tuple
 
 import numpy as np
 import cv2
 
 
 class ConvertColor:
-    '''
-    Converts images between RGB, HSV and grayscale color spaces. This is just a wrapper
+    def __init__(self, current:str='RGB', to:str='HSV', keep_3ch:bool=True):
+        '''Converts images between RGB, HSV and grayscale color spaces. This is just a wrapper
     around `cv2.cvtColor()`.
-    '''
 
-    def __init__(self, current='RGB', to='HSV', keep_3ch=True):
-        '''
-        Arguments:
-            current (str, optional): The current color space of the images. Can be
+        # Arguments:
+            - current: The current color space of the images. Can be
                 one of 'RGB' and 'HSV'.
-            to (str, optional): The target color space of the images. Can be one of
+            - to: The target color space of the images. Can be one of
                 'RGB', 'HSV', and 'GRAY'.
-            keep_3ch (bool, optional): Only relevant if `to == GRAY`.
+            - keep_3ch: Only relevant if `to == GRAY`.
                 If `True`, the resulting grayscale images will have three channels.
         '''
         if not ((current in {'RGB', 'HSV'}) and (to in {'RGB', 'HSV', 'GRAY'})):
@@ -64,16 +62,13 @@ class ConvertColor:
 
 
 class ConvertDataType:
-    '''
-    Converts images represented as Numpy arrays between `uint8` and `float32`.
-    Serves as a helper for certain photometric distortions. This is just a wrapper
-    around `np.ndarray.astype()`.
-    '''
+    def __init__(self, to:str='uint8'):
+        '''Converts images represented as Numpy arrays between `uint8` and `float32`.
+        Serves as a helper for certain photometric distortions. This is just a wrapper
+        around `np.ndarray.astype()`.
 
-    def __init__(self, to='uint8'):
-        '''
-        Arguments:
-            to (string, optional): To which datatype to convert the input images.
+        # Arguments:
+            - to: To which datatype to convert the input images.
                 Can be either of 'uint8' and 'float32'.
         '''
         if not (to == 'uint8' or to == 'float32'):
@@ -92,13 +87,13 @@ class ConvertDataType:
 
 
 class ConvertTo3Channels:
-    '''
-    Converts 1-channel and 4-channel images to 3-channel images. Does nothing to images that
-    already have 3 channels. In the case of 4-channel images, the fourth channel will be
-    discarded.
-    '''
 
     def __init__(self):
+        '''
+        Converts 1-channel and 4-channel images to 3-channel images. Does nothing to images that
+        already have 3 channels. In the case of 4-channel images, the fourth channel will be
+        discarded.
+        '''
         pass
 
     def __call__(self, image, labels=None):
@@ -116,18 +111,17 @@ class ConvertTo3Channels:
 
 
 class Hue:
-    '''
-    Changes the hue of HSV images.
+    def __init__(self, delta:int):
+        '''
+        Changes the hue of HSV images.
 
-    Important:
+        Important:
+
         - Expects HSV input.
         - Expects input array to be of `dtype` `float`.
-    '''
 
-    def __init__(self, delta):
-        '''
-        Arguments:
-            delta (int): An integer in the closed interval `[-180, 180]` that determines the hue change, where
+        # Arguments:
+            - delta: An integer in the closed interval `[-180, 180]` that determines the hue change, where
                 a change by integer `delta` means a change by `2 * delta` degrees. Read up on the HSV color format
                 if you need more information.
         '''
@@ -145,20 +139,19 @@ class Hue:
 
 
 class RandomHue:
-    '''
-    Randomly changes the hue of HSV images.
+    def __init__(self, max_delta:int=18, prob:float=0.5):
+        '''
+        Randomly changes the hue of HSV images.
 
-    Important:
+        Important:
+
         - Expects HSV input.
         - Expects input array to be of `dtype` `float`.
-    '''
 
-    def __init__(self, max_delta=18, prob=0.5):
-        '''
-        Arguments:
-            max_delta (int): An integer in the closed interval `[0, 180]` that determines the maximal absolute
+        # Arguments:
+            - max_delta: An integer in the closed interval `[0, 180]` that determines the maximal absolute
                 hue change.
-            prob (float, optional): `(1 - prob)` determines the probability with which the original,
+            - prob: `(1 - prob)` determines the probability with which the original,
                 unaltered image is returned.
         '''
         if not (0 <= max_delta <= 180):
@@ -182,17 +175,19 @@ class RandomHue:
 
 class Saturation:
     '''
-    Changes the saturation of HSV images.
-
-    Important:
-        - Expects HSV input.
-        - Expects input array to be of `dtype` `float`.
     '''
 
-    def __init__(self, factor):
+    def __init__(self, factor: float):
         '''
-        Arguments:
-            factor (float): A float greater than zero that determines saturation change, where
+        Changes the saturation of HSV images.
+
+        Important:
+
+        - Expects HSV input.
+        - Expects input array to be of `dtype` `float`.
+
+        # Arguments:
+            - factor: A float greater than zero that determines saturation change, where
                 values less than one result in less saturation and values greater than one result
                 in more saturation.
         '''
@@ -209,22 +204,21 @@ class Saturation:
 
 
 class RandomSaturation:
-    '''
-    Randomly changes the saturation of HSV images.
+    def __init__(self, lower:float=0.3, upper:float=2.0, prob:float=0.5):
+        '''
+        Randomly changes the saturation of HSV images.
 
-    Important:
+        Important:
+
         - Expects HSV input.
         - Expects input array to be of `dtype` `float`.
-    '''
 
-    def __init__(self, lower=0.3, upper=2.0, prob=0.5):
-        '''
-        Arguments:
-            lower (float, optional): A float greater than zero, the lower bound for the random
+        # Arguments:
+            - lower: A float greater than zero, the lower bound for the random
                 saturation change.
-            upper (float, optional): A float greater than zero, the upper bound for the random
+            - upper: A float greater than zero, the upper bound for the random
                 saturation change. Must be greater than `lower`.
-            prob (float, optional): `(1 - prob)` determines the probability with which the original,
+            - prob: `(1 - prob)` determines the probability with which the original,
                 unaltered image is returned.
         '''
         if lower >= upper:
@@ -247,18 +241,17 @@ class RandomSaturation:
 
 
 class Brightness:
-    '''
-    Changes the brightness of RGB images.
+    def __init__(self, delta:int):
+        '''
+        Changes the brightness of RGB images.
 
-    Important:
+        Important:
+
         - Expects RGB input.
         - Expects input array to be of `dtype` `float`.
-    '''
 
-    def __init__(self, delta):
-        '''
-        Arguments:
-            delta (int): An integer, the amount to add to or subtract from the intensity
+        # Arguments:
+            - delta: An integer, the amount to add to or subtract from the intensity
                 of every pixel.
         '''
         self.delta = delta
@@ -272,21 +265,20 @@ class Brightness:
 
 
 class RandomBrightness:
-    '''
-    Randomly changes the brightness of RGB images.
+    def __init__(self, lower:int=-84, upper:int=84, prob:float=0.5):
+        '''
+        Randomly changes the brightness of RGB images.
 
-    Important:
+        Important:
+
         - Expects RGB input.
         - Expects input array to be of `dtype` `float`.
-    '''
 
-    def __init__(self, lower=-84, upper=84, prob=0.5):
-        '''
-        Arguments:
-            lower (int, optional): An integer, the lower bound for the random brightness change.
-            upper (int, optional): An integer, the upper bound for the random brightness change.
+        # Arguments:
+            - lower: An integer, the lower bound for the random brightness change.
+            - upper: An integer, the upper bound for the random brightness change.
                 Must be greater than `lower`.
-            prob (float, optional): `(1 - prob)` determines the probability with which the original,
+            - prob: `(1 - prob)` determines the probability with which the original,
                 unaltered image is returned.
         '''
         if lower >= upper:
@@ -309,18 +301,17 @@ class RandomBrightness:
 
 
 class Contrast:
-    '''
-    Changes the contrast of RGB images.
+    def __init__(self, factor:float):
+        '''
+        Changes the contrast of RGB images.
 
-    Important:
+        Important:
+    
         - Expects RGB input.
         - Expects input array to be of `dtype` `float`.
-    '''
 
-    def __init__(self, factor):
-        '''
-        Arguments:
-            factor (float): A float greater than zero that determines contrast change, where
+        # Arguments:
+            - factor: A float greater than zero that determines contrast change, where
                 values less than one result in less contrast and values greater than one result
                 in more contrast.
         '''
@@ -337,22 +328,20 @@ class Contrast:
 
 
 class RandomContrast:
-    '''
-    Randomly changes the contrast of RGB images.
-
-    Important:
-        - Expects RGB input.
-        - Expects input array to be of `dtype` `float`.
-    '''
-
-    def __init__(self, lower=0.5, upper=1.5, prob=0.5):
+    def __init__(self, lower:float=0.5, upper:float=1.5, prob:float=0.5):
         '''
-        Arguments:
-            lower (float, optional): A float greater than zero, the lower bound for the random
+        Randomly changes the contrast of RGB images.
+
+        Important:
+            - Expects RGB input.
+            - Expects input array to be of `dtype` `float`.
+
+        # Arguments:
+            - lower: A float greater than zero, the lower bound for the random
                 contrast change.
-            upper (float, optional): A float greater than zero, the upper bound for the random
+            - upper: A float greater than zero, the upper bound for the random
                 contrast change. Must be greater than `lower`.
-            prob (float, optional): `(1 - prob)` determines the probability with which the original,
+            - prob: `(1 - prob)` determines the probability with which the original,
                 unaltered image is returned.
         '''
         if lower >= upper:
@@ -375,16 +364,14 @@ class RandomContrast:
 
 
 class Gamma:
-    '''
-    Changes the gamma value of RGB images.
-
-    Important: Expects RGB input.
-    '''
-
-    def __init__(self, gamma):
+    def __init__(self, gamma:float):
         '''
-        Arguments:
-            gamma (float): A float greater than zero that determines gamma change.
+        Changes the gamma value of RGB images.
+
+        Important: Expects RGB input.
+
+        # Arguments:
+            - gamma: A float greater than zero that determines gamma change.
         '''
         if gamma <= 0.0:
             raise ValueError("It must be `gamma > 0`.")
@@ -404,20 +391,18 @@ class Gamma:
 
 
 class RandomGamma:
-    '''
-    Randomly changes the gamma value of RGB images.
-
-    Important: Expects RGB input.
-    '''
-
-    def __init__(self, lower=0.25, upper=2.0, prob=0.5):
+    def __init__(self, lower:float=0.25, upper:float=2.0, prob:float=0.5):
         '''
-        Arguments:
-            lower (float, optional): A float greater than zero, the lower bound for the random
+        Randomly changes the gamma value of RGB images.
+
+        Important: Expects RGB input.
+
+        # Arguments:
+            - lower: A float greater than zero, the lower bound for the random
                 gamma change.
-            upper (float, optional): A float greater than zero, the upper bound for the random
+            - upper: A float greater than zero, the upper bound for the random
                 gamma change. Must be greater than `lower`.
-            prob (float, optional): `(1 - prob)` determines the probability with which the original,
+            - prob: `(1 - prob)` determines the probability with which the original,
                 unaltered image is returned.
         '''
         if lower >= upper:
@@ -439,13 +424,12 @@ class RandomGamma:
 
 
 class HistogramEqualization:
-    '''
-    Performs histogram equalization on HSV images.
-
-    Importat: Expects HSV input.
-    '''
-
     def __init__(self):
+        '''
+        Performs histogram equalization on HSV images.
+
+        Important: Expects HSV input.
+        '''
         pass
 
     def __call__(self, image, labels=None):
@@ -457,17 +441,15 @@ class HistogramEqualization:
 
 
 class RandomHistogramEqualization:
-    '''
-    Randomly performs histogram equalization on HSV images. The randomness only refers
-    to whether or not the equalization is performed.
-
-    Importat: Expects HSV input.
-    '''
-
-    def __init__(self, prob=0.5):
+    def __init__(self, prob:float=0.5):
         '''
-        Arguments:
-            prob (float, optional): `(1 - prob)` determines the probability with which the original,
+        Randomly performs histogram equalization on HSV images. The randomness only refers
+        to whether or not the equalization is performed.
+
+        Importat: Expects HSV input.
+
+        # Arguments:
+            - prob: `(1 - prob)` determines the probability with which the original,
                 unaltered image is returned.
         '''
         self.prob = prob
@@ -485,13 +467,15 @@ class RandomHistogramEqualization:
 
 class ChannelSwap:
     '''
-    Swaps the channels of images.
+   
     '''
 
-    def __init__(self, order):
+    def __init__(self, order: Tuple):
         '''
-        Arguments:
-            order (tuple): A tuple of integers that defines the desired channel order
+        Swaps the channels of images.
+        
+        # Arguments:
+            - order: A tuple of integers that defines the desired channel order
                 of the input images after the channel swap.
         '''
         self.order = order
@@ -506,15 +490,16 @@ class ChannelSwap:
 
 class RandomChannelSwap:
     '''
-    Randomly swaps the channels of RGB images.
-
-    Important: Expects RGB input.
     '''
 
-    def __init__(self, prob=0.5):
+    def __init__(self, prob:float=0.5):
         '''
-        Arguments:
-            prob (float, optional): `(1 - prob)` determines the probability with which the original,
+        Randomly swaps the channels of RGB images.
+
+        Important: Expects RGB input.
+
+        # Arguments:
+            - prob: `(1 - prob)` determines the probability with which the original,
                 unaltered image is returned.
         '''
         self.prob = prob

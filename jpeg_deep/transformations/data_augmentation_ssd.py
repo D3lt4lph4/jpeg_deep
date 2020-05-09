@@ -21,6 +21,8 @@ import numpy as np
 import cv2
 import inspect
 
+from typing import Dict, Tuple
+
 from jpeg_deep.transformations import ConvertColor, ConvertDataType, ConvertTo3Channels, RandomBrightness, RandomContrast, RandomHue, RandomSaturation, RandomChannelSwap
 from jpeg_deep.transformations import PatchCoordinateGenerator, RandomPatch, RandomPatchInf
 from jpeg_deep.transformations import ResizeRandomInterp, RandomFlip
@@ -29,16 +31,18 @@ from jpeg_deep.generators import BoundGenerator, BoxFilter, ImageValidator
 
 class SSDRandomCrop:
     '''
-    Performs the same random crops as defined by the `batch_sampler` instructions
-    of the original Caffe implementation of SSD. A description of this random cropping
-    strategy can also be found in the data augmentation section of the paper:
-    https://arxiv.org/abs/1512.02325
+    
     '''
 
-    def __init__(self, labels_format={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
+    def __init__(self, labels_format: Dict={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
         '''
-        Arguments:
-            labels_format (dict, optional): A dictionary that defines which index in the last axis of the labels
+        Performs the same random crops as defined by the `batch_sampler` instructions
+        of the original Caffe implementation of SSD. A description of this random cropping
+        strategy can also be found in the data augmentation section of the paper:
+        https://arxiv.org/abs/1512.02325
+
+        # Arguments:
+            - labels_format: A dictionary that defines which index in the last axis of the labels
                 of an image contains which bounding box coordinate. The dictionary maps at least the keywords
                 'xmin', 'ymin', 'xmax', and 'ymax' to their respective indices within last axis of the labels array.
         '''
@@ -104,18 +108,19 @@ class SSDRandomCrop:
 
 class SSDExpand:
     '''
-    Performs the random image expansion as defined by the `train_transform_param` instructions
-    of the original Caffe implementation of SSD. A description of this expansion strategy
-    can also be found in section 3.6 ("Data Augmentation for Small Object Accuracy") of the paper:
-    https://arxiv.org/abs/1512.02325
     '''
 
-    def __init__(self, background=(123, 117, 104), labels_format={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
+    def __init__(self, background: Tuple=(123, 117, 104), labels_format:Dict={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
         '''
-        Arguments:
-            background (list/tuple, optional): A 3-tuple specifying the RGB color value of the
+        Performs the random image expansion as defined by the `train_transform_param` instructions
+        of the original Caffe implementation of SSD. A description of this expansion strategy
+        can also be found in section 3.6 ("Data Augmentation for Small Object Accuracy") of the paper:
+        https://arxiv.org/abs/1512.02325
+        
+        # Arguments:
+            - background: A 3-tuple specifying the RGB color value of the
                 background pixels of the translated images.
-            labels_format (dict, optional): A dictionary that defines which index in the last axis of the labels
+            - labels_format: A dictionary that defines which index in the last axis of the labels
                 of an image contains which bounding box coordinate. The dictionary maps at least the keywords
                 'xmin', 'ymin', 'xmax', and 'ymax' to their respective indices within last axis of the labels array.
         '''
@@ -147,13 +152,13 @@ class SSDExpand:
 
 
 class SSDPhotometricDistortions:
-    '''
-    Performs the photometric distortions defined by the `train_transform_param` instructions
-    of the original Caffe implementation of SSD.
-    '''
+    
 
     def __init__(self):
-
+        '''
+        Performs the photometric distortions defined by the `train_transform_param` instructions
+        of the original Caffe implementation of SSD.
+        '''
         self.convert_RGB_to_HSV = ConvertColor(current='RGB', to='HSV')
         self.convert_HSV_to_RGB = ConvertColor(current='HSV', to='RGB')
         self.convert_to_float32 = ConvertDataType(to='float32')
@@ -212,23 +217,21 @@ class SSDPhotometricDistortions:
 
 
 class SSDDataAugmentation:
-    '''
-    Reproduces the data augmentation pipeline used in the training of the original
-    Caffe implementation of SSD.
-    '''
-
     def __init__(self,
-                 img_height=300,
-                 img_width=300,
-                 background=(123, 117, 104),
-                 labels_format={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
+                 img_height:int=300,
+                 img_width:int=300,
+                 background:Tuple=(123, 117, 104),
+                 labels_format:Dict={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
         '''
-        Arguments:
-            height (int): The desired height of the output images in pixels.
-            width (int): The desired width of the output images in pixels.
-            background (list/tuple, optional): A 3-tuple specifying the RGB color value of the
+        Reproduces the data augmentation pipeline used in the training of the original
+        Caffe implementation of SSD.
+
+        # Arguments:
+            - height: The desired height of the output images in pixels.
+            - width: The desired width of the output images in pixels.
+            - background: A 3-tuple specifying the RGB color value of the
                 background pixels of the translated images.
-            labels_format (dict, optional): A dictionary that defines which index in the last axis of the labels
+            - labels_format: A dictionary that defines which index in the last axis of the labels
                 of an image contains which bounding box coordinate. The dictionary maps at least the keywords
                 'xmin', 'ymin', 'xmax', and 'ymax' to their respective indices within last axis of the labels array.
         '''

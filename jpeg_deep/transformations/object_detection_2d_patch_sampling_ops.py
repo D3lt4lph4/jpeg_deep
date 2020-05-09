@@ -17,36 +17,36 @@ limitations under the License.
 '''
 
 from __future__ import division
+
+from typing import Tuple, Dict
 import numpy as np
 
 from jpeg_deep.generators import BoundGenerator, BoxFilter, ImageValidator
 
 class PatchCoordinateGenerator:
-    '''
-    Generates random patch coordinates that meet specified requirements.
-    '''
-
     def __init__(self,
-                 img_height=None,
-                 img_width=None,
-                 must_match='h_w',
-                 min_scale=0.3,
-                 max_scale=1.0,
-                 scale_uniformly=False,
-                 min_aspect_ratio = 0.5,
-                 max_aspect_ratio = 2.0,
-                 patch_ymin=None,
-                 patch_xmin=None,
-                 patch_height=None,
-                 patch_width=None,
-                 patch_aspect_ratio=None):
+                 img_height:int=None,
+                 img_width:int=None,
+                 must_match:str='h_w',
+                 min_scale:float=0.3,
+                 max_scale:float=1.0,
+                 scale_uniformly:bool=False,
+                 min_aspect_ratio:float = 0.5,
+                 max_aspect_ratio:float = 2.0,
+                 patch_ymin:int=None,
+                 patch_xmin:int=None,
+                 patch_height:int=None,
+                 patch_width:int=None,
+                 patch_aspect_ratio:float=None):
         '''
-        Arguments:
-            img_height (int): The height of the image for which the patch coordinates
+        Generates random patch coordinates that meet specified requirements.
+
+        # Arguments:
+            - img_height: The height of the image for which the patch coordinates
                 shall be generated. Doesn't have to be known upon construction.
-            img_width (int): The width of the image for which the patch coordinates
+            - img_width: The width of the image for which the patch coordinates
                 shall be generated. Doesn't have to be known upon construction.
-            must_match (str, optional): Can be either of 'h_w', 'h_ar', and 'w_ar'.
+            - must_match (str, optional): Can be either of 'h_w', 'h_ar', and 'w_ar'.
                 Specifies which two of the three quantities height, width, and aspect
                 ratio determine the shape of the generated patch. The respective third
                 quantity will be computed from the other two. For example,
@@ -56,39 +56,39 @@ class PatchCoordinateGenerator:
                 is the dependent variable in this case, it will be computed from the
                 height and width. Any given values for `patch_aspect_ratio`,
                 `min_aspect_ratio`, or `max_aspect_ratio` will be ignored.
-            min_scale (float, optional): The minimum size of a dimension of the patch
+            - min_scale: The minimum size of a dimension of the patch
                 as a fraction of the respective dimension of the image. Can be greater
                 than 1. For example, if the image width is 200 and `min_scale == 0.5`,
                 then the width of the generated patch will be at least 100. If `min_scale == 1.5`,
                 the width of the generated patch will be at least 300.
-            max_scale (float, optional): The maximum size of a dimension of the patch
+            - max_scale: The maximum size of a dimension of the patch
                 as a fraction of the respective dimension of the image. Can be greater
                 than 1. For example, if the image width is 200 and `max_scale == 1.0`,
                 then the width of the generated patch will be at most 200. If `max_scale == 1.5`,
                 the width of the generated patch will be at most 300. Must be greater than
                 `min_scale`.
-            scale_uniformly (bool, optional): If `True` and if `must_match == 'h_w'`,
+            - scale_uniformly: If `True` and if `must_match == 'h_w'`,
                 the patch height and width will be scaled uniformly, otherwise they will
                 be scaled independently.
-            min_aspect_ratio (float, optional): Determines the minimum aspect ratio
+            - min_aspect_ratio: Determines the minimum aspect ratio
                 for the generated patches.
-            max_aspect_ratio (float, optional): Determines the maximum aspect ratio
+            - max_aspect_ratio: Determines the maximum aspect ratio
                 for the generated patches.
-            patch_ymin (int, optional): `None` or the vertical coordinate of the top left
+            - patch_ymin: `None` or the vertical coordinate of the top left
                 corner of the generated patches. If this is not `None`, the position of the
                 patches along the vertical axis is fixed. If this is `None`, then the
                 vertical position of generated patches will be chosen randomly such that
                 the overlap of a patch and the image along the vertical dimension is
                 always maximal.
-            patch_xmin (int, optional): `None` or the horizontal coordinate of the top left
+            - patch_xmin: `None` or the horizontal coordinate of the top left
                 corner of the generated patches. If this is not `None`, the position of the
                 patches along the horizontal axis is fixed. If this is `None`, then the
                 horizontal position of generated patches will be chosen randomly such that
                 the overlap of a patch and the image along the horizontal dimension is
                 always maximal.
-            patch_height (int, optional): `None` or the fixed height of the generated patches.
-            patch_width (int, optional): `None` or the fixed width of the generated patches.
-            patch_aspect_ratio (float, optional): `None` or the fixed aspect ratio of the
+            - patch_height: `None` or the fixed height of the generated patches.
+            - patch_width: `None` or the fixed width of the generated patches.
+            - patch_aspect_ratio: `None` or the fixed aspect ratio of the
                 generated patches.
         '''
 
@@ -197,54 +197,52 @@ class PatchCoordinateGenerator:
         return (patch_ymin, patch_xmin, patch_height, patch_width)
 
 class CropPad:
-    '''
-    Crops and/or pads an image deterministically.
-
-    Depending on the given output patch size and the position (top left corner) relative
-    to the input image, the image will be cropped and/or padded along one or both spatial
-    dimensions.
-
-    For example, if the output patch lies entirely within the input image, this will result
-    in a regular crop. If the input image lies entirely within the output patch, this will
-    result in the image being padded in every direction. All other cases are mixed cases
-    where the image might be cropped in some directions and padded in others.
-
-    The output patch can be arbitrary in both size and position as long as it overlaps
-    with the input image.
-    '''
-
     def __init__(self,
-                 patch_ymin,
-                 patch_xmin,
-                 patch_height,
-                 patch_width,
-                 clip_boxes=True,
-                 box_filter=None,
-                 background=(0,0,0),
-                 labels_format={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
+                 patch_ymin: int,
+                 patch_xmin: int ,
+                 patch_height: int,
+                 patch_width: int,
+                 clip_boxes: bool=True,
+                 box_filter:object=None,
+                 background: Tuple=(0,0,0),
+                 labels_format: Dict={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
         '''
-        Arguments:
-            patch_ymin (int, optional): The vertical coordinate of the top left corner of the output
+        Crops and/or pads an image deterministically.
+
+        Depending on the given output patch size and the position (top left corner) relative
+        to the input image, the image will be cropped and/or padded along one or both spatial
+        dimensions.
+
+        For example, if the output patch lies entirely within the input image, this will result
+        in a regular crop. If the input image lies entirely within the output patch, this will
+        result in the image being padded in every direction. All other cases are mixed cases
+        where the image might be cropped in some directions and padded in others.
+
+        The output patch can be arbitrary in both size and position as long as it overlaps
+        with the input image.
+
+        # Arguments:
+            - patch_ymin: The vertical coordinate of the top left corner of the output
                 patch relative to the image coordinate system. Can be negative (i.e. lie outside the image)
                 as long as the resulting patch still overlaps with the image.
-            patch_ymin (int, optional): The horizontal coordinate of the top left corner of the output
+            - patch_ymin: The horizontal coordinate of the top left corner of the output
                 patch relative to the image coordinate system. Can be negative (i.e. lie outside the image)
                 as long as the resulting patch still overlaps with the image.
-            patch_height (int): The height of the patch to be sampled from the image. Can be greater
+            - patch_height: The height of the patch to be sampled from the image. Can be greater
                 than the height of the input image.
-            patch_width (int): The width of the patch to be sampled from the image. Can be greater
+            - patch_width: The width of the patch to be sampled from the image. Can be greater
                 than the width of the input image.
-            clip_boxes (bool, optional): Only relevant if ground truth bounding boxes are given.
+            - clip_boxes: Only relevant if ground truth bounding boxes are given.
                 If `True`, any ground truth bounding boxes will be clipped to lie entirely within the
                 sampled patch.
-            box_filter (BoxFilter, optional): Only relevant if ground truth bounding boxes are given.
+            - box_filter: Only relevant if ground truth bounding boxes are given.
                 A `BoxFilter` object to filter out bounding boxes that don't meet the given criteria
                 after the transformation. Refer to the `BoxFilter` documentation for details. If `None`,
                 the validity of the bounding boxes is not checked.
-            background (list/tuple, optional): A 3-tuple specifying the RGB color value of the potential
+            - background: A 3-tuple specifying the RGB color value of the potential
                 background pixels of the scaled images. In the case of single-channel images,
                 the first element of `background` will be used as the background pixel value.
-            labels_format (dict, optional): A dictionary that defines which index in the last axis of the labels
+            - labels_format: A dictionary that defines which index in the last axis of the labels
                 of an image contains which bounding box coordinate. The dictionary maps at least the keywords
                 'xmin', 'ymin', 'xmax', and 'ymax' to their respective indices within last axis of the labels array.
         '''
@@ -348,20 +346,41 @@ class CropPad:
                 return image
 
 class Crop:
-    '''
-    Crops off the specified numbers of pixels from the borders of images.
-
-    This is just a convenience interface for `CropPad`.
-    '''
+    
 
     def __init__(self,
-                 crop_top,
-                 crop_bottom,
-                 crop_left,
-                 crop_right,
-                 clip_boxes=True,
-                 box_filter=None,
-                 labels_format={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
+                 crop_top: int,
+                 crop_bottom: int,
+                 crop_left: int,
+                 crop_right: int,
+                 clip_boxes: bool=True,
+                 box_filter: object=None,
+                 labels_format: Dict={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
+        '''
+        Crops off the specified numbers of pixels from the borders of images.
+
+        This is just a convenience interface for `CropPad`.
+
+        # Arguments:
+            - crop_top: Number of pixels to crop from the top.
+            - crop_bottom: Number of pixels to crop from the bottom.
+            - crop_left: Number of pixels to crop from the left.
+            - crop_right: Number of pixels to crop from the right.
+            - clip_boxes: Only relevant if ground truth bounding boxes are given.
+                If `True`, any ground truth bounding boxes will be clipped to lie entirely within the
+                sampled patch.
+            - box_filter: Only relevant if ground truth bounding boxes are given.
+                A `BoxFilter` object to filter out bounding boxes that don't meet the given criteria
+                after the transformation. Refer to the `BoxFilter` documentation for details. If `None`,
+                the validity of the bounding boxes is not checked.
+            - background: A 3-tuple specifying the RGB color value of the potential
+                background pixels of the scaled images. In the case of single-channel images,
+                the first element of `background` will be used as the background pixel value.
+            - labels_format: A dictionary that defines which index in the last axis of the labels
+                of an image contains which bounding box coordinate. The dictionary maps at least the keywords
+                'xmin', 'ymin', 'xmax', and 'ymax' to their respective indices within last axis of the labels array.
+        '''
+
         self.crop_top = crop_top
         self.crop_bottom = crop_bottom
         self.crop_left = crop_left
@@ -388,19 +407,39 @@ class Crop:
         return self.crop(image, labels, return_inverter)
 
 class Pad:
-    '''
-    Pads images by the specified numbers of pixels on each side.
-
-    This is just a convenience interface for `CropPad`.
-    '''
+    
 
     def __init__(self,
-                 pad_top,
-                 pad_bottom,
-                 pad_left,
-                 pad_right,
-                 background=(0,0,0),
-                 labels_format={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
+                 pad_top:int,
+                 pad_bottom:int,
+                 pad_left:int,
+                 pad_right:int,
+                 background:Tuple=(0,0,0),
+                 labels_format:Dict={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
+        '''
+        Pads images by the specified numbers of pixels on each side.
+
+        This is just a convenience interface for `CropPad`.
+
+        # Arguments:
+            - pad_top: Number of pixel to pas on the top.
+            - pad_bottom: Number of pixel to pas on the bottom.
+            - pad_left: Number of pixel to pas on the left.
+            - pad_right: Number of pixel to pas on the right.
+            - clip_boxes: Only relevant if ground truth bounding boxes are given.
+                If `True`, any ground truth bounding boxes will be clipped to lie entirely within the
+                sampled patch.
+            - box_filter: Only relevant if ground truth bounding boxes are given.
+                A `BoxFilter` object to filter out bounding boxes that don't meet the given criteria
+                after the transformation. Refer to the `BoxFilter` documentation for details. If `None`,
+                the validity of the bounding boxes is not checked.
+            - background: A 3-tuple specifying the RGB color value of the potential
+                background pixels of the scaled images. In the case of single-channel images,
+                the first element of `background` will be used as the background pixel value.
+            - labels_format: A dictionary that defines which index in the last axis of the labels
+                of an image contains which bounding box coordinate. The dictionary maps at least the keywords
+                'xmin', 'ymin', 'xmax', and 'ymax' to their respective indices within last axis of the labels array.
+        '''
         self.pad_top = pad_top
         self.pad_bottom = pad_bottom
         self.pad_left = pad_left
@@ -427,57 +466,55 @@ class Pad:
         return self.pad(image, labels, return_inverter)
 
 class RandomPatch:
-    '''
-    Randomly samples a patch from an image. The randomness refers to whatever
-    randomness may be introduced by the patch coordinate generator, the box filter,
-    and the patch validator.
-
-    Input images may be cropped and/or padded along either or both of the two
-    spatial dimensions as necessary in order to obtain the required patch.
-
-    As opposed to `RandomPatchInf`, it is possible for this transform to fail to produce
-    an output image at all, in which case it will return `None`. This is useful, because
-    if this transform is used to generate patches of a fixed size or aspect ratio, then
-    the caller needs to be able to rely on the output image satisfying the set size or
-    aspect ratio. It might therefore not be an option to return the unaltered input image
-    as other random transforms do when they fail to produce a valid transformed image.
-    '''
-
     def __init__(self,
-                 patch_coord_generator,
-                 box_filter=None,
-                 image_validator=None,
-                 n_trials_max=3,
-                 clip_boxes=True,
-                 prob=1.0,
-                 background=(0,0,0),
-                 can_fail=False,
-                 labels_format={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
+                 patch_coord_generator: object,
+                 box_filter: object=None,
+                 image_validator: object=None,
+                 n_trials_max:int=3,
+                 clip_boxes:bool=True,
+                 prob:float=1.0,
+                 background:Tuple=(0,0,0),
+                 can_fail:bool=False,
+                 labels_format:Dict={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
         '''
-        Arguments:
-            patch_coord_generator (PatchCoordinateGenerator): A `PatchCoordinateGenerator` object
+        Randomly samples a patch from an image. The randomness refers to whatever
+        randomness may be introduced by the patch coordinate generator, the box filter,
+        and the patch validator.
+
+        Input images may be cropped and/or padded along either or both of the two
+        spatial dimensions as necessary in order to obtain the required patch.
+
+        As opposed to `RandomPatchInf`, it is possible for this transform to fail to produce
+        an output image at all, in which case it will return `None`. This is useful, because
+        if this transform is used to generate patches of a fixed size or aspect ratio, then
+        the caller needs to be able to rely on the output image satisfying the set size or
+        aspect ratio. It might therefore not be an option to return the unaltered input image
+        as other random transforms do when they fail to produce a valid transformed image.
+
+        # Arguments:
+            - patch_coord_generator (PatchCoordinateGenerator): A `PatchCoordinateGenerator` object
                 to generate the positions and sizes of the patches to be sampled from the input images.
-            box_filter (BoxFilter, optional): Only relevant if ground truth bounding boxes are given.
+            - box_filter (BoxFilter, optional): Only relevant if ground truth bounding boxes are given.
                 A `BoxFilter` object to filter out bounding boxes that don't meet the given criteria
                 after the transformation. Refer to the `BoxFilter` documentation for details. If `None`,
                 the validity of the bounding boxes is not checked.
-            image_validator (ImageValidator, optional): Only relevant if ground truth bounding boxes are given.
+            - image_validator (ImageValidator, optional): Only relevant if ground truth bounding boxes are given.
                 An `ImageValidator` object to determine whether a sampled patch is valid. If `None`,
                 any outcome is valid.
-            n_trials_max (int, optional): Only relevant if ground truth bounding boxes are given.
+            - n_trials_max (int, optional): Only relevant if ground truth bounding boxes are given.
                 Determines the maxmial number of trials to sample a valid patch. If no valid patch could
                 be sampled in `n_trials_max` trials, returns one `None` in place of each regular output.
-            clip_boxes (bool, optional): Only relevant if ground truth bounding boxes are given.
+            - clip_boxes (bool, optional): Only relevant if ground truth bounding boxes are given.
                 If `True`, any ground truth bounding boxes will be clipped to lie entirely within the
                 sampled patch.
-            prob (float, optional): `(1 - prob)` determines the probability with which the original,
+            - prob (float, optional): `(1 - prob)` determines the probability with which the original,
                 unaltered image is returned.
-            background (list/tuple, optional): A 3-tuple specifying the RGB color value of the potential
+            - background (list/tuple, optional): A 3-tuple specifying the RGB color value of the potential
                 background pixels of the scaled images. In the case of single-channel images,
                 the first element of `background` will be used as the background pixel value.
             can_fail (bool, optional): If `True`, will return `None` if no valid patch could be found after
                 `n_trials_max` trials. If `False`, will return the unaltered input image in such a case.
-            labels_format (dict, optional): A dictionary that defines which index in the last axis of the labels
+            - labels_format (dict, optional): A dictionary that defines which index in the last axis of the labels
                 of an image contains which bounding box coordinate. The dictionary maps at least the keywords
                 'xmin', 'ymin', 'xmax', and 'ymax' to their respective indices within last axis of the labels array.
         '''
@@ -589,59 +626,57 @@ class RandomPatch:
                     return image, labels
 
 class RandomPatchInf:
-    '''
-    Randomly samples a patch from an image. The randomness refers to whatever
-    randomness may be introduced by the patch coordinate generator, the box filter,
-    and the patch validator.
-
-    Input images may be cropped and/or padded along either or both of the two
-    spatial dimensions as necessary in order to obtain the required patch.
-
-    This operation is very similar to `RandomPatch`, except that:
-    1. This operation runs indefinitely until either a valid patch is found or
-       the input image is returned unaltered, i.e. it cannot fail.
-    2. If a bound generator is given, a new pair of bounds will be generated
-       every `n_trials_max` iterations.
-    '''
-
     def __init__(self,
-                 patch_coord_generator,
-                 box_filter=None,
-                 image_validator=None,
-                 bound_generator=None,
-                 n_trials_max=50,
-                 clip_boxes=True,
-                 prob=0.857,
-                 background=(0,0,0),
-                 labels_format={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
+                 patch_coord_generator: object,
+                 box_filter: object=None,
+                 image_validator: object=None,
+                 bound_generator: object=None,
+                 n_trials_max: int=50,
+                 clip_boxes: bool=True,
+                 prob: float=0.857,
+                 background: Tuple=(0,0,0),
+                 labels_format: Dict={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
         '''
-        Arguments:
-            patch_coord_generator (PatchCoordinateGenerator): A `PatchCoordinateGenerator` object
+        Randomly samples a patch from an image. The randomness refers to whatever
+        randomness may be introduced by the patch coordinate generator, the box filter,
+        and the patch validator.
+
+        Input images may be cropped and/or padded along either or both of the two
+        spatial dimensions as necessary in order to obtain the required patch.
+
+        This operation is very similar to `RandomPatch`, except that:
+        
+        1. This operation runs indefinitely until either a valid patch is found or
+        the input image is returned unaltered, i.e. it cannot fail.
+        2. If a bound generator is given, a new pair of bounds will be generated every `n_trials_max` iterations.
+
+        # Arguments:
+            - patch_coord_generator: A `PatchCoordinateGenerator` object
                 to generate the positions and sizes of the patches to be sampled from the input images.
-            box_filter (BoxFilter, optional): Only relevant if ground truth bounding boxes are given.
+            - box_filter: Only relevant if ground truth bounding boxes are given.
                 A `BoxFilter` object to filter out bounding boxes that don't meet the given criteria
                 after the transformation. Refer to the `BoxFilter` documentation for details. If `None`,
                 the validity of the bounding boxes is not checked.
-            image_validator (ImageValidator, optional): Only relevant if ground truth bounding boxes are given.
+            - image_validator: Only relevant if ground truth bounding boxes are given.
                 An `ImageValidator` object to determine whether a sampled patch is valid. If `None`,
                 any outcome is valid.
-            bound_generator (BoundGenerator, optional): A `BoundGenerator` object to generate upper and
+            - bound_generator: A `BoundGenerator` object to generate upper and
                 lower bound values for the patch validator. Every `n_trials_max` trials, a new pair of
                 upper and lower bounds will be generated until a valid patch is found or the original image
                 is returned. This bound generator overrides the bound generator of the patch validator.
-            n_trials_max (int, optional): Only relevant if ground truth bounding boxes are given.
+            - n_trials_max: Only relevant if ground truth bounding boxes are given.
                 The sampler will run indefinitely until either a valid patch is found or the original image
                 is returned, but this determines the maxmial number of trials to sample a valid patch for each
                 selected pair of lower and upper bounds before a new pair is picked.
-            clip_boxes (bool, optional): Only relevant if ground truth bounding boxes are given.
+            - clip_boxes: Only relevant if ground truth bounding boxes are given.
                 If `True`, any ground truth bounding boxes will be clipped to lie entirely within the
                 sampled patch.
-            prob (float, optional): `(1 - prob)` determines the probability with which the original,
+            - prob: `(1 - prob)` determines the probability with which the original,
                 unaltered image is returned.
-            background (list/tuple, optional): A 3-tuple specifying the RGB color value of the potential
+            - background: A 3-tuple specifying the RGB color value of the potential
                 background pixels of the scaled images. In the case of single-channel images,
                 the first element of `background` will be used as the background pixel value.
-            labels_format (dict, optional): A dictionary that defines which index in the last axis of the labels
+            - labels_format: A dictionary that defines which index in the last axis of the labels
                 of an image contains which bounding box coordinate. The dictionary maps at least the keywords
                 'xmin', 'ymin', 'xmax', and 'ymax' to their respective indices within last axis of the labels array.
         '''
@@ -742,38 +777,36 @@ class RandomPatchInf:
                         return image, labels
 
 class RandomMaxCropFixedAR:
-    '''
-    Crops the largest possible patch of a given fixed aspect ratio
-    from an image.
-
-    Since the aspect ratio of the sampled patches is constant, they
-    can subsequently be resized to the same size without distortion.
-    '''
-
     def __init__(self,
-                 patch_aspect_ratio,
-                 box_filter=None,
-                 image_validator=None,
-                 n_trials_max=3,
-                 clip_boxes=True,
-                 labels_format={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
+                 patch_aspect_ratio: float,
+                 box_filter:object=None,
+                 image_validator:object=None,
+                 n_trials_max: int=3,
+                 clip_boxes: bool=True,
+                 labels_format: Dict={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
         '''
-        Arguments:
-            patch_aspect_ratio (float): The fixed aspect ratio that all sampled patches will have.
+        Crops the largest possible patch of a given fixed aspect ratio
+        from an image.
+
+        Since the aspect ratio of the sampled patches is constant, they
+        can subsequently be resized to the same size without distortion.
+
+        # Arguments:
+            - patch_aspect_ratio: The fixed aspect ratio that all sampled patches will have.
             box_filter (BoxFilter, optional): Only relevant if ground truth bounding boxes are given.
                 A `BoxFilter` object to filter out bounding boxes that don't meet the given criteria
                 after the transformation. Refer to the `BoxFilter` documentation for details. If `None`,
                 the validity of the bounding boxes is not checked.
-            image_validator (ImageValidator, optional): Only relevant if ground truth bounding boxes are given.
+            - image_validator: Only relevant if ground truth bounding boxes are given.
                 An `ImageValidator` object to determine whether a sampled patch is valid. If `None`,
                 any outcome is valid.
-            n_trials_max (int, optional): Only relevant if ground truth bounding boxes are given.
+            - n_trials_max: Only relevant if ground truth bounding boxes are given.
                 Determines the maxmial number of trials to sample a valid patch. If no valid patch could
                 be sampled in `n_trials_max` trials, returns `None`.
-            clip_boxes (bool, optional): Only relevant if ground truth bounding boxes are given.
+            - clip_boxes: Only relevant if ground truth bounding boxes are given.
                 If `True`, any ground truth bounding boxes will be clipped to lie entirely within the
                 sampled patch.
-            labels_format (dict, optional): A dictionary that defines which index in the last axis of the labels
+            - labels_format: A dictionary that defines which index in the last axis of the labels
                 of an image contains which bounding box coordinate. The dictionary maps at least the keywords
                 'xmin', 'ymin', 'xmax', and 'ymax' to their respective indices within last axis of the labels array.
         '''
@@ -821,25 +854,23 @@ class RandomMaxCropFixedAR:
         return self.random_patch(image, labels, return_inverter)
 
 class RandomPadFixedAR:
-    '''
-    Adds the minimal possible padding to an image that results in a patch
-    of the given fixed aspect ratio that contains the entire image.
-
-    Since the aspect ratio of the resulting images is constant, they
-    can subsequently be resized to the same size without distortion.
-    '''
-
     def __init__(self,
-                 patch_aspect_ratio,
-                 background=(0,0,0),
-                 labels_format={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
+                 patch_aspect_ratio: float,
+                 background: Tuple=(0,0,0),
+                 labels_format: Dict={'class_id': 0, 'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}):
         '''
-        Arguments:
-            patch_aspect_ratio (float): The fixed aspect ratio that all sampled patches will have.
-            background (list/tuple, optional): A 3-tuple specifying the RGB color value of the potential
+        Adds the minimal possible padding to an image that results in a patch
+        of the given fixed aspect ratio that contains the entire image.
+
+        Since the aspect ratio of the resulting images is constant, they
+        can subsequently be resized to the same size without distortion.
+
+        # Arguments:
+            - patch_aspect_ratio: The fixed aspect ratio that all sampled patches will have.
+            - background: A 3-tuple specifying the RGB color value of the potential
                 background pixels of the scaled images. In the case of single-channel images,
                 the first element of `background` will be used as the background pixel value.
-            labels_format (dict, optional): A dictionary that defines which index in the last axis of the labels
+            - labels_format: A dictionary that defines which index in the last axis of the labels
                 of an image contains which bounding box coordinate. The dictionary maps at least the keywords
                 'xmin', 'ymin', 'xmax', and 'ymax' to their respective indices within last axis of the labels array.
         '''
