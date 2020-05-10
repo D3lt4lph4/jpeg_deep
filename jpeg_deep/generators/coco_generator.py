@@ -55,7 +55,6 @@ class COCOGenerator(object):
                  shuffle: bool = True,
                  label_encoder: object = None,
                  transforms: List[object] = None,
-                 images_path: List[str] = None,
                  dct: bool = False,
                  mode: str = "train",
                  split_cbcr: bool=False,
@@ -63,8 +62,20 @@ class COCOGenerator(object):
                  labels_output_format: List[str] = (
                      'class_id', 'xmin', 'ymin', 'xmax', 'ymax')):
         '''
-        # Arguments:
-            - images_path: A Python list/tuple or a string representing  a filepath.
+        Generator for the MS-COCO dataset
+        
+        # Arguments:
+            - image_directory: Directory containing all the images to be used by the generator.
+            - annotation_file: File containing all the annotation for the target set.
+            - batch_size: The size of the batch to be return by the generator.
+            - shuffle: If the images should be shuffle on epoch end.
+            - label_encoder: Object to encode the label in the SSD format.
+            - transforms: The transformations to apply to the images.
+            - dct: If the generator should return the DCT encoded images.
+            - mode: The mode of the generator, `train` or `test`, in test mode, the generator will ignore the labels.
+            - split_cbcr: If the Cb and Cr inputs should be split in two arrays.
+            - only_y: If only the Y component should be returned.
+            - labels_output_format: The format of the output (leave as is).
         '''
         self.labels_output_format = labels_output_format
         self.labels_format = {'class_id': 0,
@@ -286,7 +297,7 @@ class COCOGenerator(object):
                 else:
                     return [np.array(X_y), np.array(X_cbcr)], batch_y_encoded
 
-    def get_raw_input_label(self, index):
+    def get_raw_input_label(self, index:int):
         """ Should return the raw input at a given batch index, i.e something displayable.
 
         # Argument:
@@ -345,7 +356,7 @@ class COCOGenerator(object):
 
         return batch_X, batch_y_encoded
 
-    def get_batch_data(self, index):
+    def get_batch_data(self, index:int):
         """ Should return the data associated for the batch specified if any. Should return None else.
 
         # Argument:

@@ -129,11 +129,6 @@ def match_multi(weight_matrix, threshold):
 
 
 class BoundGenerator:
-    '''
-    Generates pairs of floating point values that represent lower and upper bounds
-    from a given sample space.
-    '''
-
     def __init__(self,
                  sample_space=((0.1, None),
                                (0.3, None),
@@ -143,11 +138,14 @@ class BoundGenerator:
                                (None, None)),
                  weights=None):
         '''
-        Arguments:
-            sample_space (list or tuple): A list, tuple, or array-like object of shape
+        Generates pairs of floating point values that represent lower and upper bounds
+        from a given sample space.
+
+        # Arguments:
+            - sample_space (list or tuple): A list, tuple, or array-like object of shape
                 `(n, 2)` that contains `n` samples to choose from, where each sample
                 is a 2-tuple of scalars and/or `None` values.
-            weights (list or tuple, optional): A list or tuple representing the distribution
+            - weights (list or tuple, optional): A list or tuple representing the distribution
                 over the sample space. If `None`, a uniform distribution will be assumed.
         '''
 
@@ -188,10 +186,6 @@ class BoundGenerator:
 
 
 class BoxFilter:
-    '''
-    Returns all bounding boxes that are valid with respect to a the defined criteria.
-    '''
-
     def __init__(self,
                  check_overlap=True,
                  check_min_area=True,
@@ -203,39 +197,41 @@ class BoxFilter:
                                 'ymin': 2, 'xmax': 3, 'ymax': 4},
                  border_pixels='half'):
         '''
-        Arguments:
-            check_overlap (bool, optional): Whether or not to enforce the overlap requirements defined by
+        Returns all bounding boxes that are valid with respect to a the defined criteria.
+
+        # Arguments:
+            - check_overlap (bool, optional): Whether or not to enforce the overlap requirements defined by
                 `overlap_criterion` and `overlap_bounds`. Sometimes you might want to use the box filter only
                 to enforce a certain minimum area for all boxes (see next argument), in such cases you can
                 turn the overlap requirements off.
-            check_min_area (bool, optional): Whether or not to enforce the minimum area requirement defined
+            - check_min_area (bool, optional): Whether or not to enforce the minimum area requirement defined
                 by `min_area`. If `True`, any boxes that have an area (in pixels) that is smaller than `min_area`
                 will be removed from the labels of an image. Bounding boxes below a certain area aren't useful
                 training examples. An object that takes up only, say, 5 pixels in an image is probably not
                 recognizable anymore, neither for a human, nor for an object detection model. It makes sense
                 to remove such boxes.
-            check_degenerate (bool, optional): Whether or not to check for and remove degenerate bounding boxes.
+            - check_degenerate (bool, optional): Whether or not to check for and remove degenerate bounding boxes.
                 Degenerate bounding boxes are boxes that have `xmax <= xmin` and/or `ymax <= ymin`. In particular,
                 boxes with a width and/or height of zero are degenerate. It is obviously important to filter out
                 such boxes, so you should only set this option to `False` if you are certain that degenerate
                 boxes are not possible in your data and processing chain.
-            overlap_criterion (str, optional): Can be either of 'center_point', 'iou', or 'area'. Determines
+            - overlap_criterion (str, optional): Can be either of 'center_point', 'iou', or 'area'. Determines
                 which boxes are considered valid with respect to a given image. If set to 'center_point',
                 a given bounding box is considered valid if its center point lies within the image.
                 If set to 'area', a given bounding box is considered valid if the quotient of its intersection
                 area with the image and its own area is within the given `overlap_bounds`. If set to 'iou', a given
                 bounding box is considered valid if its IoU with the image is within the given `overlap_bounds`.
-            overlap_bounds (list or BoundGenerator, optional): Only relevant if `overlap_criterion` is 'area' or 'iou'.
+            - overlap_bounds (list or BoundGenerator, optional): Only relevant if `overlap_criterion` is 'area' or 'iou'.
                 Determines the lower and upper bounds for `overlap_criterion`. Can be either a 2-tuple of scalars
                 representing a lower bound and an upper bound, or a `BoundGenerator` object, which provides
                 the possibility to generate bounds randomly.
-            min_area (int, optional): Only relevant if `check_min_area` is `True`. Defines the minimum area in
+            - min_area (int, optional): Only relevant if `check_min_area` is `True`. Defines the minimum area in
                 pixels that a bounding box must have in order to be valid. Boxes with an area smaller than this
                 will be removed.
-            labels_format (dict, optional): A dictionary that defines which index in the last axis of the labels
+            - labels_format (dict, optional): A dictionary that defines which index in the last axis of the labels
                 of an image contains which bounding box coordinate. The dictionary maps at least the keywords
                 'xmin', 'ymin', 'xmax', and 'ymax' to their respective indices within last axis of the labels array.
-            border_pixels (str, optional): How to treat the border pixels of the bounding boxes.
+            - border_pixels (str, optional): How to treat the border pixels of the bounding boxes.
                 Can be 'include', 'exclude', or 'half'. If 'include', the border pixels belong
                 to the boxes. If 'exclude', the border pixels do not belong to the boxes.
                 If 'half', then one of each of the two horizontal and vertical borders belong
@@ -363,8 +359,7 @@ class BoxFilter:
 
 class ImageValidator:
     '''
-    Returns `True` if a given minimum number of bounding boxes meets given overlap
-    requirements with an image of a given height and width.
+    
     '''
 
     def __init__(self,
@@ -375,25 +370,28 @@ class ImageValidator:
                                 'ymin': 2, 'xmax': 3, 'ymax': 4},
                  border_pixels='half'):
         '''
-        Arguments:
-            overlap_criterion (str, optional): Can be either of 'center_point', 'iou', or 'area'. Determines
+        Returns `True` if a given minimum number of bounding boxes meets given overlap
+        requirements with an image of a given height and width.
+
+        # Arguments:
+            - overlap_criterion (str, optional): Can be either of 'center_point', 'iou', or 'area'. Determines
                 which boxes are considered valid with respect to a given image. If set to 'center_point',
                 a given bounding box is considered valid if its center point lies within the image.
                 If set to 'area', a given bounding box is considered valid if the quotient of its intersection
                 area with the image and its own area is within `lower` and `upper`. If set to 'iou', a given
                 bounding box is considered valid if its IoU with the image is within `lower` and `upper`.
-            bounds (list or BoundGenerator, optional): Only relevant if `overlap_criterion` is 'area' or 'iou'.
+            - bounds (list or BoundGenerator, optional): Only relevant if `overlap_criterion` is 'area' or 'iou'.
                 Determines the lower and upper bounds for `overlap_criterion`. Can be either a 2-tuple of scalars
                 representing a lower bound and an upper bound, or a `BoundGenerator` object, which provides
                 the possibility to generate bounds randomly.
-            n_boxes_min (int or str, optional): Either a non-negative integer or the string 'all'.
+            - n_boxes_min (int or str, optional): Either a non-negative integer or the string 'all'.
                 Determines the minimum number of boxes that must meet the `overlap_criterion` with respect to
                 an image of the given height and width in order for the image to be a valid image.
                 If set to 'all', an image is considered valid if all given boxes meet the `overlap_criterion`.
-            labels_format (dict, optional): A dictionary that defines which index in the last axis of the labels
+            - labels_format (dict, optional): A dictionary that defines which index in the last axis of the labels
                 of an image contains which bounding box coordinate. The dictionary maps at least the keywords
                 'xmin', 'ymin', 'xmax', and 'ymax' to their respective indices within last axis of the labels array.
-            border_pixels (str, optional): How to treat the border pixels of the bounding boxes.
+            - border_pixels (str, optional): How to treat the border pixels of the bounding boxes.
                 Can be 'include', 'exclude', or 'half'. If 'include', the border pixels belong
                 to the boxes. If 'exclude', the border pixels do not belong to the boxes.
                 If 'half', then one of each of the two horizontal and vertical borders belong
@@ -455,16 +453,6 @@ class ImageValidator:
 
 
 class SSDInputEncoder:
-    '''
-    Transforms ground truth labels for object detection in images
-    (2D bounding box coordinates and class labels) to the format required for
-    training an SSD model.
-
-    In the process of encoding the ground truth labels, a template of anchor boxes
-    is being built, which are subsequently matched to the ground truth boxes
-    via an intersection-over-union threshold criterion.
-    '''
-
     def __init__(self,
                  img_height=300,
                  img_width=300,
@@ -488,17 +476,25 @@ class SSDInputEncoder:
                  normalize_coords=True,
                  background_id=0):
         '''
-        Arguments:
-            img_height (int): The height of the input images.
-            img_width (int): The width of the input images.
-            n_classes (int): The number of positive classes, e.g. 20 for Pascal VOC, 80 for MS COCO.
-            predictor_sizes (list): A list of int-tuples of the format `(height, width)`
+        Transforms ground truth labels for object detection in images
+        (2D bounding box coordinates and class labels) to the format required for
+        training an SSD model.
+
+        In the process of encoding the ground truth labels, a template of anchor boxes
+        is being built, which are subsequently matched to the ground truth boxes
+        via an intersection-over-union threshold criterion.
+
+        # Arguments:
+            - img_height (int): The height of the input images.
+            - img_width (int): The width of the input images.
+            - n_classes (int): The number of positive classes, e.g. 20 for Pascal VOC, 80 for MS COCO.
+            - predictor_sizes (list): A list of int-tuples of the format `(height, width)`
                 containing the output heights and widths of the convolutional predictor layers.
-            min_scale (float, optional): The smallest scaling factor for the size of the anchor boxes as a fraction
+            - min_scale (float, optional): The smallest scaling factor for the size of the anchor boxes as a fraction
                 of the shorter side of the input images. Note that you should set the scaling factors
                 such that the resulting anchor box sizes correspond to the sizes of the objects you are trying
                 to detect. Must be >0.
-            max_scale (float, optional): The largest scaling factor for the size of the anchor boxes as a fraction
+            - max_scale (float, optional): The largest scaling factor for the size of the anchor boxes as a fraction
                 of the shorter side of the input images. All scaling factors between the smallest and the
                 largest will be linearly interpolated. Note that the second to last of the linearly interpolated
                 scaling factors will actually be the scaling factor for the last predictor layer, while the last
@@ -506,7 +502,7 @@ class SSDInputEncoder:
                 if `two_boxes_for_ar1` is `True`. Note that you should set the scaling factors
                 such that the resulting anchor box sizes correspond to the sizes of the objects you are trying
                 to detect. Must be greater than or equal to `min_scale`.
-            scales (list, optional): A list of floats >0 containing scaling factors per convolutional predictor layer.
+            - scales (list, optional): A list of floats >0 containing scaling factors per convolutional predictor layer.
                 This list must be one element longer than the number of predictor layers. The first `k` elements are the
                 scaling factors for the `k` predictor layers, while the last element is used for the second box
                 for aspect ratio 1 in the last predictor layer if `two_boxes_for_ar1` is `True`. This additional
@@ -514,54 +510,54 @@ class SSDInputEncoder:
                 this argument overrides `min_scale` and `max_scale`. All scaling factors must be greater than zero.
                 Note that you should set the scaling factors such that the resulting anchor box sizes correspond to
                 the sizes of the objects you are trying to detect.
-            aspect_ratios_global (list, optional): The list of aspect ratios for which anchor boxes are to be
+            - aspect_ratios_global (list, optional): The list of aspect ratios for which anchor boxes are to be
                 generated. This list is valid for all prediction layers. Note that you should set the aspect ratios such
                 that the resulting anchor box shapes roughly correspond to the shapes of the objects you are trying to detect.
-            aspect_ratios_per_layer (list, optional): A list containing one aspect ratio list for each prediction layer.
+            - aspect_ratios_per_layer (list, optional): A list containing one aspect ratio list for each prediction layer.
                 If a list is passed, it overrides `aspect_ratios_global`. Note that you should set the aspect ratios such
                 that the resulting anchor box shapes very roughly correspond to the shapes of the objects you are trying to detect.
-            two_boxes_for_ar1 (bool, optional): Only relevant for aspect ratios lists that contain 1. Will be ignored otherwise.
+            - two_boxes_for_ar1 (bool, optional): Only relevant for aspect ratios lists that contain 1. Will be ignored otherwise.
                 If `True`, two anchor boxes will be generated for aspect ratio 1. The first will be generated
                 using the scaling factor for the respective layer, the second one will be generated using
                 geometric mean of said scaling factor and next bigger scaling factor.
-            steps (list, optional): `None` or a list with as many elements as there are predictor layers. The elements can be
+            - steps (list, optional): `None` or a list with as many elements as there are predictor layers. The elements can be
                 either ints/floats or tuples of two ints/floats. These numbers represent for each predictor layer how many
                 pixels apart the anchor box center points should be vertically and horizontally along the spatial grid over
                 the image. If the list contains ints/floats, then that value will be used for both spatial dimensions.
                 If the list contains tuples of two ints/floats, then they represent `(step_height, step_width)`.
                 If no steps are provided, then they will be computed such that the anchor box center points will form an
                 equidistant grid within the image dimensions.
-            offsets (list, optional): `None` or a list with as many elements as there are predictor layers. The elements can be
+            - offsets (list, optional): `None` or a list with as many elements as there are predictor layers. The elements can be
                 either floats or tuples of two floats. These numbers represent for each predictor layer how many
                 pixels from the top and left boarders of the image the top-most and left-most anchor box center points should be
                 as a fraction of `steps`. The last bit is important: The offsets are not absolute pixel values, but fractions
                 of the step size specified in the `steps` argument. If the list contains floats, then that value will
                 be used for both spatial dimensions. If the list contains tuples of two floats, then they represent
                 `(vertical_offset, horizontal_offset)`. If no offsets are provided, then they will default to 0.5 of the step size.
-            clip_boxes (bool, optional): If `True`, limits the anchor box coordinates to stay within image boundaries.
-            variances (list, optional): A list of 4 floats >0. The anchor box offset for each coordinate will be divided by
+            - clip_boxes (bool, optional): If `True`, limits the anchor box coordinates to stay within image boundaries.
+            - variances (list, optional): A list of 4 floats >0. The anchor box offset for each coordinate will be divided by
                 its respective variance value.
-            matching_type (str, optional): Can be either 'multi' or 'bipartite'. In 'bipartite' mode, each ground truth box will
+            - matching_type (str, optional): Can be either 'multi' or 'bipartite'. In 'bipartite' mode, each ground truth box will
                 be matched only to the one anchor box with the highest IoU overlap. In 'multi' mode, in addition to the aforementioned
                 bipartite matching, all anchor boxes with an IoU overlap greater than or equal to the `pos_iou_threshold` will be
                 matched to a given ground truth box.
-            pos_iou_threshold (float, optional): The intersection-over-union similarity threshold that must be
+            - pos_iou_threshold (float, optional): The intersection-over-union similarity threshold that must be
                 met in order to match a given ground truth box to a given anchor box.
-            neg_iou_limit (float, optional): The maximum allowed intersection-over-union similarity of an
+            - neg_iou_limit (float, optional): The maximum allowed intersection-over-union similarity of an
                 anchor box with any ground truth box to be labeled a negative (i.e. background) box. If an
                 anchor box is neither a positive, nor a negative box, it will be ignored during training.
-            border_pixels (str, optional): How to treat the border pixels of the bounding boxes.
+            - border_pixels (str, optional): How to treat the border pixels of the bounding boxes.
                 Can be 'include', 'exclude', or 'half'. If 'include', the border pixels belong
                 to the boxes. If 'exclude', the border pixels do not belong to the boxes.
                 If 'half', then one of each of the two horizontal and vertical borders belong
                 to the boxex, but not the other.
-            coords (str, optional): The box coordinate format to be used internally by the model (i.e. this is not the input format
+            - coords (str, optional): The box coordinate format to be used internally by the model (i.e. this is not the input format
                 of the ground truth labels). Can be either 'centroids' for the format `(cx, cy, w, h)` (box center coordinates, width,
                 and height), 'minmax' for the format `(xmin, xmax, ymin, ymax)`, or 'corners' for the format `(xmin, ymin, xmax, ymax)`.
-            normalize_coords (bool, optional): If `True`, the encoder uses relative instead of absolute coordinates.
+            - normalize_coords (bool, optional): If `True`, the encoder uses relative instead of absolute coordinates.
                 This means instead of using absolute tartget coordinates, the encoder will scale all coordinates to be within [0,1].
                 This way learning becomes independent of the input image size.
-            background_id (int, optional): Determines which class ID is for the background class.
+            - background_id (int, optional): Determines which class ID is for the background class.
         '''
         ##################################################################################
         # Handle exceptions.
@@ -894,16 +890,16 @@ class SSDInputEncoder:
         Computes an array of the spatial positions and sizes of the anchor boxes for one predictor layer
         of size `feature_map_size == [feature_map_height, feature_map_width]`.
 
-        Arguments:
-            feature_map_size (tuple): A list or tuple `[feature_map_height, feature_map_width]` with the spatial
+        # Arguments:
+            - feature_map_size (tuple): A list or tuple `[feature_map_height, feature_map_width]` with the spatial
                 dimensions of the feature map for which to generate the anchor boxes.
-            aspect_ratios (list): A list of floats, the aspect ratios for which anchor boxes are to be generated.
+            - aspect_ratios (list): A list of floats, the aspect ratios for which anchor boxes are to be generated.
                 All list elements must be unique.
-            this_scale (float): A float in [0, 1], the scaling factor for the size of the generate anchor boxes
+            - this_scale (float): A float in [0, 1], the scaling factor for the size of the generate anchor boxes
                 as a fraction of the shorter side of the input image.
-            next_scale (float): A float in [0, 1], the next larger scaling factor. Only relevant if
+            - next_scale (float): A float in [0, 1], the next larger scaling factor. Only relevant if
                 `self.two_boxes_for_ar1 == True`.
-            diagnostics (bool, optional): If true, the following additional outputs will be returned:
+            - diagnostics (bool, optional): If true, the following additional outputs will be returned:
                 1) A list of the center point `x` and `y` coordinates for each spatial location.
                 2) A list containing `(width, height)` for each box aspect ratio.
                 3) A tuple containing `(step_height, step_width)`
@@ -914,7 +910,7 @@ class SSDInputEncoder:
                 appropriately and whether the box sizes are appropriate to fit the sizes of the objects
                 to be detected.
 
-        Returns:
+        # Returns:
             A 4D Numpy tensor of shape `(feature_map_height, feature_map_width, n_boxes_per_cell, 4)` where the
             last dimension contains `(xmin, xmax, ymin, ymax)` for each anchor box in each cell of the feature map.
         '''
@@ -1034,12 +1030,12 @@ class SSDInputEncoder:
         positions and scales of the boxes predicted by the model. The sequence of operations here ensures that `y_encoded`
         has this specific form.
 
-        Arguments:
-            batch_size (int): The batch size.
-            diagnostics (bool, optional): See the documnentation for `generate_anchor_boxes()`. The diagnostic output
+        # Arguments:
+            - batch_size (int): The batch size.
+            - diagnostics (bool, optional): See the documnentation for `generate_anchor_boxes()`. The diagnostic output
                 here is similar, just for all predictor conv layers.
 
-        Returns:
+        # Returns:
             A Numpy array of shape `(batch_size, #boxes, #classes + 12)`, the template into which to encode
             the ground truth labels for training. The last axis has length `#classes + 12` because the model
             output contains not only the 4 predicted box coordinate offsets, but also the 4 coordinates for

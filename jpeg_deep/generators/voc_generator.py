@@ -52,8 +52,19 @@ class VOCGenerator(object):
                  labels_output_format: List[str] = (
                      'class_id', 'xmin', 'ymin', 'xmax', 'ymax')):
         '''
-        # Arguments:
-            - images_path: A Python list/tuple or a string representing  a filepath.
+        Generator for the Pascal VOC dataset.
+
+        # Arguments:
+            - images_path: List of tuple of image_dir/set_files. Set files are the one given in the Pascal VOC data.
+            - batch_size: The size of the batch to be return by the generator.
+            - shuffle: If the images should be shuffle on epoch end.
+            - label_encoder: Object to encode the label in the SSD format.
+            - transforms: The transformations to apply to the images.
+            - dct: If the generator should return the DCT encoded images.
+            - mode: The mode of the generator, `train` or `test`, in test mode, the generator will ignore the labels.
+            - split_cbcr: If the Cb and Cr inputs should be split in two arrays.
+            - only_y: If only the Y component should be returned.
+            - labels_output_format: The format of the output (leave as is).
         '''
         self.labels_output_format = labels_output_format
         self.labels_format = {'class_id': 0,
