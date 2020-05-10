@@ -45,6 +45,7 @@ class DecodeDetections(Layer):
                  **kwargs):
         '''
         All default argument values follow the Caffe implementation.
+        
         # Arguments:
             - confidence_thresh: A float in [0,1), the minimum classification confidence in a specific positive class in order to be considered for the non-maximum suppression stage for the respective class.
             - iou_threshold: A float in [0,1]. All boxes with a Jaccard similarity of greater than `iou_threshold` with a locally maximal box will be removed from the set of predictions for a given class, where 'maximal' refers to the box score.

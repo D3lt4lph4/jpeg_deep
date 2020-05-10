@@ -5,26 +5,29 @@ from keras.engine.topology import Layer
 
 
 class L2Normalization(Layer):
-    '''
-    Performs L2 normalization on the input tensor with a learnable scaling parameter
-    as described in the paper "Parsenet: Looking Wider to See Better" (see references)
-    and as used in the original SSD model.
-    Arguments:
-        gamma_init: The initial scaling parameter. Defaults to 20 following the SSD paper.
     
-    Input shape:
-        4D tensor of shape `(batch, channels, height, width)` if `dim_ordering = 'th'`
-        or `(batch, height, width, channels)` if `dim_ordering = 'tf'`.
-    
-    Returns:
-        The scaled tensor. Same shape as the input tensor.
-    
-    References:
-        http://cs.unc.edu/~wliu/papers/parsenet.pdf
-        https://github.com/pierluigiferrari/ssd_keras/blob/master/keras_layers/keras_layer_L2Normalization.py
-    '''
 
     def __init__(self, gamma_init: int = 20, **kwargs):
+        '''
+        Performs L2 normalization on the input tensor with a learnable scaling parameter
+        as described in the paper "Parsenet: Looking Wider to See Better" (see references)
+        and as used in the original SSD model.
+        
+        # Arguments:
+            - gamma_init: The initial scaling parameter. Defaults to 20 following the SSD paper.
+        
+        # Input Shape:
+            4D tensor of shape `(batch, channels, height, width)` if `dim_ordering = 'th'`
+            or `(batch, height, width, channels)` if `dim_ordering = 'tf'`.
+        
+        # Returns:
+            The scaled tensor. Same shape as the input tensor.
+        
+        # References:
+            [http://cs.unc.edu/~wliu/papers/parsenet.pdf](http://cs.unc.edu/~wliu/papers/parsenet.pdf)
+
+            [https://github.com/pierluigiferrari/ssd_keras/blob/master/keras_layers/keras_layer_L2Normalization.py](https://github.com/pierluigiferrari/ssd_keras/blob/master/keras_layers/keras_layer_L2Normalization.py)
+        '''
         self.axis = 3
         self.gamma_init = gamma_init
         super(L2Normalization, self).__init__(**kwargs)
