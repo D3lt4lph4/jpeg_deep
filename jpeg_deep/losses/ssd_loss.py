@@ -23,10 +23,7 @@ import tensorflow as tf
 
 class SSDLoss:
     '''
-    The SSD loss, see https://arxiv.org/abs/1512.02325.
-
-    Reference:
-        https://github.com/pierluigiferrari/ssd_keras/blob/master/keras_loss_function/keras_ssd_loss.py
+    
     '''
 
     def __init__(self,
@@ -34,9 +31,14 @@ class SSDLoss:
                  n_neg_min: int = 0,
                  alpha: float = 1.0):
         '''
+        The SSD loss, see https://arxiv.org/abs/1512.02325.
+
+        Reference:
+            https://github.com/pierluigiferrari/ssd_keras/blob/master/keras_loss_function/keras_ssd_loss.py
+
         # Arguments:
-            - neg_pos_ratio (int, optional): The maximum ratio of negative (i.e. background) to positive ground truth boxes to include in the loss computation.
-            - n_neg_min (int, optional): The minimum number of negative ground truth boxes to take into consideration.
+            - neg_pos_ratio: The maximum ratio of negative (i.e. background) to positive ground truth boxes to include in the loss computation.
+            - n_neg_min: The minimum number of negative ground truth boxes to take into consideration.
             alpha: A factor to weight the localization loss in the
                 computation of the total loss. Defaults to 1.0 following the paper.
         '''
@@ -47,16 +49,16 @@ class SSDLoss:
     def smooth_L1_loss(self, y_true, y_pred):
         '''
         Compute smooth L1 loss, see references.
-
-        # Arguments:
+        
+        # Arguments:
             - y_true: A TensorFlow tensor of any shape containing the ground truth data.
                 In this context, the expected tensor has shape `(batch_size, #boxes, 4)` and
                 contains the ground truth bounding box coordinates, where the last dimension
                 contains `(xmin, xmax, ymin, ymax)`.
-            - y_pred (nD tensor): A TensorFlow tensor of identical structure to `y_true` containing
+            - y_pred: A TensorFlow tensor of identical structure to `y_true` containing
                 the predicted data, in this context the predicted bounding box coordinates.
-
-        # Returns:
+        
+        # Returns:
             The smooth L1 loss, a nD-1 Tensorflow tensor. In this context a 2D tensor
             of shape (batch, n_boxes_total).
 
@@ -72,12 +74,12 @@ class SSDLoss:
     def log_loss(self, y_true, y_pred):
         '''
         Compute the softmax log loss.
-
-        # Arguments:
-            - y_true (nD tensor): A TensorFlow tensor of any shape containing the ground truth data.
+        
+        # Arguments
+            - y_true: A TensorFlow tensor of any shape containing the ground truth data.
                 In this context, the expected tensor has shape (batch_size, #boxes, #classes)
                 and contains the ground truth bounding box categories.
-            - y_pred (nD tensor): A TensorFlow tensor of identical structure to `y_true` containing
+            - y_pred: A TensorFlow tensor of identical structure to `y_true` containing
                 the predicted data, in this context the predicted bounding box categories.
 
         # Returns:
@@ -93,9 +95,9 @@ class SSDLoss:
     def compute_loss(self, y_true, y_pred):
         '''
         Compute the loss of the SSD model prediction against the ground truth.
-
-        # Arguments:
-            - y_true (array): A Numpy array of shape `(batch_size, #boxes, #classes + 12)`,
+        
+        # Arguments
+            - y_true: A Numpy array of shape `(batch_size, #boxes, #classes + 12)`,
                 where `#boxes` is the total number of boxes that the model predicts
                 per image. Be careful to make sure that the index of each given
                 box in `y_true` is the same as the index for the corresponding
@@ -108,7 +110,7 @@ class SSDLoss:
                 coordinates, which are needed during inference. Important: Boxes that
                 you want the cost function to ignore need to have a one-hot
                 class vector of all zeros.
-            - y_pred (keras tensor): The model prediction. The shape is identical
+            - y_pred: The model prediction. The shape is identical
                 to that of `y_true`, i.e. `(batch_size, #boxes, #classes + 12)`.
                 The last axis must contain entries in the format
                 `[classes one-hot encoded, 4 predicted box coordinate offsets, 8 arbitrary entries]`.
