@@ -17,6 +17,16 @@ from .resnet_blocks import identity_block, conv_block
 
 
 def late_concat_rfa(input_shape: Tuple[int]=(28, 28), classes: int = 1000):
+    """
+    Random field aware DCT version of the ResNet50 network.
+
+    # Arguments:
+        - input_shape: The dimension of the inputs (x, y).
+        - classes: The number of classes the network should predict.
+
+    # Returns:
+        A Keras model instance.
+    """
     if input_shape is None:
         input_shape_y = (None, None, 64)
         input_shape_cbcr = (None, None, 128)
@@ -72,6 +82,16 @@ def late_concat_rfa(input_shape: Tuple[int]=(28, 28), classes: int = 1000):
 
 
 def late_concat_rfa_thinner(input_shape: Tuple[int]=(28, 28), classes:int=1000):
+    """
+    Random field aware DCT version of the ResNet50 network (thinner version).
+
+    # Arguments:
+        - input_shape: The dimension of the inputs (x, y).
+        - classes: The number of classes the network should predict.
+
+    # Returns:
+        A Keras model instance.
+    """
     if input_shape is None:
         input_shape_y = (None, None, 64)
         input_shape_cbcr = (None, None, 128)
@@ -128,6 +148,16 @@ def late_concat_rfa_thinner(input_shape: Tuple[int]=(28, 28), classes:int=1000):
 
 
 def deconvolution_rfa(input_shape: Tuple[int]=(28, 28), classes: int = 1000):
+    """
+    Deconvolution DCT version of the ResNet network.
+
+    # Arguments:
+        - input_shape: The dimension of the inputs (x, y).
+        - classes: The number of classes the network should predict.
+
+    # Returns:
+        A Keras model instance.
+    """
     if input_shape is None:
         input_shape_y = (None, None, 64)
         input_shape_cb = (None, None, 64)
@@ -181,6 +211,16 @@ def deconvolution_rfa(input_shape: Tuple[int]=(28, 28), classes: int = 1000):
 
 
 def late_concat_rfa_y(input_shape: Tuple[int]=(28, 28), classes: int = 1000):
+    """
+    Random field aware DCT Y version of the ResNet50 network.
+
+    # Arguments:
+        - input_shape: The dimension of the inputs (x, y).
+        - classes: The number of classes the network should predict.
+
+    # Returns:
+        A Keras model instance.
+    """
     if input_shape is None:
         input_shape_y = (None, None, 64)
     else:
@@ -225,6 +265,16 @@ def late_concat_rfa_y(input_shape: Tuple[int]=(28, 28), classes: int = 1000):
 
 
 def late_concat_rfa_y_thinner(input_shape: Tuple[int]=(28, 28), classes:int=1000):
+    """
+    Random field aware DCT Y version of the ResNet50 network (thinner version).
+
+    # Arguments:
+        - input_shape: The dimension of the inputs (x, y).
+        - classes: The number of classes the network should predict.
+
+    # Returns:
+        A Keras model instance.
+    """
     if input_shape is None:
         input_shape_y = (None, None, 64)
     else:

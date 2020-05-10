@@ -33,14 +33,15 @@ def SSD300_resnet(n_classes: int = 20,
         - n_classes: The number of positive classes, e.g. 20 for Pascal VOC.
         - mode: One of 'training' or 'inference'.
         - kernel_initializer: The kernel to use to initialize all the layers.
-        - l2_regularization: The L2-regularization rate. Applies to all convolutional layers. Set to zero to deactivate L2-regularization.
+        - backbone: The backbone to use for the ssd. Currently, one of {"VGG16", "VGGDCT", "VGGDCT_deconv", "VGGDCT_y"}.
         - confidence_thresh: A float in [0,1), the minimum classification confidence in a specific positive class in order to be considered for the non-maximum suppression stage for the respective class.
         - iou_threshold: A float in [0,1]. The IoU value above which the overlapping boxes will be removed.
+        - l2_regularization: The L2-regularization rate. Applies to all convolutional layers. Set to zero to deactivate L2-regularization.
         - top_k: The number of highest scoring predictions to be kept for each batch item after the non-maximum suppression stage.
         - nms_max_output_size: The maximal number of predictions that will be left over after the NMS stage.
         - dct: A boolean to set the network for DCT inference (or RGB is False).
+        - scales: The scales for each of the prediction layers.
         - image_shape: If known, the size of the inputs, in the format (height, width).
-
 
     # Returns:
         - model: A keras model, representation of the SSD.

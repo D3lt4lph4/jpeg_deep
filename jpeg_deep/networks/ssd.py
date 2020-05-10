@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, List
 
 import numpy as np
 
@@ -21,8 +21,7 @@ def SSD300(n_classes: int = 20,
            top_k: int = 200,
            nms_max_output_size: int = 400,
            dct: bool = False,
-           scales:int=None,
-           rescale_position: int = 0,
+           scales:List=None,
            image_shape: Tuple[int, int] = (300, 300)):
     '''
     Builds a ssd network, the network built can either be an RGB or DCT network. For more details on the architecture, see [the article](https://arxiv.org/abs/1512.02325v5).
@@ -31,14 +30,15 @@ def SSD300(n_classes: int = 20,
         - n_classes: The number of positive classes, e.g. 20 for Pascal VOC.
         - mode: One of 'training' or 'inference'.
         - kernel_initializer: The kernel to use to initialize all the layers.
-        - l2_regularization: The L2-regularization rate. Applies to all convolutional layers. Set to zero to deactivate L2-regularization.
+        - backbone: The backbone to use for the ssd. Currently, one of {"VGG16", "VGGDCT", "VGGDCT_deconv", "VGGDCT_y"}.
         - confidence_thresh: A float in [0,1), the minimum classification confidence in a specific positive class in order to be considered for the non-maximum suppression stage for the respective class.
         - iou_threshold: A float in [0,1]. The IoU value above which the overlapping boxes will be removed.
+        - l2_regularization: The L2-regularization rate. Applies to all convolutional layers. Set to zero to deactivate L2-regularization.
         - top_k: The number of highest scoring predictions to be kept for each batch item after the non-maximum suppression stage.
         - nms_max_output_size: The maximal number of predictions that will be left over after the NMS stage.
         - dct: A boolean to set the network for DCT inference (or RGB is False).
+        - scales: The scales for each of the prediction layers.
         - image_shape: If known, the size of the inputs, in the format (height, width).
-
 
     # Returns:
         - model: A keras model, representation of the SSD.
@@ -85,7 +85,7 @@ def SSD300(n_classes: int = 20,
             image_shape, kernel_initializer=kernel_initializer)
     elif backbone == "VGGDCT":
         input_layer, block4_pool, block4_conv3 = feature_map_dct(
-            image_shape, kernel_initializer=kernel_initializer, rescale_position=rescale_position)
+            image_shape, kernel_initializer=kernel_initializer)
     elif backbone == "VGGDCT_deconv":
         input_layer, block4_pool, block4_conv3 = feature_map_dct_deconv(
             (38, 38), kernel_initializer=kernel_initializer)
@@ -105,8 +105,6 @@ def SSD300(n_classes: int = 20,
                           kernel_initializer=kernel_initializer, name='block5_conv2')(block5_conv1)
     block5_conv3 = Conv2D(512, (3, 3), activation='relu', padding='same',
                           kernel_initializer=kernel_initializer, kernel_regularizer=l2(l2_regularizer), name='block5_conv3')(block5_conv2)
-    if rescale_position == 5:
-        block5_conv3 = ResizeFeatures((19, 19))(block5_conv3)
     block5_pool = MaxPooling2D(pool_size=(3, 3), strides=(
         1, 1), padding='same', name='block5_pool')(block5_conv3)
 
