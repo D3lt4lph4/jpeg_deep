@@ -26,6 +26,8 @@ class Evaluator(object):
     def __init__(self, generator:object=None):
         """ General purpose evaluator. To be used when the calculation is run directly by keras.
 
+        # Arguments:
+            - generator: The generator to be used for the evaluation. May be None and specified later.
         """
         self.score = None
         self._generator = generator
