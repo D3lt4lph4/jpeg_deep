@@ -110,3 +110,4 @@ testing.sh
 
 docs/sources/**
 *.pdf
+*.ipynb
