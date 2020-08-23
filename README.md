@@ -1,6 +1,6 @@
 # Neural Networks using compressed JPEG images.
 
-This repository provides code to train and used neural network on compressed JPEG images. **No pre-trained weights are/will be made available.**
+This repository provides code to train and used neural network on compressed JPEG images. **No pre-trained weights are/will be made available.** The article for this repository is available [here](https://arxiv.org/abs/2006.05732).
 
 This implementation relies on the module [jpeg2dct](https://github.com/uber-research/jpeg2dct) from uber research team. The SSD used in this repository was taken from [this repository](https://github.com/pierluigiferrari/ssd_keras) and then modified.
 
@@ -49,7 +49,7 @@ pip install matplotlib
 
 ## Training
 
-The training uses a system of configuration files and experiments. This system aims to help saving the parameters of a given run. On start of the training, an experiment folder will be created with copies of the configuration files, weights and logs. Example config files are available in the config folder. The config files defines all the training and testing parameters.
+The training uses a system of configuration files and experiments. This system aims to help saving the parameters of a given run. On start of the training, an experiment folder will be created with copies of the configuration files, weights and logs. Examples config files available are the configuration used for the different training of the [paper](https://arxiv.org/abs/2006.05732).
 
 ### System variables
 
@@ -67,7 +67,7 @@ export EXPERIMENTS_OUTPUT_DIRECTORY=<path_to_output_directory>
 
 ### Starting the training
 
-Once you have defined all the variables and modified the config files to your needs, simply run the following command (you will need to update some of the parameters to when not using horovod):
+Once you have defined all the variables and modified the config files to your needs, simply run the following command (be aware that using horovod requires the modification of some of the parameters):
 
 ```bash
 python scripts/training.py -c <config_dir_path> --no-horovod
@@ -75,18 +75,20 @@ python scripts/training.py -c <config_dir_path> --no-horovod
 
 The config file in the <config_dir_path> needs to be named "config.py" for the script to run correctly.
 
-For more details on classification training on ImageNet dataset, refer to this [section](#Classification-ImageNet), for more details for training on Pascal VOC dataset, refer to this [section](#Detection-(PascalVOC)) and for more details for training MS-COCO dataset, refer to this [section](#Detection-(MS-COCO))
+For more details on classification training on ImageNet dataset, refer to this [section](#Classification-ImageNet), for more details for training on Pascal VOC dataset, refer to this [section](#Detection-(Pascal-VOC)) and for more details for training MS-COCO dataset, refer to this [section](#Detection-(MS-COCO))
 
 ### Training using horovod
 
-The training script support the usage of horovod. I highly recommend to train on multiple GPUs for the classification given the size of the dataset. An exemple file for training with horovod using slurm is provided [jpeg_deep.sl](slurm/jpeg_deep.sl).
+The training script support the usage of horovod. Be aware that using horovod requires the modification of some of the parameters, I recommend reading these articles for more details on multi gpu training: [1](https://arxiv.org/abs/1404.5997), [2](https://www.research.ed.ac.uk/portal/files/75846467/width_of_minima_reached_by_stochastic_gradient_descent_is_influenced_by_learning_rate_to_batch_size_ratio.pdf) and [3](https://arxiv.org/abs/1706.02677).
+
+I highly recommend to train on multiple GPUs for the classification on ImageNet given the size of the dataset. An exemple file for training with horovod using slurm is provided [jpeg_deep.sl](slurm/jpeg_deep.sl).
 
 ```bash
 cd slurm
 sbatch jpeg_deep.sl
 ```
 
-If you do not run on a multi-cluster computation facility that uses slurm, please refer to the original [horovod git](https://github.com/horovod/horovod)
+This script is given as example and will probably not work for your settings, you can refer to the original [horovod git](https://github.com/horovod/horovod) for more details on how to get it to work.
 
 ## Predict
 
@@ -98,7 +100,17 @@ Displaying the results can be done using the [prediction.py](scripts/prediction.
 
 The prediction will be done on the test set. You need to modify the config_temp.py file in the experiment generated folder in order to use a different dataset.
 
-**For the vgg16 based classifiers:** The prediction script uses the test generator specified in the config file to get the data. Hence, with the provided examples, you may need first to convert the weights to a fully convolutional version of the network. This can be done using the [classification2ssd.py](scripts/classification2ssd.py) script.
+**For the vgg16 based classifiers:** The prediction script uses the test generator specified in the config file to get the data. Hence, with the provided examples, you may need first to convert the weights to a fully convolutional version of the network. This can be done using the [classification2ssd.py](scripts/classification2ssd.py) script:
+
+```bash
+# Create the .h5 for vgg16
+python scripts/classification2ssd.py vgg16 <weights_path>
+
+# Create the .h5 for vgg_dct
+python scripts/classification2ssd.py vgg16 <weights_path> -dct
+```
+
+As the ResNet is fully convolutional, the script above needs not to be run on the ResNet weights.
 
 Once this is done, simply run the following command:
 
@@ -110,10 +122,24 @@ python scripts/prediction.py <experiment_path> <weights_path>
 
 We also provide with a way to test the speed of the trained networks. This is done using the [prediction_time.py](scripts/prediction_time.py) script.
 
-In order to test the speed of the networks, a batch of data is preloaded into memory then prediction is run over this batch for P times, and the overall is done N times. Results is then the averaged time. You may or may not load weights.
+In order to test the speed of the networks, a batch of data is preloaded into memory then prediction is run over this batch for P times, and the overall is done N times. Results is then averaged. You may or may not load weights.
 
 ```bash
 python scripts/prediction_time.py <experiment_path> -nr 10 -w <weights_path>
+```
+
+### Evaluation
+
+The trained networks can be evaluated using the following script:
+
+```bash
+python scripts/evaluate.py <experiment_path> <weights_path>
+```
+
+This script can also generate file for submission on the evaluation servers for the PascalVOC and MSCOCO:
+
+```bash
+python scripts/evaluate.py <experiment_path> <weights_path> -s -o <output_path>
 ```
 
 ## Classification (ImageNet)
@@ -149,9 +175,9 @@ The table below shows the results obtained (accuracy) compared with the state of
 
 ### Training on ImageNet
 
-The dataset can be downloaded [here](https://arxiv.org/abs/1904.08408). Choose the version that suits your needs, I used the 2012 (Object Detection) data.
+The dataset can be downloaded [here](https://academictorrents.com/browse.php?search=imagenet). Choose the version that suits your needs, I used the 2012 (Object Detection) data.
 
-Once the data is downloaded, to use the provided generators, it should be stored following this tree (as long as you have separeted train and validation folders you should be okay)
+Once the data is downloaded, to use the provided generators, it should be stored following this tree (as long as you have separated train and validation folders you should be okay)
 
 ```text
 imagenet
@@ -167,7 +193,7 @@ imagenet
    |_ ...
 ```
 
-Then you'll just need to set the configuration files to fit your needs and follow the procedure described in the [training](##Training) section. Keep in mind that the provided configuration files were used in a distributed training, hence the hyper parameters fit this particular settings. If you don't train that way, you'll need to change them.
+Then you'll just need to set the configuration files to fit your needs and follow the procedure described in the [training](##Training) section. **Keep in mind that the provided configuration files were used in a distributed training, hence the hyper parameters fit this particular settings. If you don't train that way, you'll need to change them.**
 
 Also the system variable should be set to the ImageNet folder (if you use the provided config files)
 
@@ -227,7 +253,7 @@ VOCdevkit
    |_ ...
 ```
 
-Then you'll just need to set the configuration files to fit your needs and follow the procedure described in the [training](##Training) section. The hyper-parameters provided for the training were not used in a parallel setting.
+Then you'll just need to set the configuration files to fit your needs and follow the procedure described in the [training](##Training) section. **The hyper-parameters provided for the training were not used in a parallel setting.**
 
 Also the system variable should be set to the Pascal VOC folder (if you use the provided config files)
 
@@ -281,4 +307,4 @@ For classification, the impact is limited as long as the images are about the sa
  
 ### Training Pipeline
 
-The second limitation is for training. Data-augmentation has to be carried in the RGB domain, thus the data-augmentation pipeline is the following one: JPEG => RGB => data-augmentation => JPEG => Compressed Input. This slows down the training.
+The second limitation is for training. Data-augmentation has to be carried in the RGB domain, thus the data-augmentation pipeline is the following one: JPEG => RGB => data-augmentation => JPEG => Compressed Input. This slows the training down.
