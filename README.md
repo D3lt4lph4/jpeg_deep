@@ -45,6 +45,7 @@ pip install bs4
 pip install cython
 pip install pycocotools
 pip install matplotlib
+pip install lxml
 ```
 
 ## Training
@@ -259,14 +260,69 @@ Also the system variable should be set to the Pascal VOC folder (if you use the 
 
 ```bash
 # Setting the main dirs for the training datasets
-export DATASET_PATH_TRAIN=<path_to_train_directory>/VOCdevkit
-export DATASET_PATH_VAL=<path_to_validation_directory>/VOCdevkit
-export DATASET_PATH_TEST=<path_to_test_directory>/VOCdevkit
+export DATASET_PATH=<path_to_directory>/VOCdevkit
 ```
 
 ## Detection (MS-COCO)
 
-### Details in the dataset path
+### Results on the MS-COCO dataset
+
+Results for training on the Pascal VOC dataset are presented bellow. Networks were either trained on the 2007 train/val set (07) or 2007+2012 train/val sets (07+12) and evaluated on the 2007 test set.
+
+| Official Networks | mAP 0.5:0.95 |
+|:-|:-:|
+| SSD300 | 23.2 |
+
+| Networks, VGG based (our trainings) | mAP  |
+|:-|:-:|
+| SSD300 | 24.5 |
+| SSD300 DCT | 14.3 |
+| SSD300 DCT Y | 14.4 |
+| SSD300 DCT Deconvolution | 13.5 |
+
+| Network, ResNet50 based (our trainings) | mAP (07) |
+|:-|:-:|
+| SSD300-Resnet50 (retrained) | 26.8 |
+| SSD300 DCT LC-RFA | 25.8 |
+| SSD300 DCT LC-RFA Y | 25.2 |
+| SSD300 DCT LC-RFA-Thinner | 25.4 |
+| SSD300 DCT LC-RFA-Thinner Y | 24.6 |
+| SSD300 DCT Deconvolution-RFA | 25.9 |
+
+### Training on the MS-COCO dataset
+
+The data can be downloaded on the [official](https://cocodataset.org/#home) website.
+
+After downloading you should have directories following this architecture:
+
+```text
+mscoco
+|
+|_ annotations
+|  |_ captions_train2014.json
+|  |_ instances_train2017.json
+|  |_ person_keypoints_val2017.json
+|  |_ ...
+|
+|_ train2017
+|  |_ 000000110514.jpg
+|  |_ ...
+|
+|_ val2017
+|  |_ ...
+|
+|_ test2017
+   |_ ...
+```
+
+Then you'll just need to set the configuration files to fit your needs and follow the procedure described in the [training](##Training) section. **The hyper-parameters provided for the training were not used in a parallel setting.**
+
+Also the system variable should be set to the mscoco folder (if you use the provided config files)
+
+```bash
+# Setting the main dirs for the training datasets
+export DATASET_PATH=<path_to_directory>/VOCdevkit
+```
 
 
 ## Running the documentation for a deeper usage of the provided code
@@ -308,3 +364,10 @@ For classification, the impact is limited as long as the images are about the sa
 ### Training Pipeline
 
 The second limitation is for training. Data-augmentation has to be carried in the RGB domain, thus the data-augmentation pipeline is the following one: JPEG => RGB => data-augmentation => JPEG => Compressed Input. This slows the training down.
+
+## TO DO
+
+- Add displayers to the config files for the PASCAL VOC and MS COCO datasets
+- Add displayer with gt for the PASCAL VOC and MS COCO datasets
+- Use correct path for the PASCAL VOC and MS COCO datasets
+- Set correct descriptions for all the config files
