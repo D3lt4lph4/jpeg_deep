@@ -17,7 +17,7 @@ class TrainingConfiguration(object):
 
     def __init__(self):
         # Variables to hold the description of the experiment
-        self.config_description = "This is the template config file."
+        self.config_description = ""
 
         # System dependent variable
         self._workers = 5
