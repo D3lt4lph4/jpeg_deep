@@ -199,7 +199,7 @@ class PascalEvaluator(object):
 
         # compute the mAP
         mean_average_precision = self.compute_mean_average_precision(
-            average_precisions, ret=True)
+            average_precisions)
 
         print(average_precisions)
         print(mean_average_precision)
