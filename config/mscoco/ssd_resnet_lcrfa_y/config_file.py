@@ -65,7 +65,7 @@ class TrainingConfiguration(object):
         self.input_encoder = SSDInputEncoder(
             n_classes=80, scales=[0.07, 0.15, 0.33, 0.51, 0.69, 0.87, 1.05])
 
-        self.train_tranformations = [SSDDataAugmentation()]
+        self.train_transformations = [SSDDataAugmentation()]
         self.validation_transformations = [
             ConvertTo3Channels(), Resize(height=300, width=300)]
         self.test_transformations = [ConvertTo3Channels(), Resize(
@@ -132,7 +132,7 @@ class TrainingConfiguration(object):
 
     def prepare_training_generators(self):
         self._train_generator = COCOGenerator(self.train_image_dir, self.train_annotation_path, batch_size=self.batch_size, shuffle=True, label_encoder=self.input_encoder, dct=True, only_y=True,
-                                              transforms=self.train_tranformations)
+                                              transforms=self.train_transformations)
         self._validation_generator = COCOGenerator(self.validation_image_dir, self.validation_annotation_path, batch_size=self.batch_size, shuffle=True, label_encoder=self.input_encoder, dct=True, only_y=True,
                                                    transforms=self.validation_transformations)
         self.validation_steps = len(self._validation_generator)

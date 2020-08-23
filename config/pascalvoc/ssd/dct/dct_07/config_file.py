@@ -66,7 +66,7 @@ class TrainingConfiguration(object):
 
         self.input_encoder = SSDInputEncoder()
 
-        self.train_tranformations = [SSDDataAugmentation()]
+        self.train_transformations = [SSDDataAugmentation()]
         self.validation_transformations = [
             ConvertTo3Channels(), Resize(height=300, width=300)]
         self.test_transformations = [ConvertTo3Channels(), Resize(
@@ -133,7 +133,7 @@ class TrainingConfiguration(object):
 
     def prepare_training_generators(self):
         self._train_generator = VOCGenerator(batch_size=self.batch_size, shuffle=True, label_encoder=self.input_encoder, dct=True,
-                                             transforms=self.train_tranformations, images_path=self.train_sets)
+                                             transforms=self.train_transformations, images_path=self.train_sets)
         self._train_generator.prepare_dataset()
 
         self._validation_generator = VOCGenerator(batch_size=self.batch_size, shuffle=True, label_encoder=self.input_encoder, dct=True,
