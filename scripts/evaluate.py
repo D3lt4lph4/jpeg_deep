@@ -1,6 +1,10 @@
 
 import argparse
+
+from os import getcwd
+
 import sys
+sys.path.append(getcwd())
 from os.path import join
 
 parser = argparse.ArgumentParser(

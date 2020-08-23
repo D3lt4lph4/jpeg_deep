@@ -1,8 +1,10 @@
 import argparse
 
+from os import getcwd
 from os.path import join
 
 import sys
+sys.path.append(getcwd())
 
 parser = argparse.ArgumentParser("Compute the average time required to run a batch of predictions")
 parser.add_argument("experiment", help="The experiment directory.")
@@ -14,6 +16,7 @@ parser.add_argument("-w", "--weights", help="The weights to load.", default=None
 args = parser.parse_args()
 
 sys.path.append(join(args.experiment, "config"))
+
 try:
     from temp_config import TrainingConfiguration
     config = TrainingConfiguration()
