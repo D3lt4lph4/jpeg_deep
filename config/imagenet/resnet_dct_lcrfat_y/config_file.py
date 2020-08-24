@@ -29,7 +29,7 @@ class TrainingConfiguration(object):
 
     def __init__(self):
         # Variables to hold the description of the experiment
-        self.description = ""
+        self.description = "Training configuration file for the lcrfat y network."
 
         # System dependent variable
         self._workers = 10
@@ -120,7 +120,8 @@ class TrainingConfiguration(object):
         ]
 
     def prepare_for_inference(self):
-        pass
+        K.clear_session()
+        self._network = late_concat_rfa_y_thinner(input_shape=None)
 
     def prepare_evaluator(self):
         self._evaluator = Evaluator()

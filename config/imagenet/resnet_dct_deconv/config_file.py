@@ -27,7 +27,7 @@ class TrainingConfiguration(object):
 
     def __init__(self):
         # Variables to hold the description of the experiment
-        self.description = ""
+        self.description = "Training configuration file for ResNet deconvolution lcrfa network."
 
         # System dependent variable
         self._workers = 10
@@ -35,7 +35,7 @@ class TrainingConfiguration(object):
 
         # Variables for comet.ml
         self._project_name = "jpeg-deep"
-        self._workspace = "classification_dct"
+        self._workspace = "classification_deconv_lcrfa"
 
         # Network variables
         self._weights = None
@@ -118,14 +118,15 @@ class TrainingConfiguration(object):
         ]
 
     def prepare_for_inference(self):
-        pass
+        K.clear_session()
+        self._network = deconvolution_rfa(input_shape=None)
 
     def prepare_evaluator(self):
         self._evaluator = Evaluator()
 
     def prepare_testing_generator(self):
         self._test_generator = DCTGeneratorJPEG2DCT(
-            self.test_directory, self.index_file, None, 1, transforms=self.test_transformations)
+            self.test_directory, self.index_file, None, 1, shuffle=False, transforms=self.test_transformations, split_cbcr=True)
 
     def prepare_training_generators(self):
         self._train_generator = DCTGeneratorJPEG2DCT(

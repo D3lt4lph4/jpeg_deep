@@ -16,14 +16,12 @@ from jpeg_deep.generators import SSDInputEncoder
 from jpeg_deep.transformations import SSDDataAugmentation, ConvertTo3Channels, Resize
 from jpeg_deep.losses import SSDLoss
 
-#from template.config import TemplateConfiguration
-
 
 class TrainingConfiguration(object):
 
     def __init__(self):
         # Variables to hold the description of the experiment
-        self.config_description = "This is the template config file."
+        self.config_description = "Training configuration file for the SSD on the MS-COCO dataset."
 
         # System dependent variable
         self._workers = 5
@@ -31,7 +29,7 @@ class TrainingConfiguration(object):
 
         # Variables for comet.ml
         self._project_name = "jpeg_deep"
-        self._workspace = "ssd"
+        self._workspace = "ssd_rgb_mscoco"
 
         # Network variables
         self._weights = "/dlocal/home/2017018/bdegue01/weights/jpeg_deep/reproduce/vgg/full_reg/vggd/epoch-86_loss-1.4413_val_loss-1.9857_ssd.h5"

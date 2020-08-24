@@ -28,7 +28,7 @@ from albumentations import (
 class TrainingConfiguration(object):
     def __init__(self):
         # Variables to hold the description of the experiment
-        self.description = ""
+        self.description = "Training configuration file for the vgg dct network."
 
         # System dependent variable
         self._workers = 5
