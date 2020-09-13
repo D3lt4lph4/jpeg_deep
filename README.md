@@ -367,7 +367,6 @@ The second limitation is for training. Data-augmentation has to be carried in th
 
 ## TO DO
 
-- Add displayers to the config files for the PASCAL VOC and MS COCO datasets
-- Add displayer with gt for the PASCAL VOC and MS COCO datasets
+- Add displayers to the config files for the MS COCO datasets
 - Use correct path for the PASCAL VOC and MS COCO datasets
 - Set correct descriptions for all the config files
