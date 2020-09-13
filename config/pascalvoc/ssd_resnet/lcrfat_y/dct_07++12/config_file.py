@@ -8,6 +8,7 @@ from keras.callbacks import ModelCheckpoint, TerminateOnNaN, CSVLogger, EarlySto
 from jpeg_deep.networks import SSD300_resnet
 from jpeg_deep.generators import VOCGenerator
 from jpeg_deep.evaluation import PascalEvaluator
+from jpeg_deep.displayer import DisplayerObjects
 
 from jpeg_deep.generators import SSDInputEncoder
 from jpeg_deep.transformations import SSDDataAugmentation, ConvertTo3Channels, Resize
@@ -78,6 +79,7 @@ class TrainingConfiguration(object):
         self._test_generator = None
 
         self._horovod = None
+        self._displayer = DisplayerObjects()
 
     def prepare_runtime_checkpoints(self, directories_dir):
         log_dir = directories_dir["log_dir"]
