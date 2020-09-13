@@ -318,12 +318,8 @@ class VOCGenerator(object):
                 batch_y[i] = box_filter(batch_y[i])
 
         batch_X = np.array(batch_X)
-        if self.label_encoder:
-            batch_y_encoded = self.label_encoder(batch_y)
-        else:
-            batch_y_encoded = batch_y
 
-        return batch_X, batch_y_encoded
+        return batch_X, batch_y
 
     def get_batch_data(self, index):
         """ Should return the data associated for the batch specified if any. Should return None else.

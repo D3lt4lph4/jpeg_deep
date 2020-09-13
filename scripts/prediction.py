@@ -30,10 +30,10 @@ config.prepare_testing_generator()
 config.test_generator.shuffle = True
 
 # Getting the batch to process
-X, y = config.test_generator.__getitem__(0)
+X, _ = config.test_generator.__getitem__(0)
 
 # If the input is not a displayable stuff, get the displayable
-X_true, _ = config.test_generator.get_raw_input_label(0)
+X_true, y = config.test_generator.get_raw_input_label(0)
 
 y_pred = model.predict(X)
 

@@ -1,5 +1,3 @@
-import json
-
 import numpy as np
 
 import matplotlib.pyplot as plt
@@ -94,11 +92,11 @@ class ImageNetDisplayer(object):
 
 class DisplayerObjects(object):
     def __init__(self, classes: List[str]=None, confidence_threshold: float=0.5):
-        """ Displayer for detection tasks.
+        """ Displayer for object detection tasks.
 
-        # Argument:
+        # Arguments:
             - classes: A list of all the classes to be predicted, should be in the same order as the labels. If None, uses the Pascal VOC classes.
-            - confidence_threshold: The threshold under which objects will not be considered as detection.
+            - confidence_threshold: The threshold under which objects will not be considered as positive detection.
         """
         if classes is None:
             self.classes = ['background',
@@ -114,11 +112,11 @@ class DisplayerObjects(object):
         self.colors = plt.cm.hsv(np.linspace(0, 1, len(self.classes))).tolist()
 
     def display(self, predictions: object, inputs: object):
-        """ Function to display the predictions on top of the input image.
+        """ Displays the predictions on top of the input image.
 
         # Arguments:
             - predictions: The predictions as returned by the detection network, should be an array of size (batch_size, n_boxes, 6). Last dim is (prediction, confidence, x_min, y_min, x_max, y_max).
-            - inputs: The inputs images to the detector.
+            - inputs: The inputs to the detector, should have batch size len.
         
         # Returns:
             Nothing, will display all the predictions.
@@ -126,21 +124,21 @@ class DisplayerObjects(object):
         # Filter out the predictions with confidence lower than threshold
         y_pred_thresh = [predictions[k][predictions[k, :, 1] >
                                         self.confidence_threshold] for k in range(predictions.shape[0])]
-        for k in range(len(predictions)):
 
-            # Set the colors for the bounding boxes
+        # For each of the images in the batch
+        for k in range(len(predictions)):
+            # Display the image as background
             plt.figure(figsize=(20, 12))
             plt.imshow(inputs[k])
 
+            # Get the axis to add the boxes
             current_axis = plt.gca()
 
             for box in y_pred_thresh[k]:
-                # Transform the predicted bounding boxes for the 300x300 image to the original image dimensions.
-                xmin = box[2]  # * original_images[k].shape[1]
-                ymin = box[3]  # * original_images[k].shape[0]
-                xmax = box[4]  # * original_images[k].shape[1]
-                ymax = box[5]  # * original_images[k].shape[0]
+                # Get the coordinates of the box
+                xmin, ymin, xmax, ymax = box[2:]
 
+                # Set the boxes in the limit of the input image
                 if xmin < 0:
                     xmin = 0
 
@@ -153,13 +151,14 @@ class DisplayerObjects(object):
                 if ymax > inputs[k].shape[0]:
                     ymax = inputs[k].shape[0]
 
+                # Display the prediction
                 color = self.colors[int(box[0])]
                 label = '{}: {:.2f}'.format(self.classes[int(box[0])], box[1])
                 current_axis.add_patch(plt.Rectangle(
                     (xmin, ymin), xmax-xmin, ymax-ymin, color=color, fill=False, linewidth=2))
                 current_axis.text(xmin, ymin, label, size='x-large',
                                   color='white', bbox={'facecolor': color, 'alpha': 1.0})
-
+            # Show the image
             plt.show()
 
     def display_with_gt(self, predictions: object, inputs: object, groundtruth: object):
@@ -173,4 +172,55 @@ class DisplayerObjects(object):
         # Returns:
             Nothing, will display all the predictions alongside the groundtruths.
         """
-        pass
+        # Filter out the predictions with confidence lower than threshold
+        y_pred_thresh = [predictions[k][predictions[k, :, 1] >
+                                        self.confidence_threshold] for k in range(predictions.shape[0])]
+
+        # For each of the images in the batch
+        for k in range(len(predictions)):
+            # Display the images as background
+            f, axarr = plt.subplots(1,2,figsize=(15,15))
+
+            axarr[0].set_title("Predicted")
+            axarr[0].imshow(inputs[k])
+            axarr[1].set_title("Groundtruth")
+            axarr[1].imshow(inputs[k])
+
+            for box in groundtruth[k]:
+                # Get the coordinates of the box
+                xmin, ymin, xmax, ymax = box[1:]
+
+                # Display the box
+                color = self.colors[int(box[0])]
+                label = '{}'.format(self.classes[int(box[0])])
+                axarr[1].add_patch(plt.Rectangle(
+                    (xmin, ymin), xmax-xmin, ymax-ymin, color=color, fill=False, linewidth=2))
+                axarr[1].text(xmin, ymin, label, size='x-large',
+                                  color='white', bbox={'facecolor': color, 'alpha': 1.0})
+
+            for box in y_pred_thresh[k]:
+                # Get the coordinates of the box
+                xmin, ymin, xmax, ymax = box[2:]
+
+                # Set the boxes in the limit of the input image
+                if xmin < 0:
+                    xmin = 0
+
+                if ymin < 0:
+                    ymin = 0
+
+                if xmax > inputs[k].shape[1]:
+                    xmax = inputs[k].shape[1]
+
+                if ymax > inputs[k].shape[0]:
+                    ymax = inputs[k].shape[0]
+
+                # Display the prediction
+                color = self.colors[int(box[0])]
+                label = '{}: {:.2f}'.format(self.classes[int(box[0])], box[1])
+                axarr[0].add_patch(plt.Rectangle(
+                    (xmin, ymin), xmax-xmin, ymax-ymin, color=color, fill=False, linewidth=2))
+                axarr[0].text(xmin, ymin, label, size='x-large',
+                                  color='white', bbox={'facecolor': color, 'alpha': 1.0})
+            # Show the image
+            plt.show()
