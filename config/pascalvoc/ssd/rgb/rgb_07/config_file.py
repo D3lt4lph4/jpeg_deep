@@ -19,7 +19,7 @@ class TrainingConfiguration(object):
 
     def __init__(self):
         # Variables to hold the description of the experiment
-        self.config_description = ""
+        self.config_description = "Configuration file for the training on the PascalVOC 07 dataset."
 
         # System dependent variable
         self._workers = 5
