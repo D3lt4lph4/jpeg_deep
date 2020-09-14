@@ -19,7 +19,7 @@ class TrainingConfiguration(object):
 
     def __init__(self):
         # Variables to hold the description of the experiment
-        self.config_description = ""
+        self.config_description = "Configuration file for the training on the PascalVOC 07+12 dataset."
 
         # System dependent variable
         self._workers = 5
@@ -41,6 +41,7 @@ class TrainingConfiguration(object):
         self.optimizer_parameters = {
             "lr": 0.001, "momentum": 0.9}
         self._optimizer = SGD(**self.optimizer_parameters)
+        
         self._loss = SSDLoss(neg_pos_ratio=3, alpha=1.0).compute_loss
         self._metrics = None
 
