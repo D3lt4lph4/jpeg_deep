@@ -47,7 +47,6 @@ class DatasetError(Exception):
 
 
 class COCOGenerator(object):
-
     def __init__(self,
                  image_directory: str,
                  annotation_file: str,
@@ -57,10 +56,10 @@ class COCOGenerator(object):
                  transforms: List[object] = None,
                  dct: bool = False,
                  mode: str = "train",
-                 split_cbcr: bool=False,
-                 only_y: bool=False,
-                 labels_output_format: List[str] = (
-                     'class_id', 'xmin', 'ymin', 'xmax', 'ymax')):
+                 split_cbcr: bool = False,
+                 only_y: bool = False,
+                 labels_output_format: List[str] = ('class_id', 'xmin', 'ymin',
+                                                    'xmax', 'ymax')):
         '''
         Generator for the MS-COCO dataset
         
@@ -78,8 +77,13 @@ class COCOGenerator(object):
             - labels_output_format: The format of the output (leave as is).
         '''
         self.labels_output_format = labels_output_format
-        self.labels_format = {'class_id': 0,
-                              'xmin': 1, 'ymin': 2, 'xmax': 3, 'ymax': 4}
+        self.labels_format = {
+            'class_id': 0,
+            'xmin': 1,
+            'ymin': 2,
+            'xmax': 3,
+            'ymax': 4
+        }
 
         self.images_path = []
         self.labels = []
@@ -96,8 +100,8 @@ class COCOGenerator(object):
 
         # display COCO categories and supercategories
         cats = self.coco.loadCats(self.coco.getCatIds())
-        id_classes = sorted([(value["id"], value["name"])
-                             for value in cats], key=lambda x: x[0])
+        id_classes = sorted([(value["id"], value["name"]) for value in cats],
+                            key=lambda x: x[0])
 
         # add background class
         id_classes.insert(0, (0, "background"))
@@ -107,8 +111,10 @@ class COCOGenerator(object):
                       for i, value in enumerate(id_classes)]
 
         # create a dictionnary with the ids as keys
-        self.matching_dictionnary = {value[0]: [
-            value[1], value[2]] for value in id_classes}
+        self.matching_dictionnary = {
+            value[0]: [value[1], value[2]]
+            for value in id_classes
+        }
 
         # Loading all the images
         img_ids = self.coco.getImgIds()
@@ -123,9 +129,9 @@ class COCOGenerator(object):
             bounding_boxes = []
             for annotation in annotations:
                 bbox = annotation["bbox"]
-                bbox = [bbox[0], bbox[1], bbox[0] +
-                        bbox[2], bbox[1] + bbox[3]]
-                class_id = self.matching_dictionnary[annotation["category_id"]][1]
+                bbox = [bbox[0], bbox[1], bbox[0] + bbox[2], bbox[1] + bbox[3]]
+                class_id = self.matching_dictionnary[
+                    annotation["category_id"]][1]
                 bounding_boxes.append([class_id, *bbox])
 
             if len(bounding_boxes) == 0 and mode == "train":
@@ -148,8 +154,10 @@ class COCOGenerator(object):
         self.flagged_boxes = []
         self.dct = dct
 
-        self.box_filter = BoxFilter(check_overlap=False, check_min_area=False,
-                                    check_degenerate=True, labels_format=self.labels_format)
+        self.box_filter = BoxFilter(check_overlap=False,
+                                    check_min_area=False,
+                                    check_degenerate=True,
+                                    labels_format=self.labels_format)
 
         self.on_epoch_end()
 
@@ -230,8 +238,7 @@ class COCOGenerator(object):
             # Apply any image transformations we may have received.
             if self.transforms:
                 for transform in self.transforms:
-                    batch_X[i], batch_y[i] = transform(
-                        batch_X[i], batch_y[i])
+                    batch_X[i], batch_y[i] = transform(batch_X[i], batch_y[i])
 
                     # In case the transform failed to produce an output image, which is possible for some random transforms.
                     if batch_X[i] is None:
@@ -244,7 +251,9 @@ class COCOGenerator(object):
             xmax = self.labels_format['xmax']
             ymax = self.labels_format['ymax']
 
-            if (not self._mode == "test") and (np.any(batch_y[i][:, xmax] - batch_y[i][:, xmin] <= 0) or np.any(batch_y[i][:, ymax] - batch_y[i][:, ymin] <= 0)):
+            if (not self._mode == "test") and (
+                    np.any(batch_y[i][:, xmax] - batch_y[i][:, xmin] <= 0)
+                    or np.any(batch_y[i][:, ymax] - batch_y[i][:, ymin] <= 0)):
                 batch_y[i] = self.box_filter(batch_y[i])
 
         if self.label_encoder and not self._mode == "test":
@@ -290,22 +299,24 @@ class COCOGenerator(object):
                     X_cbcr.append(np.concatenate([dct_cb, dct_cr], axis=-1))
 
             if self.split_cbcr:
-                return [np.array(X_y), np.array(X_cb), np.array(X_cr)], batch_y_encoded
+                return [np.array(X_y),
+                        np.array(X_cb),
+                        np.array(X_cr)], batch_y_encoded
             else:
                 if self.only_y:
                     return np.array(X_y), batch_y_encoded
                 else:
                     return [np.array(X_y), np.array(X_cbcr)], batch_y_encoded
 
-    def get_raw_input_label(self, index:int):
+    def get_raw_input_label(self, index: int):
         """ Should return the raw input at a given batch index, i.e something displayable.
 
         # Argument:
             - index: The index of the batch
         """
         index = index % self.batch_per_epoch
-        indexes = self.indexes[index *
-                               self.batch_size:(index + 1) * self._batch_size]
+        indexes = self.indexes[index * self.batch_size:(index + 1) *
+                               self._batch_size]
 
         if not (self.labels is None):
             if self.transforms:
@@ -331,8 +342,7 @@ class COCOGenerator(object):
             if self.transforms:
                 for transform in self.transforms:
 
-                    batch_X[i], batch_y[i] = transform(
-                        batch_X[i], batch_y[i])
+                    batch_X[i], batch_y[i] = transform(batch_X[i], batch_y[i])
 
                     # In case the transform failed to produce an output image, which is possible for some random transforms.
                     if batch_X[i] is None:
@@ -345,18 +355,16 @@ class COCOGenerator(object):
             xmax = self.labels_format['xmax']
             ymax = self.labels_format['ymax']
 
-            if np.any(batch_y[i][:, xmax] - batch_y[i][:, xmin] <= 0) or np.any(batch_y[i][:, ymax] - batch_y[i][:, ymin] <= 0):
+            if np.any(
+                    batch_y[i][:, xmax] - batch_y[i][:, xmin] <= 0) or np.any(
+                        batch_y[i][:, ymax] - batch_y[i][:, ymin] <= 0):
                 batch_y[i] = box_filter(batch_y[i])
 
         batch_X = np.array(batch_X)
-        if self.label_encoder:
-            batch_y_encoded = self.label_encoder(batch_y)
-        else:
-            batch_y_encoded = batch_y
 
-        return batch_X, batch_y_encoded
+        return batch_X, batch_y
 
-    def get_batch_data(self, index:int):
+    def get_batch_data(self, index: int):
         """ Should return the data associated for the batch specified if any. Should return None else.
 
         # Argument:
