@@ -34,7 +34,7 @@ class Evaluator(object):
         self.runs = False
         self.number_of_runs = None
 
-    def __call__(self, model, test_generator=None):
+    def __call__(self, model, test_generator=None, steps=None):
         if self._generator is None and test_generator is None:
             raise RuntimeError(
                 "A generator should be specified using the init or parameters."
@@ -43,7 +43,7 @@ class Evaluator(object):
         if test_generator is not None:
             self._generator = test_generator
 
-        self.score = model.evaluate_generator(self._generator, verbose=1)
+        self.score = model.evaluate_generator(self._generator, steps=steps, verbose=1)
 
     def model_speed(self, model:object, test_generator:object=None, number_of_runs:int=10, iteration_per_run:int=200, verbose:bool=True):
         """ Compute the speed of the network in FPS.
@@ -90,9 +90,8 @@ class Evaluator(object):
 
     def display_results(self):
         """ Function to display more information about the prediction (graphs, ...).
-
-        Not implemented.
         """
+        print("The final score is:\n\t-loss: {:.02f}\n\t-top-1: {:.02f}\n\t-top-5: {:.02f}".format(*self.score))
         pass
 
 
@@ -118,7 +117,7 @@ class PascalEvaluator(object):
         self.number_of_runs = None
         self.matching_iou_threshold = 0.5
 
-    def __call__(self, model, test_generator=None):
+    def __call__(self, model, test_generator=None, steps=None):
         if self._generator is None and test_generator is None:
             raise RuntimeError(
                 "A generator should be specified using the init or parameters."
@@ -693,7 +692,7 @@ class CocoEvaluator(object):
         self.matching_dictionnary = {value[2]: [
             value[0], value[1]] for value in id_classes}
 
-    def __call__(self, model, test_generator=None):
+    def __call__(self, model, test_generator=None, steps=None):
         if self._generator is None and test_generator is None:
             raise RuntimeError(
                 "A generator should be specified using the init or parameters."
