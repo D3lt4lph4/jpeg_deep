@@ -5,6 +5,8 @@ from keras.optimizers import SGD
 from keras.losses import categorical_crossentropy
 from keras.callbacks import ModelCheckpoint, TerminateOnNaN, EarlyStopping, ReduceLROnPlateau, TensorBoard
 
+import keras.backend as K
+
 from jpeg_deep.generators import DCTGeneratorJPEG2DCT
 from jpeg_deep.networks import deconvolution_rfa
 from jpeg_deep.evaluation import Evaluator
