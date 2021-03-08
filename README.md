@@ -22,7 +22,12 @@ All the networks proposed in this repository are modified versions of the three 
 
 ## Installation
 
-The provided code can be used directly or install as a package. The following steps are to install the dependencies in a virtual env:
+The provided code can be used directly or installed as a package.
+
+### Direct use
+
+The examples provided suppose the usage of a virtual environnement.
+The following steps are to setup this environnement:
 
 ```bash
 # Making virtualenv
@@ -33,9 +38,12 @@ source jpeg_deep/bin/activate
 
 cd ..
 
+# Optional (maybe upgrade pip)
+pip install --upgrade pip
+
 # Installing all the dependencies (the code was tested with the specified version numbers on python 3.+)
-pip install keras
 pip install tensorflow-gpu==1.14.0
+pip install keras==2.2.4
 pip install pillow
 pip install opencv-python
 pip install jpeg2dct
@@ -46,11 +54,24 @@ pip install cython
 pip install pycocotools
 pip install matplotlib
 pip install lxml
+# Correct bug in saved weights
+pip install h5py==2.10.0
 ```
+
+### Package installation
+
+If you want to include the provided networks into other projects, you can also install the package.
+
+```bash
+# Maybe activate a virtual env before running this command
+python setup.py install
+```
+
+
 
 ## Training
 
-The training uses a system of configuration files and experiments. This system aims to help saving the parameters of a given run. On start of the training, an experiment folder will be created with copies of the configuration files, weights and logs. Examples config files available are the configuration used for the different training of the [paper](https://arxiv.org/abs/2006.05732).
+The training uses a system of configuration files and experiments. This system aims to help saving the parameters of a given run. On start of the training, an experiment folder will be created with copies of the configuration file, weights and logs. Examples config files available are the configuration used for the different training of the [paper](https://arxiv.org/abs/2006.05732).
 
 ### System variables
 
@@ -68,7 +89,7 @@ export EXPERIMENTS_OUTPUT_DIRECTORY=<path_to_output_directory>
 
 ### Starting the training
 
-Once you have defined all the variables and modified the config files to your needs, simply run the following command (be aware that using horovod requires the modification of some of the parameters):
+Once you have defined all the variables and modified the config files to your needs, simply run the following command:
 
 ```bash
 python scripts/training.py -c <config_dir_path> --no-horovod
@@ -80,9 +101,9 @@ For more details on classification training on ImageNet dataset, refer to this [
 
 ### Training using horovod
 
-The training script support the usage of horovod. Be aware that using horovod requires the modification of some of the parameters, I recommend reading these articles for more details on multi gpu training: [1](https://arxiv.org/abs/1404.5997), [2](https://www.research.ed.ac.uk/portal/files/75846467/width_of_minima_reached_by_stochastic_gradient_descent_is_influenced_by_learning_rate_to_batch_size_ratio.pdf) and [3](https://arxiv.org/abs/1706.02677).
+The training script support the usage of horovod. Be aware that using horovod may require the modification of some of the parameters. I recommend reading these articles for more details on multi gpu training: [1](https://arxiv.org/abs/1404.5997), [2](https://www.research.ed.ac.uk/portal/files/75846467/width_of_minima_reached_by_stochastic_gradient_descent_is_influenced_by_learning_rate_to_batch_size_ratio.pdf) and [3](https://arxiv.org/abs/1706.02677).
 
-I highly recommend to train on multiple GPUs for the classification on ImageNet given the size of the dataset. An exemple file for training with horovod using slurm is provided [jpeg_deep.sl](slurm/jpeg_deep.sl).
+I highly recommend to train on multiple GPUs for the classification on ImageNet given the size of the dataset. An example file for training with horovod using slurm is provided [jpeg_deep.sl](slurm/jpeg_deep.sl).
 
 ```bash
 cd slurm
@@ -101,7 +122,15 @@ Displaying the results can be done using the [prediction.py](scripts/prediction.
 
 The prediction will be done on the test set. You need to modify the config_temp.py file in the experiment generated folder in order to use a different dataset.
 
-**For the vgg16 based classifiers:** The prediction script uses the test generator specified in the config file to get the data. Hence, with the provided examples, you may need first to convert the weights to a fully convolutional version of the network. This can be done using the [classification2ssd.py](scripts/classification2ssd.py) script:
+Then, simply run the following command:
+
+```bash
+python scripts/prediction.py <experiment_path> <weights_path>
+```
+
+**For the vgg16 based classifiers:** The prediction script uses the test generator specified in the config file to get the data.
+If you choose to use the one provided in the example configuration files, you will need to use the fully convolutional version of the network for prediction (test images are bigger than training images, as in the original vgg paper).
+The creation of the fully convolutional network can be done using the [classification2ssd.py](scripts/classification2ssd.py) script:
 
 ```bash
 # Create the .h5 for vgg16
@@ -109,14 +138,6 @@ python scripts/classification2ssd.py vgg16 <weights_path>
 
 # Create the .h5 for vgg_dct
 python scripts/classification2ssd.py vgg16 <weights_path> -dct
-```
-
-As the ResNet is fully convolutional, the script above needs not to be run on the ResNet weights.
-
-Once this is done, simply run the following command:
-
-```bash
-python scripts/prediction.py <experiment_path> <weights_path>
 ```
 
 ### Prediction time
