@@ -16,7 +16,7 @@
 #SBATCH --tasks-per-node=2
 #SBATCH --cpus-per-task=14
 
-# Loading modules if your environement define some
+# Loading modules if your environement defines some
 module load cuda/9.0
 module load python3-DL/3.6.1
 
