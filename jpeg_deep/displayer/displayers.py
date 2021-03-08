@@ -2,6 +2,8 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
+import json
+
 from typing import List
 
 class ImageNetDisplayer(object):
@@ -58,7 +60,7 @@ class ImageNetDisplayer(object):
             plt.imshow(img)
             plt.show()
 
-    def display_with_gt(self, prediction: object, inputs: object, groundtruth: object):
+    def display_with_gt(self, predictions: object, inputs: object, groundtruth: object):
         """ Function to display the predictions on top of the input image. The ground truth will be added.
 
         # Arguments:
@@ -81,7 +83,7 @@ class ImageNetDisplayer(object):
             idx_gt = np.argmax(groundtruth[k])
 
             # Write the prediction with the confidence on the image
-            label = 'Predicted: {}, {:.2f}'.format(self.classes[int(idx_pred)], predictions[k][idx_pred])
+            label = 'Predicted: {} ({:.2f})'.format(self.classes[int(idx_pred)], predictions[k][idx_pred])
             gt = 'Groundtruth: {}'.format(self.classes[int(idx_gt)])
             
             plt.figure("Image {}".format(k + 1))
