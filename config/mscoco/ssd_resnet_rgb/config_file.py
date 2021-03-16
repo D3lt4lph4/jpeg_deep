@@ -87,7 +87,6 @@ class TrainingConfiguration(object):
         self._validation_generator = None
         self._test_generator = None
 
-        self._horovod = None
         self.coco_classes = [
             "background", "person", "bicycle", "car", "motorcycle", "airplane",
             "bus", "train", "truck", "boat", "traffic light", "fire hydrant",
@@ -119,7 +118,6 @@ class TrainingConfiguration(object):
         self._callbacks.append(TensorBoard(log_dir))
 
     def prepare_horovod(self, hvd):
-        self._horovod = hvd
         self.optimizer_parameters[
             "lr"] = self.optimizer_parameters["lr"] * hvd.size()
         self._optimizer = SGD(**self.optimizer_parameters)

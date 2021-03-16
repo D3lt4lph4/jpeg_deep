@@ -1,6 +1,7 @@
 from os import environ
 from os.path import join
 
+from keras import backend as K
 from keras.optimizers import SGD
 from keras.callbacks import ModelCheckpoint, TerminateOnNaN, EarlyStopping, ReduceLROnPlateau, TensorBoard
 
@@ -76,7 +77,6 @@ class TrainingConfiguration(object):
         self._validation_generator = None
         self._test_generator = None
 
-        self._horovod = None
         self._displayer = DisplayerObjects()
 
     def prepare_runtime_checkpoints(self, directories_dir):
@@ -91,7 +91,6 @@ class TrainingConfiguration(object):
             TensorBoard(log_dir))
 
     def prepare_horovod(self, hvd):
-        self._horovod = hvd
         self.optimizer_parameters["lr"] = self.optimizer_parameters["lr"] * hvd.size()
         self._optimizer = SGD(**self.optimizer_parameters)
         self._optimizer = hvd.DistributedOptimizer(self._optimizer)
