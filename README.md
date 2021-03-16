@@ -54,7 +54,7 @@ pip install cython
 pip install pycocotools
 pip install matplotlib
 pip install lxml
-# Correct bug in saved weights
+# Corrects bug in saved weights
 pip install h5py==2.10.0
 ```
 
