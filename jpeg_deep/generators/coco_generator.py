@@ -328,7 +328,10 @@ class COCOGenerator(object):
         for i in indexes:
             with Image.open(self.images_path[i]) as image:
                 batch_X.append(np.array(image, dtype=np.uint8))
-            batch_y.append(deepcopy(self.labels[i]))
+            if not self._mode == "test":
+                batch_y.append(deepcopy(self.labels[i]))
+            else:
+                batch_y.append([[0, 0, 0, 0, 0]])
 
         # In case we need to remove any images from the batch, store their indices in this list.
         batch_items_to_remove = []
@@ -354,11 +357,11 @@ class COCOGenerator(object):
             ymin = self.labels_format['ymin']
             xmax = self.labels_format['xmax']
             ymax = self.labels_format['ymax']
-
-            if np.any(
-                    batch_y[i][:, xmax] - batch_y[i][:, xmin] <= 0) or np.any(
-                        batch_y[i][:, ymax] - batch_y[i][:, ymin] <= 0):
-                batch_y[i] = box_filter(batch_y[i])
+            
+            if (not self._mode == "test") and (
+                    np.any(batch_y[i][:, xmax] - batch_y[i][:, xmin] <= 0)
+                    or np.any(batch_y[i][:, ymax] - batch_y[i][:, ymin] <= 0)):
+                batch_y[i] = self.box_filter(batch_y[i])
 
         batch_X = np.array(batch_X)
 
